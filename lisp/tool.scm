@@ -18,21 +18,35 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Tools
+;; A tool is a set of event handlers and routines to install/uninstall them,
+;; hooked up to the main keymap and the tool menu.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; I don't think we need any of this. Installing/removing a tool isn't atomic
-;; I suppose we need to clear the event handlers, though, so 
-;; we do need to have some support.
-
 ;; Install a tool
+;; This gives access to the tool from the menu and keyboard,
+;; And installs an uninstall function (setup can be done by install-fun)
+;; The install has to add the event handlers, the uninstall has to remove them
 
-(define (set-current-tool tool)
-  (remove-current-tool)
-  (tool))
+(define (install-tool install-fun uninstall-fun menu-name . key-combo)
+  (let ((install-fun-with-boilerplate
+	 (lambda () 
+	   (%remove-current-tool-hook)
+	   (set! %remove-current-tool-hook uninstall-fun)
+	   (install-fun))))
+    (menu-callback-add menu-name install-fun-with-boilerplate)
+    (apply keymap-add-fun 
+	   %global-keymap 
+	   install-fun-with-boilerplate 
+	   key-combo)))
 
-;; Remove a tool
+
+;; Handle a tool stopping being the current tool
+
+(define (%remove-current-tool-hook)
+  #f)
 
 (define (remove-current-tool)
-  ;; Install the default renderer and evet hooks
-  nil
-)
+  (if %remove-current-tool-hook
+      (%remove-current-tool-hook))
+  (set! %remove-current-tool-hook #f)
+  (install-window-rendering-protocol))

@@ -167,7 +167,7 @@
 (keymap-add-fun %global-keymap reset-current-keymap "Cg")
 
 ;; Hook into the event system
-(set! %key-press-hook key-dispatch-hook-method)
+(add-key-press-hook key-dispatch-hook-method)
 
 
 ;; TEST

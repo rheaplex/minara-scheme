@@ -90,7 +90,7 @@ static void GlutWindowSet (int win) {
 
 SCM minara_window_make () {
   int win = 0;
-  glutInitDisplayMode (GLUT_SINGLE | GLUT_RGB);
+  glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB);
   glutInitWindowSize (gScreenWidth, gScreenHeight); 
   //glutInitWindowPosition (0, 0); 
   win = glutCreateWindow ("");
@@ -151,10 +151,49 @@ SCM minara_window_set (SCM win) {
   return SCM_EOL;
 }
 
+/**
+   Tell the window to redraw.
+   @param win The window id to redraw.
+   @return '()
+*/
+
+SCM minara_window_invalidate(SCM win) {
+  GLuint w = 0;
+  SCM_ASSERT(SCM_NUMBERP(win), win, SCM_ARG1, "minara-window-invalidate");
+  w = (GLuint)scm_num2int (win, SCM_ARG1, "minara-window-invalidate");
+  glutPostWindowRedisplay (w);
+  return SCM_EOL;
+}
+
 // TODO:
 
-// Window name getter and setter
 // Window position and size getter and setter
+
+/**
+   Set the window title.
+   @param win The window id to set the title of.
+   @param title The window title string.
+   @return '()
+*/
+
+SCM minara_window_set_title (SCM win, SCM title) {
+  GLuint w = 0;
+  char * t = NULL;
+  int old_win = glutGetWindow();
+  SCM_ASSERT(SCM_NUMBERP(win), win, SCM_ARG1, "minara-window-set-title");
+  w = (GLuint)scm_num2int (win, SCM_ARG1, "minara-window-set-title");
+  SCM_ASSERT(SCM_STRINGP(title), title, SCM_ARG2, "minara-window-set-title");
+  SCM_STRING_COERCE_0TERMINATION_X(title);
+  t = SCM_STRING_CHARS (title);
+  if(w != 0)
+    {
+      glutSetWindow(w);
+      glutSetWindowTitle(t);
+    }
+  if(old_win != 0)
+    glutSetWindow(old_win);
+  return SCM_EOL;
+}
 
 
 // Utilities
@@ -176,4 +215,6 @@ void WindowStartup () {
   scm_c_define_gsubr ("window-dispose", 0, 0, 0, minara_window_dispose);
   scm_c_define_gsubr ("window-current", 0, 0, 0, minara_window_current);
   scm_c_define_gsubr ("window-set", 1, 0, 0, minara_window_set);
+  scm_c_define_gsubr ("window-set-title", 2, 0, 0, minara_window_set);
+  scm_c_define_gsubr ("window-invalidate", 1, 0, 0, minara_window_invalidate);
 }

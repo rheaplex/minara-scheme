@@ -66,7 +66,7 @@ SCM minara_cache_make () {
 /**
    Destroy a cache
    @param cache The cache to finalise and deallocate.
-   @return The amount of memory deallocated
+   @return '()
 */
 
 SCM minara_cache_dispose (SCM cache) {
@@ -103,7 +103,6 @@ SCM minara_cache_record_begin (SCM cache) {
   SCM_ASSERT(SCM_NUMBERP(cache), cache, SCM_ARG1, "minara-cache-record-begin");
   c = (GLuint)scm_num2uint (cache, SCM_ARG1, "minara-cache-record-begin");
   glNewList (c, GL_COMPILE_AND_EXECUTE);
-  glClear (GL_COLOR_BUFFER_BIT);
   return SCM_EOL;
 }
 

@@ -1,37 +1,31 @@
 ;;; ttn/save-buffer.scm --- save visting buffer to disk
 
-;; Rel:v-0-32-che-caldo
+;; Rel:v-0-37-sempre-SUDRA
 ;;
-;; Copyright (C) 2001-2002 Thien-Thi Nguyen
+;; Copyright (C) 2001-2002,2004 Thien-Thi Nguyen
 ;; This file is part of ttn's personal scheme library, released under GNU
 ;; GPL with ABSOLUTELY NO WARRANTY.  See the file COPYING for details.
 
-;;; Commentary:
+(define-module (ttn save-buffer)
+  #:autoload (ttn gap-buffer) (gb->port!)
+  #:export (save-buffer))
 
-;; This module exports the proc `save-buffer':
-;;   (save-buffer buffer)
-;;
-;; Save BUFFER to disk.  BUFFER should be visiting a file.
-;; An error is thrown if BUFFER is not visiting a file.
+;; Save @var{buffer} to disk.  @var{buffer} should be visiting a file.
+;; An error is thrown if @var{buffer} is not visiting a file.
 ;; An error is thrown if the file cannot be written.
 ;;
 ;; Return #t if all goes well.
-
-;;; Code:
-
-(define-module (ttn save-buffer)
-  :autoload (ttn gap-buffer) (gb->port!))
-
+;;
 (define (save-buffer buffer)
   (let ((filename (or (object-property buffer 'filename)
                       (error "buffer `filename' not set:" buffer))))
     (or (access? filename W_OK)
         (error "file not writeable:" filename))
-    (gb->port! buffer (open-output-file filename))
-    (flush-all-ports)
+    (let ((p (open-output-file filename)))
+      (gb->port! buffer p)
+      (force-output p)
+      (close-port p))
     (= (stat:size (stat filename))
        (1- (gb-point-max buffer)))))
-
-(export save-buffer)
 
 ;;; ttn/save-buffer.scm ends here

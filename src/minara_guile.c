@@ -133,6 +133,7 @@ void GuileStartup () {
   scm_c_define_gsubr ("port-eval-with-module", 2, 0, 0, minara_port_eval_with_module);
   scm_c_define_gsubr ("string-eval-with-module", 2, 0, 0, minara_string_eval_with_module);
   // Ensure we have do-nothing event handlers installed
-  scm_c_eval_string (gGuileDoNothingEventHandlers);
+  // Now done in the Scheme code (see lisp/events.scm)
+  //scm_c_eval_string (gGuileDoNothingEventHandlers);
   // Add our extensions to %load-entensions in scheme
 }

@@ -58,45 +58,37 @@
 ;;  (closedir dir))
   (load "./test.scm")
   (load "./rendering.scm")
+  (load "./events.scm")
   (load "./keymap.scm")
   (load "./buffer.scm")
+  (load "./command-line.scm")
   (load "./menu.scm")
   (load "./picking.scm")
-  (load "./undo.scm"))
+  (load "./tool.scm")
+  (load "./undo.scm")
+  (load "./pen-tool.scm"))
 
 ;; Load the tools
 
 (define (load-tools)
   #f)
 
-;; Load the splash screen if required
-
-(define (load-splash-screen)
-  (make-cached-buffered-window-from-file "../minara.minara"))
-
 ;; Our main startup
 
 (define (startup args)
-  (debug-enable 'debug)
-  (debug-enable 'backtrace)
-  (let* ((option-spec '((file (value #t))))
-         (options (getopt-long args option-spec))
-	 (from-file (option-ref options 'file #f)))
-    ;; Load the application configuration file
-    (load-config)
-    ;; Load the user config file
-    (load-user-config)
-    ;; Load the libraries
-    (load-libraries)
-    ;; Load the tools
-    (load-tools)
-    ;; Get the event hooks back into C in case anyone forgot to
-    (bind-event-hooks)
-    ;; Load the splash screen if no file, otherwise load file
-    ;; Important, as GLUT crashes if started without a window!
-    (if (equal? from-file #f)
-	(load-splash-screen)
-       	(make-cached-buffered-window-from-file from-file))))
+  (debug-enable 'debug 'backtrace)
+  ;; Load the application configuration file
+  (load-config)
+  ;; Load the user config file
+  (load-user-config)
+  ;; Load the libraries
+  (load-libraries)
+  ;; Load the tools
+  (load-tools)
+  ;; Get the event hooks back into C in case anyone forgot to
+  (bind-event-hooks)
+  ;; Handle the command line
+  (cli-handle-arguments))
 
 ;; Call startup
 

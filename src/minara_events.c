@@ -107,8 +107,10 @@ SCM scm_bind_event_hooks() {
 
 void EventsStartup () {
   scm_c_define_gsubr ("bind-event-hooks", 0, 0, 0, scm_bind_event_hooks);
-  BindEventHooks ();
+  // called in events.scm
+  //BindEventHooks ();
 }
+
 
 // Event hook calling
 
@@ -128,6 +130,7 @@ void GlutDisplay () {
   glClear (GL_COLOR_BUFFER_BIT);
   scm_call_1 (gDrawHook, MinaraWindowCurrent ());
   glFlush ();
+  glutSwapBuffers();
 }
 
 /**
