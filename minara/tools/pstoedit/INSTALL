@@ -1,0 +1,8 @@
+Installation.
+
+Download the pstoedit sources.
+Add drvminara.c and drvminara.h to the pstoedit/src directory.
+Add the following line to the specific_drivers_src section
+of pstoedit/src/makefile.am:
+	drvminara.cpp drvminara.h			\
+Run automake and then .configure && make && make install .
