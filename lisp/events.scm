@@ -202,5 +202,5 @@
 	(delq fun 
 	      %menu-select-funs)))
 
-;; Make these accessible to the C code
+;; Make them all accessible to the C code
 (bind-event-hooks)

@@ -23,8 +23,9 @@
   (write-line "")
   (write-line "Initialization options:")
   (write-line "")
-  (write-line "--help\t\tdisplay this message and exit")
-  (write-line "--version\t\tdisplay version information and exit")
+  (write-line "-f --file <path>\t\tLoad the file given by <path>")
+  (write-line "-h --help\t\tdisplay this message and exit")
+  (write-line "-v --version\t\tdisplay version information and exit")
   (exit 0))
 
 (define (cli-version)

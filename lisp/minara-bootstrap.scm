@@ -21,7 +21,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; getopt-long...
-(use-modules (ice-9 getopt-long))
+(use-modules (ice-9 getopt-long) (ice-9 debug))
 
 ;; Load third party libraries
 
@@ -31,6 +31,7 @@
 (load "./expand-file-name.scm")
 (load "./gap-buffer.scm")
 (load "./find-file.scm")
+(load "./write-buffer.scm")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Startup
@@ -57,10 +58,12 @@
 ;;    (display entry)(newline))
 ;;  (closedir dir))
   (load "./test.scm")
+  (load "./transformations.scm")
   (load "./rendering.scm")
   (load "./events.scm")
   (load "./keymap.scm")
   (load "./buffer.scm")
+  (load "./window.scm")
   (load "./command-line.scm")
   (load "./menu.scm")
   (load "./picking.scm")
@@ -76,7 +79,8 @@
 ;; Our main startup
 
 (define (startup args)
-  (debug-enable 'debug 'backtrace)
+  (debug-enable  'debug 'backtrace)
+  (trace)
   ;; Load the application configuration file
   (load-config)
   ;; Load the user config file

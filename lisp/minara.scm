@@ -22,32 +22,6 @@
 
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Menus
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Create a menu
-
-;; Remove a menu
-
-;; Create a menu item, installing a callback
-
-;; Remove a menu item
-
-;; Change a menu callback
-
-;; Chane a menu check
-
-;; Change a menu check
-
-;; Get a menu state
-
-;; Enable a menu item
-
-;; Disble a menu item
-
-
-
 ;; Suspend undo
 ;; Resume undo
 ;; with-undo-disabled macro

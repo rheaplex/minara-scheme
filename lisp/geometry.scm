@@ -21,7 +21,7 @@
 ;; Evaluate the bezier at time t
 ;; Converted from the C in minara_rendering.c
 
-(define bezier-eval ·(h0 v0 h1 v1 h2 v2 h3 v3 t)
+(define bezier-eval (h0 v0 h1 v1 h2 v2 h3 v3 t)
   (let ((q1 (+ (* t t t -1.0) (* t t 3) (* t -3.0) 1.0))
 	(q2 (+ (* t t t 3.0) (* t t -6.0) (* t 3.0)))
 	(q3 (+ (* t t t -3.0) (* t t 3.0)))
