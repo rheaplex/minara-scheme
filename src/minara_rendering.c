@@ -382,6 +382,45 @@ void TessErrorCallback (GLenum err) {
   exit (1);
 }
 
+/** The glu tesselation intersection combination callback.
+    Prints an error message then exits.
+    @param coords The new co-ordinates of the point created by the intersection.
+	@param vertex_data The colours of the points used to make the intersection.
+	@param weights The weights of the data
+	@param data_out The data we create for the new intersection.
+*/
+
+void TessCombineCallback(GLdouble coords[3], GLdouble * vertex_data[4],
+				GLfloat weights[4], GLdouble **data_out) {
+  GLdouble * vertex = (GLdouble *)malloc(3 * sizeof(GLdouble));
+  vertex[0] = coords[0];
+  vertex[1] = coords[1];
+  vertex[2] = coords[2];
+
+  /*vertex[3] = weights[0] * vertex_data[0][3] +
+    weights[1] * vertex_data[1][3] +
+    weights[2] * vertex_data[2][3] +
+    weights[3] * vertex_data[3][3];
+
+  vertex[4] = weights[0] * vertex_data[0][4] +
+    weights[1] * vertex_data[1][4] +
+    weights[2] * vertex_data[2][4] +
+    weights[3] * vertex_data[3][4];
+
+  vertex[5] = weights[0] * vertex_data[0][5] +
+    weights[1] * vertex_data[1][5] +
+    weights[2] * vertex_data[2][5] +
+    weights[3] * vertex_data[3][5];
+
+  /*vertex[6] = weights[0] * vertex_data[0][6] +
+    weights[1] * vertex_data[1][6] +
+    weights[2] * vertex_data[2][6] +
+    weights[3] * vertex_data[3][6];*/
+
+  *data_out = vertex;
+}
+
+
 //  Program lifecycle
 
 /**
@@ -416,6 +455,7 @@ void RenderingStartup () {
   gluTessCallback (gTess, GLU_TESS_BEGIN, glBegin);
   gluTessCallback (gTess, GLU_TESS_END, glEnd);
   gluTessCallback (gTess, GLU_TESS_ERROR, TessErrorCallback);
+  gluTessCallback (gTess, GLU_TESS_COMBINE, TessCombineCallback);
   // Define our module
   scm_c_define_module ("rendering", DefineRenderingModule, NULL);
 }
