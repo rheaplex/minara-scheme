@@ -1,0 +1,196 @@
+;; minaraconv.scm : convert minara graphics files to various vector formats
+;;
+;; Copyright (c) 2004 Rob Myers, rob@robmyers.org
+;;
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2 of the License, or
+;; (at your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this program; if not, write to the Free Software
+;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+(use-modules (ice-9 rdelim))
+(use-modules (ice-9 format))
+
+;; PostScript Format
+
+(define postscript-write-header ()
+  (write-line "%!ps-Adobe 3.0"))
+
+(define postscript-write-footer ()
+  (write-line "%%EOF"))
+
+(define postscript-set-colour (r g b a)
+  (format #t "%\tf ~f ~f setrgbcolor~&" r g b))
+
+(define postscript-path-begin ()
+  (write-line "newpath"))
+
+(define postscript-path-end ()
+  (write-line "closepath~&endpath~&fillpath~&"))
+
+(define postscript-move-to (h v)
+  (format #t "\t~f ~f moveto~&" h v))
+
+(define postscript-line-to (h v)
+  (format #t "\t~f ~f moveto~&" h v))
+
+(define postscript-curve-to (h1 v1 h2 v2 h3 v3)
+  (format #t "\t~f ~f ~f ~f ~f ~f curveto~&" h1 v1 h2 v2 h3 v3))
+
+;; SVG format
+
+;; TODO: Cache the fill colour and insert as a property on
+
+(define svg-write-header ()
+  (write-line "%!ps-Adobe 3.0")
+  (write-line "<?xml version=\"1.0\" encoding=\"utf-8\"?>" )
+  (write-line "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.0//EN\"" )
+  (write-line "\t\"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\"")
+  ;;FIXME: Get the doc size from the format and set doc size/viewbox
+  (write-line "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">")
+  ;;(write-line "<!-- transform the co-ordinate system so y goes up -->")
+  ;;(write-line "<g transform=\"scale( 1.0 -1.0 )\">")
+  ;;(format #t "<g transform=\"translate( 0.0 - ~f')\">" doc-height)
+  )
+
+(define svg-write-footer ()
+  ;;(write-line "</g></g>")
+  (write-line "</svg>"))
+
+(define svg-set-colour (r g b a)
+  (define *svg-fill* (format-to-string "fill=\"~f ~f ~f\"" r g b)))
+
+(define svg-path-begin ()
+  (format #t "<path ~a d=\"" *svg-fill*))
+
+(define svg-path-end ()
+  (write-line "Z\"/>"))
+
+(define svg-move-to (h v)
+  (format #t " M ~f ~f" h v))
+
+(define svg-line-to (h v)
+  (format #t " L ~f ~f" h v))
+
+(define svg-curve-to (h1 v1 h2 v2 h3 v3)
+  (format #t " C ~f ~f ~f ~f ~f ~f" h1 v1 h2 v2 h3 v3))
+
+;; RIB format
+
+;; Need to cache the point runs to get the subpath count...
+
+(define *rib-subpath-count* 0)
+(define *rib-subpath-counts* "")
+(define *rib-paths-points* "")
+(define *rib-previous-x* 0.0)
+(define *rib-previous-y* 0.0)
+
+(define rib-write-header ()
+  (write-line "##RenderMan RIB-Structure 1.0")
+  (write-line "version 3.03")
+  (write-line "AttributeBegin"))
+
+(define rib-write-footer ()
+  (write-line "AttributeEnd"))
+
+(define rib-set-colour (r g b a)
+  (format #t "Color ~f ~f ~f ~f~&" r g b a))
+
+(define rib-path-begin ()
+  (setq *rib-subpath-count* 0)
+  (setq *rib-subpath-counts* "")
+  (setq *rib-paths-points* "")
+  (setq *rib-previous-x* 0.0)
+  (setq *rib-previous-y* 0.0)
+  (write-line "PointsGeneralPolygons[1]"))
+
+(define rib-path-end ()
+  (format #t "[~a]~&" *rib-subpath-counts*)
+  (write-line "\"P\" [" )
+  (write *rib-subpaths*)
+  (write-line "]"))
+
+(define rib-move-to (h v)
+  (let ((point (format-to-string "~f ~f 0.0 " h v)))
+    ;; Keep track of how many points are in each subpath 
+    ;; RIB needs these at the _beginning_ of the polygon data
+    (if (> *rib-subpath-count* 0) 
+	(begin (setq *rib-subpath-counts* 
+		     (string-append *rib-subpath-counts*
+				    (format-to-string "~d " 
+						      *rib-subpath-count*)))
+	       (setq *rib-subpath-count* 1)))
+    (setq *rib-subpath-count* (+ rib-subpath-count 1))
+    (setq *rib-subpaths* (string-append *rib-subpaths* point)))
+  (setq *rib-previous-x* h)
+  (setq *rib-previous-y* v))
+
+(define rib-line-to (h v)
+  (let ((point (format-to-string "~f ~f 0.0 " h v)))
+    (setq *rib-subpaths* (string-append *rib-subpaths* point)))
+  (setq *rib-previous-x* h)
+  (setq *rib-previous-y* v))
+
+;; Break the beziers down to line segments...
+
+(define rib-curve-to ()
+  ( (let (step 1.0 / 20.0))
+    (rib-curve-to-aux h1 v1 h2 v2 h3 v3 step 0.0)
+    (format #f "~f ~f 0.0 " h3 v3) ; ???
+    (setq *rib-previous-x* h3)
+    (setq *rib-previous-y* v3)))
+
+(define rib-curve-to-aux (h1 v1 h2 v2 h3 v3 step t)
+  (if (t <= 1.0)
+      (begin
+	(let* ((q1 (+ (* t t t -1.0) (* t t 3) (* t -3.0) 1.0))
+	       (q2 (+ (* t t t 3.0) (* t t -6.0) (* t 3.0)))
+	       (q3 (+ (* t t t -3.0) (* t t 3.0)))
+	       (q4 (* t t t))
+	       (qx (+ (* q1 *rib-previous-x*) (* q2 h1) (* q3 h2) (* q4 h3)))
+	       (qy (+ (* q1 *rib-previous-y*) (* q2 v1) (* q3 v2) (* q4 v3)))
+	       (point (format-to-string "~f ~f 0.0 " qx qy)))
+	  (setq *rib-subpaths* (string-append *rib-subpaths* point))
+	  (rib-curve-to-aux h1 v1 h2 v2 h3 v3 step (+ t step))))))
+
+;; Program lifecycle
+
+;; Install the format methods in an incredibly hacky way
+;; The proper way to do this would be to keep a table of protocol objects...
+
+(define install-format-protocol lambda (format-name)
+  (let ((format (gethash *formats* format-name)))
+    (define write-header (string-eval (string-append format-name "-header")))
+    (define write-footer (string-eval (string-append format-name "-footer")))
+    (define set-colour (string-eval (string-append format-name "-set-colour")))
+    (define path-begin (string-eval (string-append format-name "-path-begin")))
+    (define path-end (string-eval (string-append format-name "-path-end")))
+    (define move-to (string-eval (string-append format-name "-move-to")))
+    (define line-to (string-eval (string-append format-name "-line-to")))
+    (define curve-to (string-eval (string-append format-name "-curve-to")))))
+
+;; Get the options, install the driver methods, evaluate & write the file
+
+(define (main args)
+  (let* ((option-spec '((from (required? #t) (value #t))
+			(format (value #t))))
+         (options (getopt-long args option-spec))
+	 (file-format (option-ref options 'format "ps"))
+	 (from-file (option-ref options 'in #f)))
+    ;; Install the format protocol (the minara methods)
+    (install-format-protocol file-format)
+    ;; Write the header
+    (write-header)
+    ;; Evaluate the file with the format methods installed, 
+    ;; writing the converted file
+    (load in-file)
+    ;; Write the format footer
+    (write-footer)))

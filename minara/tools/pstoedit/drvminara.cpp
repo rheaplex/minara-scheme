@@ -129,7 +129,7 @@ void drvminara::show_text(const TextInfo & textinfo)
 void drvminara::show_path()
 {
   outf << "(set-colour " << currentR() << " " << currentG()
-       << " " currentB() << "1.0)" << endl;
+       << " " << currentB() << "1.0)" << endl;
   outf << "(path-begin)" << endl;
   print_coords();
   outf << "(path-end)" << endl;
@@ -253,5 +253,5 @@ D_sampl("minara",
 	DriverDescription::normalopen, 
 	false,	// if format supports multiple pages in one file
 	false, /*clipping */ 
-	noodriverspecificoptions);
+	nodriverspecificoptions);
  
