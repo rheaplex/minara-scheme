@@ -1,9 +1,7 @@
 0.0.1
-Basic buffers.
-
-0.0.2
+Constrain mouse events to inside windows.
 Full buffers.
-Load & save.
+Undo/redo.
 
 0.0.3
 Basic picking.

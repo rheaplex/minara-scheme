@@ -1,35 +1,24 @@
 dnl Process this file with autoconf to produce a configure script.
 
-AC_INIT(test/tstfnd.c)
-AC_CONFIG_AUX_DIR(config)
-AM_INIT_AUTOMAKE(minara, 0.0.0)
+AC_INIT(minara, 0.0.1)
+AC_CONFIG_SRCDIR(src/minara_main.c)
+AM_INIT_AUTOMAKE
 
-MAJVER=0
-MINVER=0
-REV=0
-
-AC_SUBST(MAJVER)
-AC_SUBST(MINVER)
-AC_SUBST(REV)
+dnl Get the host, important for MacOS X
+AC_CANONICAL_HOST
 
 dnl Checks for programs.
 AC_PROG_CC
-AC_PROG_LIBTOOL
-
+     
 dnl Checks for libraries.
-# This macro runs the @code{guile-config} script, installed with Guile, to
-# find out where Guile's header files and libraries are installed.  It sets
-# two variables, @var{GUILE_CFLAGS} and @var{GUILE_LDFLAGS}.
 GUILE_FLAGS
-
-dnl Checks for OpenGL, GLU and GLUT
+AX_CHECK_GL
+AX_CHECK_GLU
+AX_CHECK_GLUT
 
 dnl Checks for header files.
 AC_HEADER_STDC
 
-dnl Checks for typedefs, structures, and compiler characteristics.
-AC_C_CONST
-
-dnl Checks for library functions.
-
-AC_OUTPUT(Makefile src/Makefile)
+dnl Go!
+AC_CONFIG_FILES([Makefile src/Makefile])
+AC_OUTPUT
