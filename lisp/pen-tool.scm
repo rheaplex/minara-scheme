@@ -16,51 +16,64 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+
+;; Keep track of the mouse button state
+
 (define pen-tool-mouse-down #f)
+
   
+;; When the button is pressed, make and initialise the pen drawing buffers
+
 (define (pen-mouse-down win button x y) 
-  (let ((close-buffer (add-overlay (window-for-id win)
-					  "_pen_close"))
-	(main-buffer (add-overlay (window-for-id win)
-				  "_pen")))
-    (gb-goto-char main-buffer (gb-point-max main-buffer))
-    (gb-insert-string! main-buffer 
+  (let ((close-buffer (buffer-text (make-window-buffer (window-for-id win)
+					  "pen-close")))
+	(pen-buffer (buffer-text (make-window-buffer (window-for-id win)
+				       "pen"))))
+    (gb-goto-char pen-buffer (gb-point-max pen-buffer))
+    (gb-insert-string! pen-buffer 
 		       (format #f 
 			       "(set-colour 0.0 0.828 0.387 1.0)~%(path-begin)~%(move-to ~a ~a)~%" 
 			       x y))
     (gb-insert-string! close-buffer "(path-end)\n")
-    (set! pen-tool-mouse-down #t)
-    (multi-buffer-invalidate (window-overlays (window-for-id win)))))
+    (set! pen-tool-mouse-down #t)))
+
+;; When the mouse is dragged, add the new co-ordinate to the drawing buffer
+;; And redraw the pen drawing buffers
 
 (define (pen-mouse-move win x y) 
   (if pen-tool-mouse-down
-      (let* ((the-buffer (window-overlay (window-for-id win) 
-					    "_pen"))
+      (let* ((pen-buffer (window-buffer (window-for-id win) "pen"))
+	     (pen-text (buffer-text pen-buffer))
+	     (pen-close-buffer (window-buffer (window-for-id win) "pen-close"))
 	     (move (format #f "(line-to ~a ~a)~%" x y)))
-	(gb-goto-char the-buffer (gb-point-max the-buffer))
-	(gb-insert-string! the-buffer move)
-	(multi-buffer-invalidate (window-overlays (window-for-id win)))  
-	(window-invalidate win))))
+	(gb-goto-char pen-text (gb-point-max pen-text))
+	(gb-insert-string! pen-text move)
+	(buffer-invalidate pen-buffer)   
+	(buffer-invalidate pen-close-buffer)
+	(window-redraw win))))
+
+;; When the mouse is released, add the pen drawing buffers to the main buffer
+;; Redraw the main buffer, and release the pen drawing buffers
 
 (define (pen-mouse-up win button x y) 
   (set! pen-tool-mouse-down #f)
-  (let* ((buff (window-overlay 
-		(window-for-id win)
-		"_pen"))
-	 (close-buffer (window-overlay 
-			(window-for-id win)
-			"_pen_close"))
-	 (main-buff (window-buffer-for-id win)))
+  (let ((buff (buffer-text (window-buffer 
+	       (window-for-id win)
+	       "pen")))
+	(close-buffer (buffer-text (window-buffer 
+		       (window-for-id win)
+		       "pen-close")))
+	(main-buff (buffer-text (window-buffer-main (window-for-id win)))))
     ;; Add the overlay to the main buffer
     (gb-goto-char main-buff (gb-point-max main-buff))
     (gb-insert-string! main-buff (gb->string buff))
     (gb-goto-char main-buff (gb-point-max main-buff))
     (gb-insert-string! main-buff (gb->string close-buffer))
     ;; Clean up and redraw
-    (remove-overlay (window-for-id win) "_pen")
-    (remove-overlay (window-for-id win) "_pen_close"))
-  (cached-buffer-invalidate (window-cached-buffer-for-id win))
-  (window-invalidate win))
+    (remove-window-buffer (window-for-id win) "pen")
+    (remove-window-buffer (window-for-id win) "pen-close"))
+  (buffer-invalidate (window-buffer-main (window-for-id win)))
+  (window-redraw win))
 
 
 ;; Install
