@@ -23,24 +23,24 @@
 #include <libguile.h>
 
 // The event callbacks
-extern SCM gQuitHook;
-extern SCM gResizeHook;
-extern SCM gDrawHook;
-extern SCM gMouseButtonHook;
-extern SCM gMouseUpHook;
-extern SCM gMouseMoveHook;
-extern SCM gKeyPressHook;
-extern SCM gMenuSelectHook;
+extern SCM quit_hook;
+extern SCM resize_hook;
+extern SCM draw_hook;
+extern SCM mouse_button_down_hook;
+extern SCM mouse_button_up_hook;
+extern SCM mouse_move_hook;
+extern SCM key_press_hook;
+extern SCM menu_select_hook;
 
-void BindEventHooks ();
-void EventsStartup ();
+void bind_event_hooks ();
+void events_startup ();
 
-void GlutDisplay ();
-void GlutResize (int width, int height);
-void GlutKeyPress (unsigned char key, int x, int y);
-void GlutMouseButton (int button, int state, int x, int y);
-void GlutMouseDrag (int x, int y);
-void GlutMouseMove (int x, int y);
-void GlutMenuSelect (int id);
+void glut_display ();
+void glut_resize (int width, int height);
+void glut_key_press (unsigned char key, int x, int y);
+void glut_mouse_button (int button, int state, int x, int y);
+void glut_mouse_drag (int x, int y);
+void glut_mouse_move (int x, int y);
+void glut_menu_select (int id);
 
 #endif

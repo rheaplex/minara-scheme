@@ -23,13 +23,13 @@
 #include <libguile.h>
 
 // Default window size
-extern int gScreenWidth;
-extern int gScreenHeight;
+extern int screen_width;
+extern int screen_height;
 
-// Functions
+//Functions
 
-SCM MinaraWindowCurrent ();
+SCM minara_window_current ();
 
-void WindowStartup ();
+void window_startup ();
 
 #endif

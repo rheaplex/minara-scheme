@@ -58,7 +58,9 @@
    @return The cache ID or '()
 */
 
-SCM minara_cache_make () {
+SCM
+minara_cache_make ()
+{
   GLuint c = glGenLists (1);
   return scm_uint2num (c);
 }
@@ -69,10 +71,12 @@ SCM minara_cache_make () {
    @return '()
 */
 
-SCM minara_cache_dispose (SCM cache) {
+SCM
+minara_cache_dispose (SCM cache)
+{
   GLuint c = 0;
-  SCM_ASSERT(SCM_NUMBERP(cache), cache, SCM_ARG1, "minara-cache-dispose");
-  c = (GLuint)scm_num2uint (cache, SCM_ARG1, "minara-cache-dispose");
+  SCM_ASSERT (SCM_NUMBERP (cache), cache, SCM_ARG1, "minara-cache-dispose");
+  c = (GLuint) scm_num2uint (cache, SCM_ARG1, "minara-cache-dispose");
   glDeleteLists (c, 1);
   return SCM_EOL;
 }
@@ -83,10 +87,12 @@ SCM minara_cache_dispose (SCM cache) {
    @return '()
 */
 
-SCM minara_cache_draw (SCM cache) {  
+SCM
+minara_cache_draw (SCM cache)
+{
   GLuint c = 0;
-  SCM_ASSERT(SCM_NUMBERP(cache), cache, SCM_ARG1, "minara-cache-draw");
-  c = (GLuint)scm_num2uint (cache, SCM_ARG1, "minara-cache-draw");
+  SCM_ASSERT (SCM_NUMBERP (cache), cache, SCM_ARG1, "minara-cache-draw");
+  c = (GLuint) scm_num2uint (cache, SCM_ARG1, "minara-cache-draw");
   glCallList (c);
   glFlush ();
   return SCM_EOL;
@@ -98,10 +104,12 @@ SCM minara_cache_draw (SCM cache) {
    @return '()
 */
 
-SCM minara_cache_record_begin (SCM cache) {
+SCM
+minara_cache_record_begin (SCM cache)
+{
   GLuint c = 0;
-  SCM_ASSERT(SCM_NUMBERP(cache), cache, SCM_ARG1, "minara-cache-record-begin");
-  c = (GLuint)scm_num2uint (cache, SCM_ARG1, "minara-cache-record-begin");
+  SCM_ASSERT (SCM_NUMBERP (cache), cache, SCM_ARG1, "minara-cache-record-begin");
+  c = (GLuint) scm_num2uint (cache, SCM_ARG1, "minara-cache-record-begin");
   glNewList (c, GL_COMPILE_AND_EXECUTE);
   return SCM_EOL;
 }
@@ -112,24 +120,28 @@ SCM minara_cache_record_begin (SCM cache) {
    @return '()
 */
 
-SCM minara_cache_record_end (SCM cache) {
+SCM
+minara_cache_record_end (SCM cache)
+{
   glFlush ();
   glEndList ();
   return SCM_EOL;
 }
 
-// Program lifecycle
+//Program lifecycle
 
 /**
    Register our Guile functions
 */
 
-void CacheStartup () {
-  // Register our scheme functions
+void
+cache_startup ()
+{
+  //Register our scheme functions
   scm_c_define_gsubr ("cache-make", 0, 0, 0, minara_cache_make);
   scm_c_define_gsubr ("cache-dispose", 1, 0, 0, minara_cache_dispose);
   scm_c_define_gsubr ("cache-draw", 1, 0, 0, minara_cache_draw);
-  scm_c_define_gsubr ("cache-record-begin", 1, 0, 0, 
+  scm_c_define_gsubr ("cache-record-begin", 1, 0, 0,
 		      minara_cache_record_begin);
   scm_c_define_gsubr ("cache-record-end", 1, 0, 0, minara_cache_record_end);
 }

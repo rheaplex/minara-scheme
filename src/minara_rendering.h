@@ -20,6 +20,6 @@
 #ifndef MINARA_RENDERING_INCLUDE
 #define MINARA_RENDERING_INCLUDE
 
-void RenderingStartup ();
+void rendering_startup ();
 
 #endif

@@ -49,66 +49,70 @@
   Local defines
   ---------------------------------------------------------------------------*/
 
-#define kPointCacheSize (1024)
-#define kPointCacheStride (3)
+#define POINT_CACHE_SIZE (1024)
+#define POINT_CACHE_STRIDE (3)
 
 /*-----------------------------------------------------------------------------
   Local Structs
   ---------------------------------------------------------------------------*/
 
 /** Our tesselator point cache.
-    gluTessVertex doesn't access the vertex data until later, so we need to 
-    make sure any data passed in is live when we finish the poly. So we cache 
-    it in buffers of doubles in a linked list that can be quickly allocated 
+    gluTessVertex doesn't access the vertex data until later, so we need to
+    make sure any data passed in is live when we finish the poly. So we cache
+    it in buffers of doubles in a linked list that can be quickly allocated
     as needed, then quickly deallocated when finished with.*/
-typedef struct PointCache {
-  struct PointCache * next;
-  GLdouble * current;
-  GLdouble * end;
+typedef struct point_cache
+{
+  struct point_cache *next;
+  GLdouble *current;
+  GLdouble *end;
   GLdouble points[0];
-} PointCache;
+} point_cache;
 
 /*-----------------------------------------------------------------------------
   Globals
   ---------------------------------------------------------------------------*/
 
-/** Have we started drawing a path? 
-    If so, we need to close before we moveto, 
+/** Have we started drawing a path?
+    If so, we need to close before we moveto,
     if not we need to initialise before we moveto. */
-static int gPathStarted = 0;
+static int path_started = 0;
 
 /** Our one true, we-aren't-threaded tesselator. */
-static GLUtesselator * gTess = NULL;
+static GLUtesselator *glu_tesselator = NULL;
 
 /** Our one true, we-aren't-threaded point cache. */
-static PointCache * gPointCache = NULL;
+static point_cache *current_points = NULL;
 
-/** The previous point. Required for bezier rendering */
-static GLdouble gPreviousPoint[2] = {0.0, 0.0};
+/** The previous point. Required for bezier rendering. Thread what-ty? */
+static GLdouble previous_point[2] = {0.0, 0.0};
 
 /*-----------------------------------------------------------------------------
   Local Prototypes
   ---------------------------------------------------------------------------*/
 
-static MErr PointCacheInitialise (PointCache ** root);
-static void PointCacheFinalise (PointCache ** root);
-static MErr PointCacheIncreaseCapacity (PointCache ** root);
-static MErr PointCacheInsertPoint (PointCache ** root, GLdouble ** coords, GLdouble x, GLdouble y, GLdouble z);
+static MErr point_cache_initialise (point_cache ** root);
+static void point_cache_finalise (point_cache ** root);
+static MErr point_cache_increase_capacity (point_cache ** root);
+static MErr point_cache_insert_point (point_cache ** root, GLdouble ** coords, GLdouble x, GLdouble y, GLdouble z);
 
 /*-----------------------------------------------------------------------------
   Local Methods
   ---------------------------------------------------------------------------*/
 
-//  The Point Cache
+//The Point Cache
 
 /**
    Make sure the cache is initialised.
    @param root A pointer to the root pointer for the cache, possibly null.
    @return A Minara error code, possibly out of memory.
 */
-MErr PointCacheInitialise (PointCache ** root) {
-  if (*root == NULL) {
-    return_on_error(PointCacheIncreaseCapacity (root));
+MErr
+point_cache_initialise (point_cache ** root)
+{
+  if (*root == NULL)
+  {
+    return_on_error (point_cache_increase_capacity (root));
   }
   return kNoErr;
 }
@@ -119,15 +123,20 @@ MErr PointCacheInitialise (PointCache ** root) {
    @return A Minara error code, possibly out of memory.
 */
 
-MErr PointCacheIncreaseCapacity (PointCache ** root) {
-  // 3 Doubles to a float. We only use 2, though...
-  int cacheSize = kPointCacheSize * kPointCacheStride * sizeof(GLdouble); 
-  PointCache * p = (PointCache *)malloc (sizeof(PointCache) + cacheSize);
-  if (p == NULL) {
-    // return kOutOfMemoryErr;
+MErr
+point_cache_increase_capacity (point_cache ** root)
+{
+  //3 Doubles to a float.We only use 2, though...
+  int cache_size = POINT_CACHE_SIZE *
+  POINT_CACHE_STRIDE * sizeof (GLdouble);
+  point_cache *p =
+  (point_cache *) malloc (sizeof (point_cache) + cache_size);
+  if (p == NULL)
+  {
+    return kOutOfMemoryErr;
   }
   p->current = p->points;
-  p->end = p->current + (kPointCacheSize * kPointCacheStride);
+  p->end = p->current + (POINT_CACHE_SIZE * POINT_CACHE_STRIDE);
   p->next = *root;
   *root = p;
   return kNoErr;
@@ -139,10 +148,13 @@ MErr PointCacheIncreaseCapacity (PointCache ** root) {
    definitely null on output.
 */
 
-void PointCacheFinalise (PointCache ** root) {
-  PointCache * c = *root;
-  while (c != NULL) {
-    PointCache * next = c->next;
+void
+point_cache_finalise (point_cache ** root)
+{
+  point_cache *c = *root;
+  while (c != NULL)
+  {
+    point_cache *next = c->next;
     free (c);
     c = next;
   }
@@ -159,24 +171,27 @@ void PointCacheFinalise (PointCache ** root) {
    @return A Minara error code, possibly out of memory.
 */
 
-MErr PointCacheInsertPoint (PointCache ** root, GLdouble ** coords, GLdouble x, GLdouble y, GLdouble z) {
-  // Expand the capacity if required
-  if ((*root)->current == (*root)->end) {
-    return_on_error(PointCacheIncreaseCapacity (root));
-  }
-  // Copy the doubles in.
-  // We only use the first 2, and we should be able to optimise the copy
-  ((*root)->current)[0] = x;  
-  ((*root)->current)[1] = y; 
-  ((*root)->current)[2] = z;   
-  // Pass back the entry
-  *coords = (*root)->current;
-  // And move on
-  ((*root)->current) = ((*root)->current) + kPointCacheStride;
+MErr
+point_cache_insert_point (point_cache ** root, GLdouble ** coords, GLdouble x, GLdouble y, GLdouble z)
+{
+  //Expand the capacity if required
+    if ((*root)->current == (*root)->end)
+    {
+      return_on_error (point_cache_increase_capacity (root));
+    }
+  //Copy the doubles in.
+    // We only use the first 2, and we should be able to optimise the copy
+    ((*root)->current)[0] = x;
+  ((*root)->current)[1] = y;
+  ((*root)->current)[2] = z;
+  //Pass back the entry
+    * coords = (*root)->current;
+  //And move on
+    ((*root)->current) = ((*root)->current) + POINT_CACHE_STRIDE;
   return kNoErr;
 }
 
-//  Guile Functions
+//Guile Functions
 
 // Path Construction
 
@@ -185,12 +200,13 @@ MErr PointCacheInsertPoint (PointCache ** root, GLdouble ** coords, GLdouble x, 
    @return Scheme nil.
 */
 
-SCM render_path_begin () {
-  PointCacheInitialise (&gPointCache);
-  gluTessBeginPolygon (gTess, NULL);
-  gPathStarted = 0;
-  gPreviousPoint[0] = 0.0;
-  gPreviousPoint[1] = 0.0;
+SCM render_path_begin ()
+{
+  point_cache_initialise (&current_points);
+  gluTessBeginPolygon (glu_tesselator, NULL);
+  path_started = 0;
+  previous_point[0] = 0.0;
+  previous_point[1] = 0.0;
   //fprintf (stderr, "render-path-begin\n");
   return SCM_EOL;
 }
@@ -200,12 +216,15 @@ SCM render_path_begin () {
    @return Scheme nil.
 */
 
-SCM render_path_end () {
-  if (gPathStarted == 1) {
-    gluTessEndContour (gTess);
-    gPathStarted = 0;
+SCM
+render_path_end ()
+{
+  if (path_started == 1)
+  {
+    gluTessEndContour (glu_tesselator);
+    path_started = 0;
   }
-  gluTessEndPolygon (gTess);
+  gluTessEndPolygon (glu_tesselator);
   //fprintf (stderr, "render-path-end\n");
   return SCM_EOL;
 }
@@ -217,22 +236,25 @@ SCM render_path_end () {
    @return Scheme nil.
 */
 
-SCM render_move_to (SCM horizontal, SCM vertical) {
+SCM
+render_move_to (SCM horizontal, SCM vertical)
+{
   double h, v;
-  GLdouble * coords;
-  SCM_ASSERT(SCM_NUMBERP(horizontal), horizontal, SCM_ARG1, "render-start-path");
-  SCM_ASSERT(SCM_NUMBERP(vertical), vertical, SCM_ARG2, "render-start-path");
+  GLdouble *coords;
+  SCM_ASSERT (SCM_NUMBERP (horizontal), horizontal, SCM_ARG1, "render-start-path");
+  SCM_ASSERT (SCM_NUMBERP (vertical), vertical, SCM_ARG2, "render-start-path");
   h = scm_num2dbl (horizontal, "render-start-path");
   v = scm_num2dbl (vertical, "render-start-path");
-  if (gPathStarted == 1) {
-    gluTessEndContour (gTess);
+  if (path_started == 1)
+  {
+    gluTessEndContour (glu_tesselator);
   }
-  gluTessBeginContour (gTess);
-  PointCacheInsertPoint (&gPointCache, &coords, h, v, 0.0);
-  gluTessVertex (gTess, coords, coords);
-  gPathStarted = 1;
-  gPreviousPoint[0] = h;
-  gPreviousPoint[1] = v;
+  gluTessBeginContour (glu_tesselator);
+  point_cache_insert_point (&current_points, &coords, h, v, 0.0);
+  gluTessVertex (glu_tesselator, coords, coords);
+  path_started = 1;
+  previous_point[0] = h;
+  previous_point[1] = v;
   //fprintf (stderr, "render-path-move-to %f %f\n", h, v);
   return SCM_EOL;
 }
@@ -244,17 +266,19 @@ SCM render_move_to (SCM horizontal, SCM vertical) {
    @return Scheme nil.
 */
 
-SCM render_line_to (SCM horizontal, SCM vertical) {
+SCM
+render_line_to (SCM horizontal, SCM vertical)
+{
   double h, v;
-  GLdouble * coords;
-  SCM_ASSERT(SCM_NUMBERP(horizontal), horizontal, SCM_ARG1, "render-line-to");
-  SCM_ASSERT(SCM_NUMBERP(vertical), vertical, SCM_ARG2, "render-line-to");
+  GLdouble *coords;
+  SCM_ASSERT (SCM_NUMBERP (horizontal), horizontal, SCM_ARG1, "render-line-to");
+  SCM_ASSERT (SCM_NUMBERP (vertical), vertical, SCM_ARG2, "render-line-to");
   h = scm_num2dbl (horizontal, "render-line-to");
   v = scm_num2dbl (vertical, "render-line-to");
-  PointCacheInsertPoint (&gPointCache, &coords, h, v, 0.0);
-  gluTessVertex (gTess, coords, coords);
-  gPreviousPoint[0] = h;
-  gPreviousPoint[1] = v;
+  point_cache_insert_point (&current_points, &coords, h, v, 0.0);
+  gluTessVertex (glu_tesselator, coords, coords);
+  previous_point[0] = h;
+  previous_point[1] = v;
   //fprintf (stderr, "render-path-line-to %f %f\n", h, v);
   return SCM_EOL;
 }
@@ -271,47 +295,50 @@ SCM render_line_to (SCM horizontal, SCM vertical) {
    @return Scheme nil.
 */
 
-#define kBezierSteps (12)
+#define BEZIER_STEPS (12)
 
-SCM render_curve_to (SCM x1, SCM y1, SCM x2, SCM y2, SCM x3, SCM y3) {
+SCM
+render_curve_to (SCM x1, SCM y1, SCM x2, SCM y2, SCM x3, SCM y3)
+{
   double h1, v1, h2, v2, h3, v3;
   GLdouble *coords;
   double qx, qy;
   double q1, q2, q3, q4;
   double t = 0.0;
-  double step = 1.0 / kBezierSteps;
-  SCM_ASSERT(SCM_NUMBERP(x1), x1, SCM_ARG1, "render-curve-to");
-  SCM_ASSERT(SCM_NUMBERP(y1), y1, SCM_ARG2, "render-curve-to");
-  SCM_ASSERT(SCM_NUMBERP(x2), x2, SCM_ARG3, "render-curve-to");
-  SCM_ASSERT(SCM_NUMBERP(y2), y2, SCM_ARG4, "render-curve-to");
-  SCM_ASSERT(SCM_NUMBERP(x3), x3, SCM_ARG5, "render-curve-to");
-  SCM_ASSERT(SCM_NUMBERP(y3), y3, SCM_ARG6, "render-curve-to");
+  double step = 1.0 / BEZIER_STEPS;
+  SCM_ASSERT (SCM_NUMBERP (x1), x1, SCM_ARG1, "render-curve-to");
+  SCM_ASSERT (SCM_NUMBERP (y1), y1, SCM_ARG2, "render-curve-to");
+  SCM_ASSERT (SCM_NUMBERP (x2), x2, SCM_ARG3, "render-curve-to");
+  SCM_ASSERT (SCM_NUMBERP (y2), y2, SCM_ARG4, "render-curve-to");
+  SCM_ASSERT (SCM_NUMBERP (x3), x3, SCM_ARG5, "render-curve-to");
+  SCM_ASSERT (SCM_NUMBERP (y3), y3, SCM_ARG6, "render-curve-to");
   h1 = scm_num2dbl (x1, "render-curve-to");
   v1 = scm_num2dbl (y1, "render-curve-to");
   h2 = scm_num2dbl (x2, "render-curve-to");
   v2 = scm_num2dbl (y2, "render-curve-to");
   h3 = scm_num2dbl (x3, "render-curve-to");
   v3 = scm_num2dbl (y3, "render-curve-to");
-  while (t <= 1.0) {
-    q1 = t*t*t*-1.0 + t*t*3 + t*-3.0 + 1.0;
-    q2 = t*t*t*3.0 + t*t*-6.0 + t*3.0;
-    q3 = t*t*t*-3.0 + t*t*3.0;
-    q4 = t*t*t;
-    qx = q1*gPreviousPoint[0] + q2*h1 + q3*h2 + q4*h3;
-    qy = q1*gPreviousPoint[1] + q2*v1 + q3*v2 + q4*v3;
-    PointCacheInsertPoint (&gPointCache, &coords, qx, qy, 0.0);
-    gluTessVertex (gTess, coords, coords);
+  while (t <= 1.0)
+  {
+    q1 = t * t * t * -1.0 + t * t * 3 + t * -3.0 + 1.0;
+    q2 = t * t * t * 3.0 + t * t * -6.0 + t * 3.0;
+    q3 = t * t * t * -3.0 + t * t * 3.0;
+    q4 = t * t * t;
+    qx = q1 * previous_point[0] + q2 * h1 + q3 * h2 + q4 * h3;
+    qy = q1 * previous_point[1] + q2 * v1 + q3 * v2 + q4 * v3;
+    point_cache_insert_point (&current_points, &coords, qx, qy, 0.0);
+    gluTessVertex (glu_tesselator, coords, coords);
     t = t + step;
   }
-  PointCacheInsertPoint (&gPointCache, &coords, h3, v3, 0.0);
-  gluTessVertex (gTess, coords, coords);
-  gPreviousPoint[0] = h3;
-  gPreviousPoint[1] = v3;
+  point_cache_insert_point (&current_points, &coords, h3, v3, 0.0);
+  gluTessVertex (glu_tesselator, coords, coords);
+  previous_point[0] = h3;
+  previous_point[1] = v3;
   //fprintf (stderr, "render-path-curve-to %f %f %f %f %f %f\n", h1, v1, h2, v2, h3, v3);
   return SCM_EOL;
 }
 
-//  Rendering
+//Rendering
 
 /**
    Set the colour that shapes drawn afterwards will be.
@@ -322,12 +349,13 @@ SCM render_curve_to (SCM x1, SCM y1, SCM x2, SCM y2, SCM x3, SCM y3) {
    @return Scheme nil.
 */
 
-SCM render_set_colour (SCM r, SCM g, SCM b, SCM a) {
+SCM render_set_colour (SCM r, SCM g, SCM b, SCM a)
+{
   double af, rf, gf, bf;
-  SCM_ASSERT(SCM_NUMBERP(r), r, SCM_ARG1, "render-fill");
-  SCM_ASSERT(SCM_NUMBERP(g), g, SCM_ARG2, "render-fill");
-  SCM_ASSERT(SCM_NUMBERP(b), b, SCM_ARG3, "render-fill");
-  SCM_ASSERT(SCM_NUMBERP(a), a, SCM_ARG4, "render-fill");
+  SCM_ASSERT (SCM_NUMBERP (r), r, SCM_ARG1, "render-fill");
+  SCM_ASSERT (SCM_NUMBERP (g), g, SCM_ARG2, "render-fill");
+  SCM_ASSERT (SCM_NUMBERP (b), b, SCM_ARG3, "render-fill");
+  SCM_ASSERT (SCM_NUMBERP (a), a, SCM_ARG4, "render-fill");
   rf = scm_num2dbl (r, "render-fill");
   gf = scm_num2dbl (g, "render-fill");
   bf = scm_num2dbl (b, "render-fill");
@@ -339,36 +367,44 @@ SCM render_set_colour (SCM r, SCM g, SCM b, SCM a) {
 
 /** Redirect paths to the stencil buffer to generate the mask. */
 
-SCM render_mask_begin() {
-  glClear(GL_STENCIL_BUFFER_BIT);
-  glStencilFunc(GL_ALWAYS, 0x1, 0x1);
-  glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+SCM
+render_mask_begin ()
+{
+  glClear (GL_STENCIL_BUFFER_BIT);
+  glStencilFunc (GL_ALWAYS, 0x1, 0x1);
+  glStencilOp (GL_REPLACE, GL_REPLACE, GL_REPLACE);
   return SCM_EOL;
 }
 
 /** Finish capturing the mask and start masking painting operations. */
 
-SCM render_mask_end() {
+SCM
+render_mask_end ()
+{
   return SCM_EOL;
 }
 
 /** Start masking. */
 
-SCM render_masking_begin() {
-  glClearStencil(0x0);
-  glEnable(GL_STENCIL_TEST);
-  return SCM_EOL;
- }
-
-/** Stop masking. */
-
-SCM render_masking_end() {
-  glDisable(GL_STENCIL_TEST);
-  glClear(GL_STENCIL_BUFFER_BIT);
+SCM
+render_masking_begin ()
+{
+  glClearStencil (0x0);
+  glEnable (GL_STENCIL_TEST);
   return SCM_EOL;
 }
 
-//  GLU tesselation callbacks
+/** Stop masking. */
+
+SCM
+render_masking_end ()
+{
+  glDisable (GL_STENCIL_TEST);
+  glClear (GL_STENCIL_BUFFER_BIT);
+  return SCM_EOL;
+}
+
+//GLU tesselation callbacks
 
 /** The glu tesselation error callback.
     Hook into Scheme?
@@ -376,7 +412,9 @@ SCM render_masking_end() {
     @param err The error code.
 */
 
-void TessErrorCallback (GLenum err) {
+void
+tesselator_error_callback (GLenum err)
+{
   const GLubyte *es = gluErrorString (err);
   fprintf (stderr, "Tesselation error: %s\n", es);
   exit (1);
@@ -390,46 +428,48 @@ void TessErrorCallback (GLenum err) {
 	@param data_out The data we create for the new intersection.
 */
 
-void TessCombineCallback(GLdouble coords[3], GLdouble * vertex_data[4],
-				GLfloat weights[4], GLdouble **data_out) {
-  GLdouble * vertex = (GLdouble *)malloc(3 * sizeof(GLdouble));
+void
+tesselator_combine_callback (GLdouble coords[3], GLdouble * vertex_data[4],
+			     GLfloat weights[4], GLdouble ** data_out)
+{
+  GLdouble *vertex = (GLdouble *) malloc (3 * sizeof (GLdouble));
   vertex[0] = coords[0];
   vertex[1] = coords[1];
   vertex[2] = coords[2];
 
-  /*vertex[3] = weights[0] * vertex_data[0][3] +
-    weights[1] * vertex_data[1][3] +
-    weights[2] * vertex_data[2][3] +
-    weights[3] * vertex_data[3][3];
-
-  vertex[4] = weights[0] * vertex_data[0][4] +
-    weights[1] * vertex_data[1][4] +
-    weights[2] * vertex_data[2][4] +
-    weights[3] * vertex_data[3][4];
-
-  vertex[5] = weights[0] * vertex_data[0][5] +
-    weights[1] * vertex_data[1][5] +
-    weights[2] * vertex_data[2][5] +
-    weights[3] * vertex_data[3][5];
-
-  /*vertex[6] = weights[0] * vertex_data[0][6] +
-    weights[1] * vertex_data[1][6] +
-    weights[2] * vertex_data[2][6] +
-    weights[3] * vertex_data[3][6];*/
+  /*
+   * vertex[3] = weights[0] * vertex_data[0][3] + weights[1] *
+   * vertex_data[1][3] + weights[2] * vertex_data[2][3] + weights[3] *
+   * vertex_data[3][3];
+   *
+   * vertex[4] = weights[0] * vertex_data[0][4] + weights[1] *
+   * vertex_data[1][4] + weights[2] * vertex_data[2][4] + weights[3] *
+   * vertex_data[3][4];
+   *
+   * vertex[5] = weights[0] * vertex_data[0][5] + weights[1] *
+   * vertex_data[1][5] + weights[2] * vertex_data[2][5] + weights[3] *
+   * vertex_data[3][5];
+   *
+  /*vertex[6] = weights[0] * vertex_data[0][6] + weights[1] *
+   * vertex_data[1][6] + weights[2] * vertex_data[2][6] + weights[3] *
+   * vertex_data[3][6];
+   */
 
   *data_out = vertex;
 }
 
 
-//  Program lifecycle
+//Program lifecycle
 
 /**
    Register the Guile methods for rendering, and set up our polygon tesselator.
 */
 
-void DefineRenderingModule () {
-  // Register our functions
-  scm_c_define_gsubr ("path-begin", 0, 0, 0,  
+void
+define_rendering_module ()
+{
+  //Register our functions
+  scm_c_define_gsubr ("path-begin", 0, 0, 0,
 		      render_path_begin);
   scm_c_define_gsubr ("path-end", 0, 0, 0,
 		      render_path_end);
@@ -441,21 +481,23 @@ void DefineRenderingModule () {
   scm_c_define_gsubr ("mask-end", 0, 0, 0, render_mask_end);
   scm_c_define_gsubr ("masking-begin", 0, 0, 0, render_masking_begin);
   scm_c_define_gsubr ("masking-end", 0, 0, 0, render_masking_end);
-  // Export them
-  scm_c_export ("path-begin", "path-end", "move-to",
-		"line-to", "curve-to", "set-colour", 
-		"mask-begin", "mask-end", "masking-begin", 
-		"masking-end", NULL);
+  //Export them
+    scm_c_export ("path-begin", "path-end", "move-to",
+		  "line-to", "curve-to", "set-colour",
+		  "mask-begin", "mask-end", "masking-begin",
+		  "masking-end", NULL);
 }
 
-void RenderingStartup () {
-  // Make our tesselator
-  gTess = gluNewTess ();
-  gluTessCallback (gTess, GLU_TESS_VERTEX, glVertex3dv);
-  gluTessCallback (gTess, GLU_TESS_BEGIN, glBegin);
-  gluTessCallback (gTess, GLU_TESS_END, glEnd);
-  gluTessCallback (gTess, GLU_TESS_ERROR, TessErrorCallback);
-  gluTessCallback (gTess, GLU_TESS_COMBINE, TessCombineCallback);
-  // Define our module
-  scm_c_define_module ("rendering", DefineRenderingModule, NULL);
+void
+rendering_startup ()
+{
+  //Make our tesselator
+  glu_tesselator = gluNewTess ();
+  gluTessCallback (glu_tesselator, GLU_TESS_VERTEX, glVertex3dv);
+  gluTessCallback (glu_tesselator, GLU_TESS_BEGIN, glBegin);
+  gluTessCallback (glu_tesselator, GLU_TESS_END, glEnd);
+  gluTessCallback (glu_tesselator, GLU_TESS_ERROR, tesselator_error_callback);
+  gluTessCallback (glu_tesselator, GLU_TESS_COMBINE, tesselator_combine_callback);
+  //Define our module
+    scm_c_define_module ("rendering", define_rendering_module, NULL);
 }

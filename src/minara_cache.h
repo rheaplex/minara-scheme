@@ -20,6 +20,6 @@
 #ifndef MINARA_CACHE_INCLUDE
 #define MINARA_CACHE_INCLUDE
 
-void CacheStartup ();
+void cache_startup ();
 
 #endif

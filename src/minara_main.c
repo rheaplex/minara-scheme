@@ -22,7 +22,7 @@
 */
 
 /*-----------------------------------------------------------------------------
-  Includes    
+  Includes
   ---------------------------------------------------------------------------*/
 
 #include <stdlib.h>
@@ -49,14 +49,14 @@
 #include "minara_menu.h"
 
 /*-----------------------------------------------------------------------------
-  Constants    
+  Constants
   ---------------------------------------------------------------------------*/
 
-static const char * kBootstrapFile = "../lisp/minara-bootstrap.scm";
+static const char *bootstrap_file = "../lisp/minara-bootstrap.scm";
 
 
 /*-----------------------------------------------------------------------------
-  Globals    
+  Globals
   ---------------------------------------------------------------------------*/
 
 
@@ -64,7 +64,7 @@ static const char * kBootstrapFile = "../lisp/minara-bootstrap.scm";
   Functions
   ---------------------------------------------------------------------------*/
 
-// Program lifecycle
+//Program lifecycle
 
 /**
    The procedure called by guile as our real main.
@@ -72,32 +72,36 @@ static const char * kBootstrapFile = "../lisp/minara-bootstrap.scm";
    shuts down SDL and guile, then exits.
 */
 
-void RealMain () {
-  // Register all the Guile extensions
-  GuileStartup ();
-  RenderingStartup ();
-  CacheStartup ();
-  WindowStartup ();
-  MenuStartup ();
-  EventsStartup (); 
-  // Bootstrap the Guile code (libraries, tools, etc.)
-  // Here so all the C extensions are loaded first and GLUT is initialised
-  scm_primitive_load_path ( scm_makfrom0str (kBootstrapFile));
-  // Main event loop
-  glutMainLoop ();
-  // We quit here
-  exit (0);
+void
+real_main ()
+{
+  //Register all the Guile extensions
+  guile_startup ();
+  rendering_startup ();
+  cache_startup ();
+  window_startup ();
+  menu_startup ();
+  events_startup ();
+  //Bootstrap the Guile code (libraries, tools, etc.)
+    // Here so all the C extensions are loaded first and GLUT is initialised
+    scm_primitive_load_path (scm_makfrom0str (bootstrap_file));
+  //Main event loop
+    glutMainLoop ();
+  //We quit here
+    exit (0);
 }
 
 /**
    Our main. Just copies arc/v and calls Guile with our RealMain .
 */
 
-int main (int argc, char ** argv) {
-  // Init GLUT
+int
+main (int argc, char **argv)
+{
+  //Init GLUT
   glutInit (&argc, argv);
-  // never returns
-  scm_boot_guile (argc, argv, RealMain, NULL);
-  // Keep the compiler happy...
-  return 0;
+  //never returns
+    scm_boot_guile (argc, argv, real_main, NULL);
+  //Keep the compiler happy...
+    return 0;
 }

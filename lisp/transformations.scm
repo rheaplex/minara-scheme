@@ -122,8 +122,8 @@
 ;; push-ctm
 
 (define (push-ctm m)
-  (push %ctm %ctms
-  (concatenate m %ctm)))
+  (push %ctm %ctms)
+  (concatenate m %ctm))
 
 ;; pop-ctm
 

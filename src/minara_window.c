@@ -26,7 +26,7 @@
 
 
 /*-----------------------------------------------------------------------------
-  Includes  
+  Includes
   ---------------------------------------------------------------------------*/
 
 #include <stdio.h>
@@ -53,60 +53,66 @@
   Local Prototypes
   ---------------------------------------------------------------------------*/
 
-static void GlutWindowSet (int win);
+static void glut_window_set (int win);
 
 /*-----------------------------------------------------------------------------
   Global Variables
   ---------------------------------------------------------------------------*/
 
-// Get these from the launch environment
+//Get these from the launch environment
 /** The window startup width */
-int gScreenWidth = 640;
+int screen_width = 640;
 /** The window startup height */
-int gScreenHeight = 480;
+int screen_height = 480;
 
 /*-----------------------------------------------------------------------------
   Functions
   ---------------------------------------------------------------------------*/
 
-// Utilities
+//Utilities
 
 /*
   Set the window, allowing for being passed an invalid window.
   @param win The window id. If zero, nothing will be done.
 */
 
-static void GlutWindowSet (int win) {
-  if (win != 0) {
+static void
+glut_window_set (int win)
+{
+  if (win != 0)
+  {
     glutSetWindow (win);
   }
 }
 
-// Scheme methods
+//Scheme methods
+
 /**
    Make a window, set up the callbacks.
    @return The window ID or '()
 */
 
-SCM minara_window_make () {
+SCM minara_window_make ()
+{
   int win = 0;
   glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB);
-  glutInitWindowSize (gScreenWidth, gScreenHeight); 
-  //glutInitWindowPosition (0, 0); 
+  glutInitWindowSize (screen_width, screen_height);
+  //glutInitWindowPosition (0, 0);
   win = glutCreateWindow ("");
-  if (win == 0) {
+  if (win == 0)
+  {
     return SCM_EOL;
   }
-  // Install the event handlers
-  glutReshapeFunc (GlutResize);
-  glutDisplayFunc (GlutDisplay);
-  glutKeyboardFunc (GlutKeyPress);
-  glutMouseFunc (GlutMouseButton);
-  glutMotionFunc (GlutMouseDrag);
-  glutPassiveMotionFunc (GlutMouseMove);
-  glutAttachMenu(GLUT_RIGHT_BUTTON);
-  // Return the new window ID
-  return scm_int2num(win);
+  //Install the event handlers
+    glutReshapeFunc (glut_resize);
+  glutDisplayFunc (glut_display);
+  glutKeyboardFunc (glut_key_press);
+  glutMouseFunc (glut_mouse_button);
+  glutMotionFunc (glut_mouse_drag);
+  glutPassiveMotionFunc (glut_mouse_move);
+  glutAttachMenu (GLUT_RIGHT_BUTTON);
+  //Return the new window ID
+    return scm_int2num (win);
 }
 
 
@@ -116,14 +122,16 @@ SCM minara_window_make () {
    @return '()
 */
 
-SCM minara_window_dispose (SCM window) {
+SCM
+minara_window_dispose (SCM window)
+{
   GLuint win = 0;
-  GLuint oldWin = glutGetWindow ();
-  SCM_ASSERT(SCM_NUMBERP(window), window, SCM_ARG1, "minara-window-dispose");
-  win = (GLuint)scm_num2int (window, SCM_ARG1, "minara-window-dispose");
-  GlutWindowSet (win);
+  GLuint old_win = glutGetWindow ();
+  SCM_ASSERT (SCM_NUMBERP (window), window, SCM_ARG1, "minara-window-dispose");
+  win = (GLuint) scm_num2int (window, SCM_ARG1, "minara-window-dispose");
+  glut_window_set (win);
   glutHideWindow ();
-  GlutWindowSet (oldWin);
+  glut_window_set (old_win);
   glutDestroyWindow (win);
   return SCM_EOL;
 }
@@ -133,7 +141,9 @@ SCM minara_window_dispose (SCM window) {
    @return A fresh smob for the window, don't (dispose)!
 */
 
-SCM minara_window_current () {
+SCM
+minara_window_current ()
+{
   return scm_uint2num (glutGetWindow ());
 }
 
@@ -143,11 +153,13 @@ SCM minara_window_current () {
    @return '()
 */
 
-SCM minara_window_set (SCM win) {
+SCM
+minara_window_set (SCM win)
+{
   GLuint w = 0;
-  SCM_ASSERT(SCM_NUMBERP(win), win, SCM_ARG1, "minara-window-set");
-  w = (GLuint)scm_num2int (win, SCM_ARG1, "minara-window-set");
-  GlutWindowSet (w);
+  SCM_ASSERT (SCM_NUMBERP (win), win, SCM_ARG1, "minara-window-set");
+  w = (GLuint) scm_num2int (win, SCM_ARG1, "minara-window-set");
+  glut_window_set (w);
   return SCM_EOL;
 }
 
@@ -157,17 +169,19 @@ SCM minara_window_set (SCM win) {
    @return '()
 */
 
-SCM minara_window_invalidate(SCM win) {
+SCM
+minara_window_invalidate (SCM win)
+{
   GLuint w = 0;
-  SCM_ASSERT(SCM_NUMBERP(win), win, SCM_ARG1, "minara-window-invalidate");
-  w = (GLuint)scm_num2int (win, SCM_ARG1, "minara-window-invalidate");
+  SCM_ASSERT (SCM_NUMBERP (win), win, SCM_ARG1, "minara-window-invalidate");
+  w = (GLuint) scm_num2int (win, SCM_ARG1, "minara-window-invalidate");
   glutPostWindowRedisplay (w);
   return SCM_EOL;
 }
 
-// TODO:
+//TODO:
 
-// Window position and size getter and setter
+//Window position and size getter and setter
 
 /**
    Set the window title.
@@ -176,41 +190,37 @@ SCM minara_window_invalidate(SCM win) {
    @return '()
 */
 
-SCM minara_window_set_title (SCM win, SCM title) {
+SCM minara_window_set_title (SCM win, SCM title)
+{
   GLuint w = 0;
-  char * t = NULL;
-  int old_win = glutGetWindow();
-  SCM_ASSERT(SCM_NUMBERP(win), win, SCM_ARG1, "minara-window-set-title");
-  w = (GLuint)scm_num2int (win, SCM_ARG1, "minara-window-set-title");
-  SCM_ASSERT(SCM_STRINGP(title), title, SCM_ARG2, "minara-window-set-title");
-  SCM_STRING_COERCE_0TERMINATION_X(title);
+  char *t = NULL;
+  int old_win = glutGetWindow ();
+  SCM_ASSERT (SCM_NUMBERP (win), win, SCM_ARG1, "minara-window-set-title");
+  w = (GLuint) scm_num2int (win, SCM_ARG1, "minara-window-set-title");
+  SCM_ASSERT (SCM_STRINGP (title), title, SCM_ARG2, "minara-window-set-title");
+  SCM_STRING_COERCE_0TERMINATION_X (title);
   t = SCM_STRING_CHARS (title);
-  if(w != 0)
-    {
-      glutSetWindow(w);
-      glutSetWindowTitle(t);
-    }
-  if(old_win != 0)
-    glutSetWindow(old_win);
+  if (w != 0)
+  {
+    glutSetWindow (w);
+    glutSetWindowTitle (t);
+  }
+  if (old_win != 0)
+    glutSetWindow (old_win);
   return SCM_EOL;
 }
 
 
-// Utilities
-
-SCM MinaraWindowCurrent () {
-  return minara_window_current ();
-}
-
-
-// Program lifecycle
+//Program lifecycle
 
 /**
    Register our Guile functions
 */
 
-void WindowStartup () {
-  // Register our scheme functions
+void
+window_startup ()
+{
+  //Register our scheme functions
   scm_c_define_gsubr ("window-make", 0, 0, 0, minara_window_make);
   scm_c_define_gsubr ("window-dispose", 0, 0, 0, minara_window_dispose);
   scm_c_define_gsubr ("window-current", 0, 0, 0, minara_window_current);

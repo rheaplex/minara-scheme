@@ -50,27 +50,27 @@
   ---------------------------------------------------------------------------*/
 
 /** The current quit event scheme hook */
-SCM gQuitHook;
+SCM quit_hook;
 /** The current window resize event scheme hook */
-SCM gResizeHook;
+SCM resize_hook;
 /** The current window expose event scheme hook */
-SCM gDrawHook;
+SCM draw_hook;
 /** The current mouse button event scheme hook */
-SCM gMouseButtonDownHook;
+SCM mouse_button_down_hook;
 /** The current mouse button release event scheme hook */
-SCM gMouseButtonUpHook;
+SCM mouse_button_up_hook;
 /** The current mouse moved event scheme hook */
-SCM gMouseMoveHook;
+SCM mouse_move_hook;
 /** The current key pressed event scheme hook */
-SCM gKeyPressHook;
+SCM key_press_hook;
 /** The current menu selected event scheme hook */
-SCM gMenuSelectHook;
+SCM menu_select_hook;
 
 /*-----------------------------------------------------------------------------
   Functions
   ---------------------------------------------------------------------------*/
 
-// Callback and Scheme interfacing
+//Callback and Scheme interfacing
 
 /**
    (Re)bind the C hooks to the Scheme callbacks.
@@ -79,15 +79,17 @@ SCM gMenuSelectHook;
    hooks.
 */
 
-void BindEventHooks () {
-  gQuitHook = scm_c_eval_string ("%quit-hook");
-  gResizeHook = scm_c_eval_string ("%resize-hook");
-  gDrawHook = scm_c_eval_string ("%draw-hook");
-  gMouseButtonDownHook = scm_c_eval_string ("%mouse-down-hook");
-  gMouseButtonUpHook = scm_c_eval_string ("%mouse-up-hook");
-  gMouseMoveHook = scm_c_eval_string ("%mouse-move-hook");
-  gKeyPressHook = scm_c_eval_string ("%key-press-hook");
-  gMenuSelectHook = scm_c_eval_string ("%menu-select-hook");
+void
+bind_event_hooks ()
+{
+  quit_hook = scm_c_eval_string ("%quit-hook");
+  resize_hook = scm_c_eval_string ("%resize-hook");
+  draw_hook = scm_c_eval_string ("%draw-hook");
+  mouse_button_down_hook = scm_c_eval_string ("%mouse-down-hook");
+  mouse_button_up_hook = scm_c_eval_string ("%mouse-up-hook");
+  mouse_move_hook = scm_c_eval_string ("%mouse-move-hook");
+  key_press_hook = scm_c_eval_string ("%key-press-hook");
+  menu_select_hook = scm_c_eval_string ("%menu-select-hook");
 }
 
 /**
@@ -96,8 +98,10 @@ void BindEventHooks () {
    @return A SCM for guile, ignore.
 */
 
-SCM scm_bind_event_hooks() {
-  BindEventHooks();
+SCM
+scm_bind_event_hooks ()
+{
+  bind_event_hooks ();
   return SCM_EOL;
 }
 
@@ -105,32 +109,37 @@ SCM scm_bind_event_hooks() {
    Register the guile extensions used in managing the main event loop
 */
 
-void EventsStartup () {
+void
+events_startup ()
+{
   scm_c_define_gsubr ("bind-event-hooks", 0, 0, 0, scm_bind_event_hooks);
-  // called in events.scm
-  //BindEventHooks ();
+  //called in events.scm
+    // BindEventHooks ();
 }
 
 
-// Event hook calling
+//Event hook calling
 
 /**
    The window redraw callback for GLUT.
 */
 
-void GlutDisplay () {
-  // This may change as the renderer evolves
+void
+glut_display ()
+{
+  //This may change as the renderer evolves
   glShadeModel (GL_FLAT);
-  //TODO: Anti-aliasing. Allow enabling/disabling from Scheme/preferences
-  // Disable costly functions
-  //    (most are disabled anyway)
-  glDisable (GL_DITHER);
+//TODO:Anti - aliasing.
+    // Allow enabling / disabling from Scheme / preferences
+    // Disable costly functions
+    // (most are disabled anyway)
+    glDisable (GL_DITHER);
   glDisable (GL_DEPTH_TEST);
   glClearColor (1.0, 1.0, 1.0, 1.0);
   glClear (GL_COLOR_BUFFER_BIT);
-  scm_call_1 (gDrawHook, MinaraWindowCurrent ());
+  scm_call_1 (draw_hook, minara_window_current ());
   glFlush ();
-  glutSwapBuffers();
+  glutSwapBuffers ();
 }
 
 /**
@@ -139,19 +148,21 @@ void GlutDisplay () {
    @param height The new height of the window in pixels.
 */
 
-void GlutResize (int width, int height) {
-  // Reshape the OpenGL viewport
-  glViewport (0, 0, (GLsizei)width, (GLsizei)height);
+void
+glut_resize (int width, int height)
+{
+  //Reshape the OpenGL viewport
+  glViewport (0, 0, (GLsizei) width, (GLsizei) height);
   glMatrixMode (GL_PROJECTION);
   glLoadIdentity ();
-  gluOrtho2D (0.0, (GLdouble)width, 0.0, (GLdouble)height);
+  gluOrtho2D (0.0, (GLdouble) width, 0.0, (GLdouble) height);
   glMatrixMode (GL_MODELVIEW);
   glLoadIdentity ();
-  // Tell guile
-  scm_call_3 (gResizeHook, MinaraWindowCurrent (),
-  	      scm_long2num (width),
-	      scm_long2num (height));
-  
+  //Tell guile
+    scm_call_3 (resize_hook, minara_window_current (),
+		scm_long2num (width),
+		scm_long2num (height));
+
 }
 
 /**
@@ -161,10 +172,12 @@ void GlutResize (int width, int height) {
    @param y The y co-ordinate the mouse is at.
 */
 
-void GlutKeyPress (unsigned char key, int x, int y) {
+void
+glut_key_press (unsigned char key, int x, int y)
+{
   int modifiers = glutGetModifiers ();
   char keyString[] = {key, NULL};
-  scm_call_3 (gKeyPressHook, MinaraWindowCurrent (),
+  scm_call_3 (key_press_hook, minara_window_current (),
 	      scm_makfrom0str (keyString), scm_long2num (modifiers));
 }
 
@@ -176,9 +189,12 @@ void GlutKeyPress (unsigned char key, int x, int y) {
    @param y The y co-ordinate the mouse is at.
 */
 
-void GlutMouseButton (int button, int state, int x, int y) {
+void
+glut_mouse_button (int button, int state, int x, int y)
+{
   int buttonNum;
-  switch (button) {
+  switch (button)
+  {
   case GLUT_LEFT_BUTTON:
     buttonNum = 1;
     break;
@@ -189,13 +205,16 @@ void GlutMouseButton (int button, int state, int x, int y) {
     buttonNum = 3;
     break;
   }
-  if (state == GLUT_UP) {
-    scm_call_4 (gMouseButtonUpHook, MinaraWindowCurrent (),
-		scm_long2num(buttonNum), 
+  if (state == GLUT_UP)
+  {
+    scm_call_4 (mouse_button_up_hook, minara_window_current (),
+		scm_long2num (buttonNum),
 		scm_long2num (x), scm_long2num (y));
-  } else {
-    scm_call_4 (gMouseButtonDownHook, MinaraWindowCurrent (),
-		scm_long2num(buttonNum), 
+  }
+  else
+  {
+    scm_call_4 (mouse_button_down_hook, minara_window_current (),
+		scm_long2num (buttonNum),
 		scm_long2num (x), scm_long2num (y));
   }
 }
@@ -206,8 +225,10 @@ void GlutMouseButton (int button, int state, int x, int y) {
    @param y The y co-ordinate the mouse is now at.
 */
 
-void GlutMouseDrag (int x, int y) {
-  scm_call_3 (gMouseMoveHook, MinaraWindowCurrent (),
+void
+glut_mouse_drag (int x, int y)
+{
+  scm_call_3 (mouse_move_hook, minara_window_current (),
 	      scm_long2num (x), scm_long2num (y));
 }
 
@@ -217,8 +238,10 @@ void GlutMouseDrag (int x, int y) {
    @param y The y co-ordinate the mouse is now at.
 */
 
-void GlutMouseMove (int x, int y) {
-  scm_call_3 (gMouseMoveHook, MinaraWindowCurrent (),
+void
+glut_mouse_move (int x, int y)
+{
+  scm_call_3 (mouse_move_hook, minara_window_current (),
 	      scm_long2num (x), scm_long2num (y));
 }
 
@@ -227,8 +250,9 @@ void GlutMouseMove (int x, int y) {
    @param id The menu id number.
 */
 
-void GlutMenuSelect (int id) {
-  scm_call_2 (gMenuSelectHook, MinaraWindowCurrent (),
+void
+glut_menu_select (int id)
+{
+  scm_call_2 (menu_select_hook, minara_window_current (),
 	      scm_long2num (id));
 }
-

@@ -20,17 +20,17 @@
 #ifndef MINARA_ERROR_INCLUDE
 #define MINARA_ERROR_INCLUDE
 
-// Error codes (1 = OK, <= 0 not)
+// Error codes (1 = OK, <=0 not)
+  typedef enum
+  {
+    kNoErr = 1,
+    kErr = 0,
+    kOutOfMemoryErr = -1,
+    kStackWouldOverflowErr = -2,
+    kStackWouldUnderflowErr = -3,
+  } MErr;
 
-typedef enum {
-  kNoErr = 1,
-  kErr = 0,
-  kOutOfMemoryErr = -1,
-  kStackWouldOverflowErr = -2,
-  kStackWouldUnderflowErr = -3,
-} MErr;
-
-// Careful of this, it hides flow of execution
+//Careful of this, it hides flow of execution
 
 #define return_on_error(fun)						\
   do { MErr err = fun; if(err != kNoErr) return err; } while (0)

@@ -24,6 +24,6 @@
 
 // Functions
 
-void MenuStartup ();
+void menu_startup ();
 
 #endif

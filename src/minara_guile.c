@@ -21,7 +21,7 @@
 */
 
 /*-----------------------------------------------------------------------------
-  Includes  
+  Includes
   ---------------------------------------------------------------------------*/
 
 #include <stdlib.h>
@@ -36,8 +36,8 @@
 
 /** Do-nothing event handlers. */
 
-char * gGuileDoNothingEventHandlers = \
-  "(define %quit-hook (lambda () (write-line \"quit-hook\" (current-error-port)) (force-output (current-error-port)))) \
+char *guile_do_nothinevent_handlers = \
+"(define %quit-hook (lambda () (write-line \"quit-hook\" (current-error-port)) (force-output (current-error-port)))) \
   (define %resize-hook (lambda (win width height) (write-line \"resize-hook\" (current-error-port)) (force-output (current-error-port)))) \
   (define %draw-hook (lambda (win) (write-line \"draw-hook\" (current-error-port)) (force-output (current-error-port)))) \
   (define %mouse-down-hook (lambda (win button x y) (write-line \"mouse-down-hook\" (current-error-port)) (force-output (current-error-port)))) \
@@ -51,19 +51,19 @@ char * gGuileDoNothingEventHandlers = \
   Functions
   ---------------------------------------------------------------------------*/
 
-// Scheme functions
+//Scheme functions
 
-/* Evaluating strings in modules
-   -----------------------------
-   One of the foundations of Minara is the idea that the same code can be
-   evaluated with different bindings for the same functions. So line-to has
-   a different effect when rendering and picking for example.
-   We could set! the function bindings before each render/pick, we could have 
-   the functions dispatch differently depending on a global (bound by a macro
-   for the duration of render/pick then restored).
-   But I wanted to try it like this. Better implementations are welcomed. :-)
-   - robmyers.
-*/
+/*
+ * Evaluating strings in modules
+ * One of the
+ * foundations of Minara is the idea that the same code can be evaluated with
+ * different bindings for the same functions. So line-to has a different
+ * effect when rendering and picking for example. We could set! the function
+ * bindings before each render/pick, we could have the functions dispatch
+ * differently depending on a global (bound by a macro for the duration of
+ * render/pick then restored). But I wanted to try it like this. Better
+ * implementations are welcomed. :-) - robmyers.
+ */
 
 /**
    Evaluate a string port. Copied from strport.c in libguile.
@@ -72,41 +72,48 @@ char * gGuileDoNothingEventHandlers = \
    @return The result of evaluation
 */
 
-SCM our_inner_eval_string (SCM port) {
+SCM our_inner_eval_string (SCM port)
+{
   SCM form;
-  SCM ans = SCM_UNSPECIFIED;
+  SCM result = SCM_UNSPECIFIED;
 
   /* Read expressions from that port; ignore the values.  */
   while (!SCM_EOF_OBJECT_P (form = scm_read (port)))
-    ans = scm_primitive_eval_x (form);
+    result = scm_primitive_eval_x (form);
 
-  /* Don't close the port here; if we re-enter this function via a
-     continuation, then the next time we enter it, we'll get an error.
-     It's a string port anyway, so there's no advantage to closing it
-     early.  */
+  /*
+   * Don't close the port here; if we re-enter this function via a
+   * continuation, then the next time we enter it, we'll get an error.
+   * It's a string port anyway, so there's no advantage to closing it
+   * early.
+   */
 
-  return ans;
+  return result;
 }
 
 /**
-   Evaluate a port in the given module 
+   Evaluate a port in the given module
    @param port The prot to read the Scheme code from to evaluate
    @param module The module to evaluate the code in
    @return The result of evaluation
 */
 
-SCM minara_port_eval_with_module (SCM port, SCM module) {
-  return scm_c_call_with_current_module (module, our_inner_eval_string, (void *)port);
+SCM
+minara_port_eval_with_module (SCM port, SCM module)
+{
+  return scm_c_call_with_current_module (module, our_inner_eval_string, (void *) port);
 }
 
 /**
-   Evaluate a port in the given module 
+   Evaluate a port in the given module
    @param port The prot to read the Scheme code from to evaluate
    @param module The module to evaluate the code in
    @return The result of evaluation
 */
 
-SCM minara_string_eval_with_module (SCM string, SCM module) {
+SCM
+minara_strineval_with_module (SCM string, SCM module)
+{
   SCM port = scm_mkstrport (SCM_INUM0, string, SCM_OPN | SCM_RDNG,
 			    "eval-string");
   return minara_port_eval_with_module (port, module);
@@ -115,9 +122,9 @@ SCM minara_string_eval_with_module (SCM string, SCM module) {
 
 /*-----------------------------------------------------------------------------
   Program Lifecycle
-  
+
   This is the main Guile setup code.
-  Extensions are scattered throughout the code, notably in 
+  Extensions are scattered throughout the code, notably in
   minara_rendering.c .
   The main program lifecycle code that calls into Guile is
   found in minara_main.c .
@@ -128,12 +135,14 @@ SCM minara_string_eval_with_module (SCM string, SCM module) {
  * into the top level environment
  */
 
-void GuileStartup () {
-  // Register our scheme functions
+void
+guile_startup ()
+{
+  //Register our scheme functions
   scm_c_define_gsubr ("port-eval-with-module", 2, 0, 0, minara_port_eval_with_module);
-  scm_c_define_gsubr ("string-eval-with-module", 2, 0, 0, minara_string_eval_with_module);
-  // Ensure we have do-nothing event handlers installed
-  // Now done in the Scheme code (see lisp/events.scm)
-  //scm_c_eval_string (gGuileDoNothingEventHandlers);
-  // Add our extensions to %load-entensions in scheme
-}
+  scm_c_define_gsubr ("string-eval-with-module", 2, 0, 0, minara_strineval_with_module);
+  //Ensure we have do-nothing event handlers installed
+  // Now done in the Scheme code (see lisp / events.scm)
+  // scm_c_eval_string (gGuileDoNothingEventHandlers);
+  //Add our extensions to % load - entensions in scheme
+  }

@@ -27,7 +27,8 @@
 
 #include "minara_error.h"
 
-// Misnamed. Return a SCM error if the function returns a MErr
+// Misnamed.Return a SCM error if the
+  //function returns a MErr
 
 #define guile_error_return(x)				\
   do { MErr status = x;					\
@@ -37,6 +38,6 @@
     }							\
   } while (0)
 
-void GuileStartup ();
+    void guile_startup ();
 
 #endif

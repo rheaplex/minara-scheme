@@ -21,7 +21,7 @@
 #define MINARA_MAIN_INCLUDE
 
 // Copies of the command line arguments
-extern int gArgC;
-extern char ** gArgV;
+extern int arg_c;
+extern char **arg_v;
 
 #endif
