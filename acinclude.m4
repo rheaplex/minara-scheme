@@ -483,17 +483,17 @@ AC_SUBST([GLUT_LIBS])
 # The variables are marked for substitution, as by @code{AC_SUBST}.
 #
 AC_DEFUN([GUILE_PROGS],
- [AC_PATH_PROG(GUILE,guile-1.6)
+ [AC_PATH_PROG(GUILE,guile)
   if test "$GUILE" = "" ; then
       AC_MSG_ERROR([guile required but not found])
   fi
   AC_SUBST(GUILE)
-  AC_PATH_PROG(GUILE_CONFIG,guile-1.6-config)
+  AC_PATH_PROG(GUILE_CONFIG,guile-config)
   if test "$GUILE_CONFIG" = "" ; then
       AC_MSG_ERROR([guile-config required but not found])
   fi
   AC_SUBST(GUILE_CONFIG)
-  AC_PATH_PROG(GUILE_TOOLS,guile-1.6-tools)
+  AC_PATH_PROG(GUILE_TOOLS,guile-tools)
   AC_SUBST(GUILE_TOOLS)
  ])
 
