@@ -57,9 +57,10 @@
   ---------------------------------------------------------------------------*/
 
 /** Our tesselator point cache.
-    gluTessVertex doesn't access the vertex data until later, so we need to make sure any data passed
-    in is live when we finish the poly. So we cache it in buffers of doubles in a linked list that
-    can be quickly allocated as needed, then deallocated if ever needed.*/
+    gluTessVertex doesn't access the vertex data until later, so we need to 
+    make sure any data passed in is live when we finish the poly. So we cache 
+    it in buffers of doubles in a linked list that can be quickly allocated 
+    as needed, then quickly deallocated when finished with.*/
 typedef struct PointCache {
   struct PointCache * next;
   GLdouble * current;
@@ -190,6 +191,7 @@ SCM render_path_begin () {
   gPathStarted = 0;
   gPreviousPoint[0] = 0.0;
   gPreviousPoint[1] = 0.0;
+  //fprintf (stderr, "render-path-begin\n");
   return SCM_EOL;
 }
 
@@ -204,6 +206,7 @@ SCM render_path_end () {
     gPathStarted = 0;
   }
   gluTessEndPolygon (gTess);
+  //fprintf (stderr, "render-path-end\n");
   return SCM_EOL;
 }
 
@@ -230,6 +233,7 @@ SCM render_move_to (SCM horizontal, SCM vertical) {
   gPathStarted = 1;
   gPreviousPoint[0] = h;
   gPreviousPoint[1] = v;
+  //fprintf (stderr, "render-path-move-to %f %f\n", h, v);
   return SCM_EOL;
 }
 
@@ -251,6 +255,7 @@ SCM render_line_to (SCM horizontal, SCM vertical) {
   gluTessVertex (gTess, coords, coords);
   gPreviousPoint[0] = h;
   gPreviousPoint[1] = v;
+  //fprintf (stderr, "render-path-line-to %f %f\n", h, v);
   return SCM_EOL;
 }
 
@@ -302,6 +307,7 @@ SCM render_curve_to (SCM x1, SCM y1, SCM x2, SCM y2, SCM x3, SCM y3) {
   gluTessVertex (gTess, coords, coords);
   gPreviousPoint[0] = h3;
   gPreviousPoint[1] = v3;
+  //fprintf (stderr, "render-path-curve-to %f %f %f %f %f %f\n", h1, v1, h2, v2, h3, v3);
   return SCM_EOL;
 }
 
@@ -327,6 +333,7 @@ SCM render_set_colour (SCM r, SCM g, SCM b, SCM a) {
   bf = scm_num2dbl (b, "render-fill");
   af = scm_num2dbl (a, "render-fill");
   glColor4f (rf, gf, bf, af);
+  //fprintf (stderr, "render-set-color %f %f %f %f\n", rf, gf, bf, af);
   return SCM_EOL;
 }
 
@@ -350,21 +357,28 @@ void TessErrorCallback (GLenum err) {
    Register the Guile methods for rendering, and set up our polygon tesselator.
 */
 
-void RenderingStartup () {
-  //FIXME: Set the rendering module/lexenv
+void DefineRenderingModule () {
   // Register our functions
-  scm_c_define_gsubr ("%render-path-begin", 0, 0, 0,  
+  scm_c_define_gsubr ("path-begin", 0, 0, 0,  
 		      render_path_begin);
-  scm_c_define_gsubr ("%render-path-end", 0, 0, 0,
+  scm_c_define_gsubr ("path-end", 0, 0, 0,
 		      render_path_end);
-  scm_c_define_gsubr ("%render-move-to", 2, 0, 0, render_move_to);
-  scm_c_define_gsubr ("%render-line-to", 2, 0, 0, render_line_to);
-  scm_c_define_gsubr ("%render-curve-to", 6, 0, 0, render_curve_to);
-  scm_c_define_gsubr ("%render-set-colour", 4, 0, 0, render_set_colour);
+  scm_c_define_gsubr ("move-to", 2, 0, 0, render_move_to);
+  scm_c_define_gsubr ("line-to", 2, 0, 0, render_line_to);
+  scm_c_define_gsubr ("curve-to", 6, 0, 0, render_curve_to);
+  scm_c_define_gsubr ("set-colour", 4, 0, 0, render_set_colour);
+  // Export them
+  scm_c_export ("path-begin", "path-end", "move-to",
+		"line-to", "curve-to", "set-colour", NULL);
+}
+
+void RenderingStartup () {
   // Make our tesselator
   gTess = gluNewTess ();
   gluTessCallback (gTess, GLU_TESS_VERTEX, glVertex3dv);
   gluTessCallback (gTess, GLU_TESS_BEGIN, glBegin);
   gluTessCallback (gTess, GLU_TESS_END, glEnd);
   gluTessCallback (gTess, GLU_TESS_ERROR, TessErrorCallback);
+  // Define our module
+  scm_c_define_module ("rendering", DefineRenderingModule, NULL);
 }

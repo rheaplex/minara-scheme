@@ -44,16 +44,19 @@
 #include "minara_events.h"
 #include "minara_guile.h"
 #include "minara_rendering.h"
+#include "minara_cache.h"
 #include "minara_window.h"
+
+/*-----------------------------------------------------------------------------
+  Constants    
+  ---------------------------------------------------------------------------*/
+
+static const char * kBootstrapFile = "../lisp/minara-bootstrap.scm";
 
 /*-----------------------------------------------------------------------------
   Globals    
   ---------------------------------------------------------------------------*/
 
-/** A copy of argc */
-int gArgC = 0;
-/** A reference to argv */
-char ** gArgV = NULL;
 
 /*-----------------------------------------------------------------------------
   Functions
@@ -68,16 +71,15 @@ char ** gArgV = NULL;
 */
 
 void RealMain () {
-  MinaraWindow * startWindow;
+  // Register all the Guile extensions
   GuileStartup ();
   RenderingStartup ();
+  CacheStartup ();
   WindowStartup ();
-  EventsStartup ();
-  // Init GLUT
-  glutInit(&gArgC, gArgV);
-  // GLUT dies if we don't start with a window created...
-  MinaraWindowMake (&startWindow, gScreenWidth, gScreenHeight, "minara");
-  MinaraWindowInsert (&gWindows, startWindow);
+  EventsStartup (); 
+  // Bootstrap the Guile code (libraries, tools, etc.)
+  // Here so all the C extensions are loaded first and GLUT is initialised
+  scm_primitive_load_path ( scm_makfrom0str (kBootstrapFile));
   // Main event loop
   glutMainLoop ();
   // We quit here
@@ -89,9 +91,8 @@ void RealMain () {
 */
 
 int main (int argc, char ** argv) {
-  // Taka a copy of argc and argv
-  gArgC = argc;
-  gArgV = argv;
+  // Init GLUT
+  glutInit (&argc, argv);
   // never returns
   scm_boot_guile (argc, argv, RealMain, NULL);
   // Keep the compiler happy...

@@ -2,6 +2,9 @@
   minara - a programmable graphics program editor
   Copyright (C) 2004  Rob Myers rob@robmyers.org
 
+  Some code
+  Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
+
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
@@ -42,6 +45,73 @@ char * gGuileDoNothingEventHandlers = \
   (define %mouse-move-hook (lambda (win x y) (write-line \"mouse-move-hook\" (current-error-port)) (force-output (current-error-port)))) \
   (define %key-press-hook (lambda (win key) (write-line \"key-press-hook\" (current-error-port)) (force-output (current-error-port))))";
 
+
+/*-----------------------------------------------------------------------------
+  Functions
+  ---------------------------------------------------------------------------*/
+
+// Scheme functions
+
+/* Evaluating strings in modules
+   -----------------------------
+   One of the foundations of Minara is the idea that the same code can be
+   evaluated with different bindings for the same functions. So line-to has
+   a different effect when rendering and picking for example.
+   We could set! the function bindings before each render/pick, we could have 
+   the functions dispatch differently depending on a global (bound by a macro
+   for the duration of render/pick then restored).
+   But I wanted to try it like this. Better implementations are welcomed. :-)
+   - robmyers.
+*/
+
+/**
+   Evaluate a string port. Copied from strport.c in libguile.
+   @param port The prot to read the Scheme code from to evaluate
+   @param module The module to evaluate the code in
+   @return The result of evaluation
+*/
+
+SCM our_inner_eval_string (SCM port) {
+  SCM form;
+  SCM ans = SCM_UNSPECIFIED;
+
+  /* Read expressions from that port; ignore the values.  */
+  while (!SCM_EOF_OBJECT_P (form = scm_read (port)))
+    ans = scm_primitive_eval_x (form);
+
+  /* Don't close the port here; if we re-enter this function via a
+     continuation, then the next time we enter it, we'll get an error.
+     It's a string port anyway, so there's no advantage to closing it
+     early.  */
+
+  return ans;
+}
+
+/**
+   Evaluate a port in the given module 
+   @param port The prot to read the Scheme code from to evaluate
+   @param module The module to evaluate the code in
+   @return The result of evaluation
+*/
+
+SCM minara_port_eval_with_module (SCM port, SCM module) {
+  return scm_c_call_with_current_module (module, our_inner_eval_string, (void *)port);
+}
+
+/**
+   Evaluate a port in the given module 
+   @param port The prot to read the Scheme code from to evaluate
+   @param module The module to evaluate the code in
+   @return The result of evaluation
+*/
+
+SCM minara_string_eval_with_module (SCM string, SCM module) {
+  SCM port = scm_mkstrport (SCM_INUM0, string, SCM_OPN | SCM_RDNG,
+			    "eval-string");
+  return minara_port_eval_with_module (port, module);
+}
+
+
 /*-----------------------------------------------------------------------------
   Program Lifecycle
   
@@ -58,10 +128,10 @@ char * gGuileDoNothingEventHandlers = \
  */
 
 void GuileStartup () {
+  // Register our scheme functions
+  scm_c_define_gsubr ("port-eval-with-module", 2, 0, 0, minara_port_eval_with_module);
+  scm_c_define_gsubr ("string-eval-with-module", 2, 0, 0, minara_string_eval_with_module);
   // Ensure we have do-nothing event handlers installed
   scm_c_eval_string (gGuileDoNothingEventHandlers);
   // Add our extensions to %load-entensions in scheme
-  // Load our library code from ?
-  // Load .minara without searching, and without failing if it isn't there
-  //scm_primitive_load ( scm_makfrom0str ("~/.minara"));
 }

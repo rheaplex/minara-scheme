@@ -1,3 +1,8 @@
+#!/bin/sh
+# aside from this initial boilerplate, this is actually -*- scheme -*- code
+main='(module-ref (resolve-module '\''(guile-user)) '\'main')'
+exec ${GUILE-guile} -l $0 -c "(apply $main (command-line))" "$@"
+!#
 ;; minaraconv.scm : convert minara graphics files to various vector formats
 ;;
 ;; Copyright (c) 2004 Rob Myers, rob@robmyers.org
@@ -16,40 +21,41 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-(use-modules (ice-9 rdelim))
 (use-modules (ice-9 format))
+(use-modules (ice-9 getopt-long))
+(use-modules (ice-9 rdelim))
 
 ;; PostScript Format
 
-(define postscript-write-header ()
+(define (postscript-write-header)
   (write-line "%!ps-Adobe 3.0"))
 
-(define postscript-write-footer ()
+(define (postscript-write-footer)
   (write-line "%%EOF"))
 
-(define postscript-set-colour (r g b a)
+(define (postscript-set-colour r g b a)
   (format #t "%\tf ~f ~f setrgbcolor~&" r g b))
 
-(define postscript-path-begin ()
+(define (postscript-path-begin)
   (write-line "newpath"))
 
-(define postscript-path-end ()
+(define (postscript-path-end)
   (write-line "closepath~&endpath~&fillpath~&"))
 
-(define postscript-move-to (h v)
+(define (postscript-move-to h v)
   (format #t "\t~f ~f moveto~&" h v))
 
-(define postscript-line-to (h v)
+(define (postscript-line-to h v)
   (format #t "\t~f ~f moveto~&" h v))
 
-(define postscript-curve-to (h1 v1 h2 v2 h3 v3)
+(define (postscript-curve-to h1 v1 h2 v2 h3 v3)
   (format #t "\t~f ~f ~f ~f ~f ~f curveto~&" h1 v1 h2 v2 h3 v3))
 
 ;; SVG format
 
 ;; TODO: Cache the fill colour and insert as a property on
 
-(define svg-write-header ()
+(define (svg-write-header)
   (write-line "%!ps-Adobe 3.0")
   (write-line "<?xml version=\"1.0\" encoding=\"utf-8\"?>" )
   (write-line "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.0//EN\"" )
@@ -61,26 +67,26 @@
   ;;(format #t "<g transform=\"translate( 0.0 - ~f')\">" doc-height)
   )
 
-(define svg-write-footer ()
+(define (svg-write-footer)
   ;;(write-line "</g></g>")
   (write-line "</svg>"))
 
-(define svg-set-colour (r g b a)
+(define (svg-set-colour r g b a)
   (define *svg-fill* (format-to-string "fill=\"~f ~f ~f\"" r g b)))
 
-(define svg-path-begin ()
+(define (svg-path-begin)
   (format #t "<path ~a d=\"" *svg-fill*))
 
-(define svg-path-end ()
+(define (svg-path-end)
   (write-line "Z\"/>"))
 
-(define svg-move-to (h v)
+(define (svg-move-to h v)
   (format #t " M ~f ~f" h v))
 
-(define svg-line-to (h v)
+(define (svg-line-to h v)
   (format #t " L ~f ~f" h v))
 
-(define svg-curve-to (h1 v1 h2 v2 h3 v3)
+(define (svg-curve-to h1 v1 h2 v2 h3 v3)
   (format #t " C ~f ~f ~f ~f ~f ~f" h1 v1 h2 v2 h3 v3))
 
 ;; RIB format
@@ -93,18 +99,18 @@
 (define *rib-previous-x* 0.0)
 (define *rib-previous-y* 0.0)
 
-(define rib-write-header ()
+(define (rib-write-header)
   (write-line "##RenderMan RIB-Structure 1.0")
   (write-line "version 3.03")
   (write-line "AttributeBegin"))
 
-(define rib-write-footer ()
+(define (rib-write-footer)
   (write-line "AttributeEnd"))
 
-(define rib-set-colour (r g b a)
+(define (rib-set-colour r g b a)
   (format #t "Color ~f ~f ~f ~f~&" r g b a))
 
-(define rib-path-begin ()
+(define (rib-path-begin)
   (setq *rib-subpath-count* 0)
   (setq *rib-subpath-counts* "")
   (setq *rib-paths-points* "")
@@ -112,13 +118,13 @@
   (setq *rib-previous-y* 0.0)
   (write-line "PointsGeneralPolygons[1]"))
 
-(define rib-path-end ()
+(define (rib-path-end)
   (format #t "[~a]~&" *rib-subpath-counts*)
   (write-line "\"P\" [" )
   (write *rib-subpaths*)
   (write-line "]"))
 
-(define rib-move-to (h v)
+(define (rib-move-to h v)
   (let ((point (format-to-string "~f ~f 0.0 " h v)))
     ;; Keep track of how many points are in each subpath 
     ;; RIB needs these at the _beginning_ of the polygon data
@@ -133,7 +139,7 @@
   (setq *rib-previous-x* h)
   (setq *rib-previous-y* v))
 
-(define rib-line-to (h v)
+(define (rib-line-to h v)
   (let ((point (format-to-string "~f ~f 0.0 " h v)))
     (setq *rib-subpaths* (string-append *rib-subpaths* point)))
   (setq *rib-previous-x* h)
@@ -141,14 +147,14 @@
 
 ;; Break the beziers down to line segments...
 
-(define rib-curve-to ()
+(define (rib-curve-to)
   ( (let (step 1.0 / 20.0))
     (rib-curve-to-aux h1 v1 h2 v2 h3 v3 step 0.0)
     (format #f "~f ~f 0.0 " h3 v3) ; ???
     (setq *rib-previous-x* h3)
     (setq *rib-previous-y* v3)))
 
-(define rib-curve-to-aux (h1 v1 h2 v2 h3 v3 step t)
+(define (rib-curve-to-aux h1 v1 h2 v2 h3 v3 step t)
   (if (t <= 1.0)
       (begin
 	(let* ((q1 (+ (* t t t -1.0) (* t t 3) (* t -3.0) 1.0))
@@ -166,31 +172,39 @@
 ;; Install the format methods in an incredibly hacky way
 ;; The proper way to do this would be to keep a table of protocol objects...
 
-(define install-format-protocol lambda (format-name)
-  (let ((format (gethash *formats* format-name)))
-    (define write-header (string-eval (string-append format-name "-header")))
-    (define write-footer (string-eval (string-append format-name "-footer")))
-    (define set-colour (string-eval (string-append format-name "-set-colour")))
-    (define path-begin (string-eval (string-append format-name "-path-begin")))
-    (define path-end (string-eval (string-append format-name "-path-end")))
-    (define move-to (string-eval (string-append format-name "-move-to")))
-    (define line-to (string-eval (string-append format-name "-line-to")))
-    (define curve-to (string-eval (string-append format-name "-curve-to")))))
+(define write-header #f)
+(define write-footer #f)
+(define set-colour #f)
+(define path-begin #f)
+(define path-end #f)
+(define move-to #f)
+(define line-to #f)
+(define curve-to #f)
+
+(define (install-format-protocol format-name)
+  (set! write-header (eval-string (string-append format-name "-write-header")))
+  (set! write-footer (eval-string (string-append format-name "-write-footer")))
+  (set! set-colour (eval-string (string-append format-name "-set-colour")))
+  (set! path-begin (eval-string (string-append format-name "-path-begin")))
+  (set! path-end (eval-string (string-append format-name "-path-end")))
+  (set! move-to (eval-string (string-append format-name "-move-to")))
+  (set! line-to (eval-string (string-append format-name "-line-to")))
+  (set! curve-to (eval-string (string-append format-name "-curve-to"))))
 
 ;; Get the options, install the driver methods, evaluate & write the file
 
-(define (main args)
+(define (main . args)
   (let* ((option-spec '((from (required? #t) (value #t))
 			(format (value #t))))
          (options (getopt-long args option-spec))
-	 (file-format (option-ref options 'format "ps"))
-	 (from-file (option-ref options 'in #f)))
+	 (file-format (option-ref options 'format "postscript"))
+	 (from-file (option-ref options 'from #f)))
     ;; Install the format protocol (the minara methods)
     (install-format-protocol file-format)
     ;; Write the header
     (write-header)
     ;; Evaluate the file with the format methods installed, 
     ;; writing the converted file
-    (load in-file)
+    (load from-file)
     ;; Write the format footer
     (write-footer)))

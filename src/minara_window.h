@@ -20,36 +20,15 @@
 #ifndef MINARA_WINDOW_INCLUDE
 #define MINARA_WINDOW_INCLUDE
 
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
-
-// Our main window structure
-typedef struct MinaraWindow {
-  int window;
-  GLuint displayList;
-  char * buffer;
-  int shouldRedraw;
-  struct MinaraWindow * next;
-} MinaraWindow;
-
-// The list of windows
-extern MinaraWindow * gWindows;
+#include <libguile.h>
 
 // Default window size
 extern int gScreenWidth;
 extern int gScreenHeight;
 
-void MinaraWindowInsert (MinaraWindow ** root, MinaraWindow * con);
-void MinaraWindowRemove (MinaraWindow ** root, int win);
-MinaraWindow * MinaraWindowGet (MinaraWindow * root, int win);
-void MinaraWindowMake (MinaraWindow ** con, int width, int height, char * name);
-void MinaraWindowDestroy (MinaraWindow * con);
-void MinaraWindowResize (MinaraWindow * root, int win, 
-			 int width, int height);
-void MinaraWindowDraw (MinaraWindow * root, int win);
+// Functions
+
+SCM MinaraWindowCurrent ();
 
 void WindowStartup ();
 

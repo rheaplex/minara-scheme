@@ -7,6 +7,16 @@ AM_INIT_AUTOMAKE
 dnl Get the host, important for MacOS X
 AC_CANONICAL_HOST
 
+case $host in
+	*darwin*)
+		dnl set MacOS X Cocoa GL/GLUT flags
+ 		: ${with_apple_opengl_framework=yes}
+		;;
+	*)
+		dnl no extra flags
+		;;
+esac
+
 dnl Checks for programs.
 AC_PROG_CC
      

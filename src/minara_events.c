@@ -19,8 +19,7 @@
 
 /*
     Make sure that mouse move/drag events only flow when the mouse pointer is
-    in a window.
-  Introduce making windows to Guile...
+    in a window?
 */
 
 /*-----------------------------------------------------------------------------
@@ -114,10 +113,17 @@ void EventsStartup () {
 */
 
 void GlutDisplay () {
-  int win = glutGetWindow();
-  scm_call_1 (gDrawHook, scm_long2num (win));
-  // Blit the bitmap to the screen
-  MinaraWindowDraw (gWindows, win);
+  // This may change as the renderer evolves
+  glShadeModel (GL_FLAT);
+  //TODO: Anti-aliasing. Allow enabling/disabling from Scheme/preferences
+  // Disable costly functions
+  //    (most are disabled anyway)
+  glDisable (GL_DITHER);
+  glDisable (GL_DEPTH_TEST);
+  glClearColor (1.0, 1.0, 1.0, 1.0);
+  glClear (GL_COLOR_BUFFER_BIT);
+  scm_call_1 (gDrawHook, MinaraWindowCurrent ());
+  glFlush ();
 }
 
 /**
@@ -127,7 +133,6 @@ void GlutDisplay () {
 */
 
 void GlutResize (int width, int height) {
-  int win = glutGetWindow();
   // Reshape the OpenGL viewport
   glViewport (0, 0, (GLsizei)width, (GLsizei)height);
   glMatrixMode (GL_PROJECTION);
@@ -135,11 +140,9 @@ void GlutResize (int width, int height) {
   gluOrtho2D (0.0, (GLdouble)width, 0.0, (GLdouble)height);
   glMatrixMode (GL_MODELVIEW);
   glLoadIdentity ();
-  MinaraWindowResize (gWindows, win, 
-		      width, height);
   // Tell guile
-  scm_call_3 (gResizeHook, scm_long2num (win),
-	      scm_long2num (width),
+  scm_call_3 (gResizeHook, MinaraWindowCurrent (),
+  	      scm_long2num (width),
 	      scm_long2num (height));
   
 }
@@ -152,7 +155,7 @@ void GlutResize (int width, int height) {
 */
 
 void GlutKeyPress (unsigned char key, int x, int y) {
-  scm_call_2 (gKeyPressHook, scm_long2num (glutGetWindow()),
+  scm_call_2 (gKeyPressHook, MinaraWindowCurrent (),
 	      scm_long2num (key));
 }
 
@@ -178,11 +181,11 @@ void GlutMouseButton (int button, int state, int x, int y) {
     break;
   }
   if (state == GLUT_UP) {
-    scm_call_4 (gMouseButtonUpHook, scm_long2num (glutGetWindow()),
+    scm_call_4 (gMouseButtonUpHook, MinaraWindowCurrent (),
 		scm_long2num(buttonNum), 
 		scm_long2num (x), scm_long2num (y));
   } else {
-    scm_call_4 (gMouseButtonDownHook, scm_long2num (glutGetWindow()),
+    scm_call_4 (gMouseButtonDownHook, MinaraWindowCurrent (),
 		scm_long2num(buttonNum), 
 		scm_long2num (x), scm_long2num (y));
   }
@@ -195,7 +198,7 @@ void GlutMouseButton (int button, int state, int x, int y) {
 */
 
 void GlutMouseDrag (int x, int y) {
-  scm_call_3 (gMouseMoveHook, scm_long2num (glutGetWindow()),
+  scm_call_3 (gMouseMoveHook, MinaraWindowCurrent (),
 	      scm_long2num (x), scm_long2num (y));
 }
 
@@ -206,6 +209,6 @@ void GlutMouseDrag (int x, int y) {
 */
 
 void GlutMouseMove (int x, int y) {
-  scm_call_3 (gMouseMoveHook, scm_long2num (glutGetWindow()),
+  scm_call_3 (gMouseMoveHook, MinaraWindowCurrent (),
 	      scm_long2num (x), scm_long2num (y));
 }
