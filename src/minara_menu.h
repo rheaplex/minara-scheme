@@ -17,30 +17,13 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef MINARA_EVENTS_INCLUDE
-#define MINARA_EVENTS_INCLUDE
+#ifndef MINARA_MENU_INCLUDE
+#define MINARA_MENU_INCLUDE
 
 #include <libguile.h>
 
-// The event callbacks
-extern SCM gQuitHook;
-extern SCM gResizeHook;
-extern SCM gDrawHook;
-extern SCM gMouseButtonHook;
-extern SCM gMouseUpHook;
-extern SCM gMouseMoveHook;
-extern SCM gKeyPressHook;
-extern SCM gMenuSelectHook;
+// Functions
 
-void BindEventHooks ();
-void EventsStartup ();
-
-void GlutDisplay ();
-void GlutResize (int width, int height);
-void GlutKeyPress (unsigned char key, int x, int y);
-void GlutMouseButton (int button, int state, int x, int y);
-void GlutMouseDrag (int x, int y);
-void GlutMouseMove (int x, int y);
-void GlutMenuSelect (int id);
+void MenuStartup ();
 
 #endif

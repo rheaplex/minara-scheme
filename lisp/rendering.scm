@@ -1,4 +1,4 @@
-;; minara.scm : minara scheme development file
+;; rendering.scm : rendering hooks
 ;;
 ;; Copyright (c) 2004 Rob Myers, rob@robmyers.org
 ;;
@@ -16,43 +16,34 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-
-;; This is the work-in-progress file. 
-;; Code will be moved into other files as it matures.
-
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Menus
+;; The Rendering (and Picking!) Protocol
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Create a menu
+;; Rendering
+(use-modules ((rendering)
+              :renamer (symbol-prefix-proc 'rendering:)))
 
-;; Remove a menu
+;; The top-level bindings for the protocol functions
 
-;; Create a menu item, installing a callback
+(define write-header #f)
+(define write-footer #f)
+(define set-colour #f)
+(define path-begin #f)
+(define path-end #f)
+(define move-to #f)
+(define line-to #f)
+(define curve-to #f)
 
-;; Remove a menu item
+;; Install the window rendering protocol
 
-;; Change a menu callback
-
-;; Chane a menu check
-
-;; Change a menu check
-
-;; Get a menu state
-
-;; Enable a menu item
-
-;; Disble a menu item
-
-
-
-;; Suspend undo
-;; Resume undo
-;; with-undo-disabled macro
-
-;; Append tool buffer to file buffer
+(define (install-window-rendering-protocol)
+  (set! set-colour rendering:set-colour)
+  (set! path-begin rendering:path-begin)
+  (set! path-end rendering:path-end)
+  (set! move-to rendering:move-to)
+  (set! line-to rendering:line-to)
+  (set! curve-to rendering:curve-to))
 
 
-
+;; Macro to save/restore current protocol

@@ -43,7 +43,8 @@ char * gGuileDoNothingEventHandlers = \
   (define %mouse-down-hook (lambda (win button x y) (write-line \"mouse-down-hook\" (current-error-port)) (force-output (current-error-port)))) \
   (define %mouse-up-hook (lambda (win button x y) (write-line \"mouse-up-hook\" (current-error-port)) (force-output (current-error-port)))) \
   (define %mouse-move-hook (lambda (win x y) (write-line \"mouse-move-hook\" (current-error-port)) (force-output (current-error-port)))) \
-  (define %key-press-hook (lambda (win key) (write-line \"key-press-hook\" (current-error-port)) (force-output (current-error-port))))";
+  (define %key-press-hook (lambda (win key modifiers) (write-line \"key-press-hook\" (current-error-port)) (force-output (current-error-port)))) \
+  (define %menu-select-hook (lambda (win menu-id) (write-line \"menu-select-hook\" (current-error-port)) (force-output (current-error-port))))";
 
 
 /*-----------------------------------------------------------------------------
@@ -66,7 +67,7 @@ char * gGuileDoNothingEventHandlers = \
 
 /**
    Evaluate a string port. Copied from strport.c in libguile.
-   @param port The prot to read the Scheme code from to evaluate
+   @param port The port to read the Scheme code from to evaluate
    @param module The module to evaluate the code in
    @return The result of evaluation
 */

@@ -337,6 +337,37 @@ SCM render_set_colour (SCM r, SCM g, SCM b, SCM a) {
   return SCM_EOL;
 }
 
+/** Redirect paths to the stencil buffer to generate the mask. */
+
+SCM render_mask_begin() {
+  glClear(GL_STENCIL_BUFFER_BIT);
+  glStencilFunc(GL_ALWAYS, 0x1, 0x1);
+  glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+  return SCM_EOL;
+}
+
+/** Finish capturing the mask and start masking painting operations. */
+
+SCM render_mask_end() {
+  return SCM_EOL;
+}
+
+/** Start masking. */
+
+SCM render_masking_begin() {
+  glClearStencil(0x0);
+  glEnable(GL_STENCIL_TEST);
+  return SCM_EOL;
+ }
+
+/** Stop masking. */
+
+SCM render_masking_end() {
+  glDisable(GL_STENCIL_TEST);
+  glClear(GL_STENCIL_BUFFER_BIT);
+  return SCM_EOL;
+}
+
 //  GLU tesselation callbacks
 
 /** The glu tesselation error callback.
@@ -367,9 +398,15 @@ void DefineRenderingModule () {
   scm_c_define_gsubr ("line-to", 2, 0, 0, render_line_to);
   scm_c_define_gsubr ("curve-to", 6, 0, 0, render_curve_to);
   scm_c_define_gsubr ("set-colour", 4, 0, 0, render_set_colour);
+  scm_c_define_gsubr ("mask-begin", 0, 0, 0, render_mask_begin);
+  scm_c_define_gsubr ("mask-end", 0, 0, 0, render_mask_end);
+  scm_c_define_gsubr ("masking-begin", 0, 0, 0, render_masking_begin);
+  scm_c_define_gsubr ("masking-end", 0, 0, 0, render_masking_end);
   // Export them
   scm_c_export ("path-begin", "path-end", "move-to",
-		"line-to", "curve-to", "set-colour", NULL);
+		"line-to", "curve-to", "set-colour", 
+		"mask-begin", "mask-end", "masking-begin", 
+		"masking-end", NULL);
 }
 
 void RenderingStartup () {

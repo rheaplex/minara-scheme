@@ -46,6 +46,7 @@
 #include "minara_rendering.h"
 #include "minara_cache.h"
 #include "minara_window.h"
+#include "minara_menu.h"
 
 /*-----------------------------------------------------------------------------
   Constants    
@@ -76,6 +77,7 @@ void RealMain () {
   RenderingStartup ();
   CacheStartup ();
   WindowStartup ();
+  MenuStartup ();
   EventsStartup (); 
   // Bootstrap the Guile code (libraries, tools, etc.)
   // Here so all the C extensions are loaded first and GLUT is initialised

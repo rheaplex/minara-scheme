@@ -1,4 +1,4 @@
-;; minara.scm : minara scheme development file
+;; tool.scm : tool handling
 ;;
 ;; Copyright (c) 2004 Rob Myers, rob@robmyers.org
 ;;
@@ -16,43 +16,23 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-
-;; This is the work-in-progress file. 
-;; Code will be moved into other files as it matures.
-
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Menus
+;; Tools
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Create a menu
+;; I don't think we need any of this. Installing/removing a tool isn't atomic
+;; I suppose we need to clear the event handlers, though, so 
+;; we do need to have some support.
 
-;; Remove a menu
+;; Install a tool
 
-;; Create a menu item, installing a callback
+(define (set-current-tool tool)
+  (remove-current-tool)
+  (tool))
 
-;; Remove a menu item
+;; Remove a tool
 
-;; Change a menu callback
-
-;; Chane a menu check
-
-;; Change a menu check
-
-;; Get a menu state
-
-;; Enable a menu item
-
-;; Disble a menu item
-
-
-
-;; Suspend undo
-;; Resume undo
-;; with-undo-disabled macro
-
-;; Append tool buffer to file buffer
-
-
-
+(define (remove-current-tool)
+  ;; Install the default renderer and evet hooks
+  nil
+)

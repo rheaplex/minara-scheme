@@ -63,6 +63,8 @@ SCM gMouseButtonUpHook;
 SCM gMouseMoveHook;
 /** The current key pressed event scheme hook */
 SCM gKeyPressHook;
+/** The current menu selected event scheme hook */
+SCM gMenuSelectHook;
 
 /*-----------------------------------------------------------------------------
   Functions
@@ -85,10 +87,12 @@ void BindEventHooks () {
   gMouseButtonUpHook = scm_c_eval_string ("%mouse-up-hook");
   gMouseMoveHook = scm_c_eval_string ("%mouse-move-hook");
   gKeyPressHook = scm_c_eval_string ("%key-press-hook");
+  gMenuSelectHook = scm_c_eval_string ("%menu-select-hook");
 }
 
 /**
-   Tools call this to hook themselves into the system
+   Tools call this to hook themselves into the system.
+   So they set the relevent hook, eg %draw-hook, then call this.
    @return A SCM for guile, ignore.
 */
 
@@ -155,8 +159,10 @@ void GlutResize (int width, int height) {
 */
 
 void GlutKeyPress (unsigned char key, int x, int y) {
-  scm_call_2 (gKeyPressHook, MinaraWindowCurrent (),
-	      scm_long2num (key));
+  int modifiers = glutGetModifiers ();
+  char keyString[] = {key, NULL};
+  scm_call_3 (gKeyPressHook, MinaraWindowCurrent (),
+	      scm_makfrom0str (keyString), scm_long2num (modifiers));
 }
 
 /**
@@ -212,3 +218,14 @@ void GlutMouseMove (int x, int y) {
   scm_call_3 (gMouseMoveHook, MinaraWindowCurrent (),
 	      scm_long2num (x), scm_long2num (y));
 }
+
+/**
+   The menu select callback for GLUT.
+   @param id The menu id number.
+*/
+
+void GlutMenuSelect (int id) {
+  scm_call_2 (gMenuSelectHook, MinaraWindowCurrent (),
+	      scm_long2num (id));
+}
+

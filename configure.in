@@ -11,6 +11,7 @@ case $host in
 	*darwin*)
 		dnl set MacOS X Cocoa GL/GLUT flags
  		: ${with_apple_opengl_framework=yes}
+		dnl make sure we play nice with Fink
 		;;
 	*)
 		dnl no extra flags

@@ -104,7 +104,7 @@ SCM minara_window_make () {
   glutMouseFunc (GlutMouseButton);
   glutMotionFunc (GlutMouseDrag);
   glutPassiveMotionFunc (GlutMouseMove);
-
+  glutAttachMenu(GLUT_RIGHT_BUTTON);
   // Return the new window ID
   return scm_int2num(win);
 }

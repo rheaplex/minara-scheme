@@ -1,4 +1,4 @@
-;; minara.scm : minara scheme development file
+;; undo.scm : undo and redo support for minara
 ;;
 ;; Copyright (c) 2004 Rob Myers, rob@robmyers.org
 ;;
@@ -16,37 +16,9 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-
-;; This is the work-in-progress file. 
-;; Code will be moved into other files as it matures.
-
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Menus
+;; Undo/redo
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Create a menu
-
-;; Remove a menu
-
-;; Create a menu item, installing a callback
-
-;; Remove a menu item
-
-;; Change a menu callback
-
-;; Chane a menu check
-
-;; Change a menu check
-
-;; Get a menu state
-
-;; Enable a menu item
-
-;; Disble a menu item
-
-
 
 ;; Suspend undo
 ;; Resume undo
