@@ -26,9 +26,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Line-line intersection
 ;; http://astronomy.swin.edu.au/~pbourke/geometry/lineline2d/
+;; Returns the t where the second line intersects the first line
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define (lines-intersect-vertices p1x p1y p2x p2y p3x p3y p4x p4y) 
+(define (lines-intersect-vertices p1x p1y p2x p2y ;; First line 
+				  p3x p3y p4x p4y);; Second line 
     (let ((denominator (- (* (- p4y p3y)
 			     (- p2x p1x)) 
 			  (* (- p4x p3x)
@@ -139,29 +141,20 @@
       (let* ((p (bezier-eval h0 v0 h1 v1 h2 v2 h3 v3 t))
 	     (h (point-x p))
 	     (v (point-y p))
-	     (ti (lines-intersect-vertices ax ay bx by ph pv h v)))
-	(write h)
-	(write " ")
-	(write v)
-	(write "\n")
+	     (ti (lines-intersect-vertices ph pv h v
+					   ax ay bx by)))
 	;; Counting the number of intersections
 	;; Ignoring intersections at 0.0 because 
 	;; they are the same as the previous 1.0 intersection...
 	(if (and ti
 		 (> ti 
 		    0.0))
-	    (begin (write ti)
-	    (write " ")
-	    (write h)
-	    (write " ")
-	    (write v)
-	    (write "\n")
 	    (let ((intersection (cons h v)))
 	      ;; Much siliness to avoid duplicate points from adjacent sections
 	      ;; when the ray passes exactly through the point
 	      (set! crossings (assoc-set! crossings 
 					  intersection 
-					  #t)))))
+					  #t))))
 	(set! ph h)
 	(set! pv v)))))
 
@@ -174,15 +167,23 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (test-section "geometry: intersection")
-;;(test #t (lines-intersect-vertices 0 0 100 100 0 50 100 50))
-;;(test nil (lines-intersect-vertices 0 0 100 100 1000 1000 1000 1000))
-;;(test 0 (line-bezier-intersection-count-vertices 20 0 80 0
-	;;					 0 0 0 100 100 100 100 0))
+(test 0.0 (lines-intersect-vertices 0.0 0.0 0.0 100.0 
+				    0.0 0.0 100.0 0.0))
+(test 0.5 (lines-intersect-vertices 0.0 0.0 0.0 100.0 
+				    0.0 50.0 100.0 50.0))
+(test 1.0 (lines-intersect-vertices 0.0 0.0 0.0 100.0 
+				    0.0 100.0 100.0 100.0))
+(test 0.5 (lines-intersect-vertices 0.0 0.0 100.0 100.0 
+				    0.0 50.0 100.0 50.0))
+(test #f (lines-intersect-vertices 0.0 0.0 100.0 100.0 
+				   1000.0 1000.0 1000.0 1000.0))
+(test 0 (line-bezier-intersection-count-vertices 20 0 80 0
+						 0 0 0 100 100 100 100 0))
 ;; Aligned with end-point of a subdivision (given t step of 0.1)
 (test 1 (line-bezier-intersection-count-vertices 50 0 50 150
 						 0 0 0 100 100 100 100 0))
 ;; Not aligned with end-point of subdivision (given t step of 0.1)
-;;(test 1 (line-bezier-intersection-count-vertices 52 0 52 150
-	;;					 0 0 0 100 100 100 100 0))
-;;(test 2 (line-bezier-intersection-count-vertices 0 50 100 50
-	;;					 0 0 0 100 100 100 100 0))
+(test 1 (line-bezier-intersection-count-vertices 52 0 52 150
+						 0 0 0 100 100 100 100 0))
+(test 2 (line-bezier-intersection-count-vertices 0 50 100 50
+						 0 0 0 100 100 100 100 0))
