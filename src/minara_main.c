@@ -49,6 +49,14 @@
 #include "minara_menu.h"
 
 /*-----------------------------------------------------------------------------
+  Main Program Entry Point
+  
+  Starts the window system, starts the Lisp system, and loads the Lisp
+  bootstrap code.
+  So we start GLUT and Guile, then load minara-bootstrap.scm .
+  ---------------------------------------------------------------------------*/
+
+/*-----------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
 

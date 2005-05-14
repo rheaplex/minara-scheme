@@ -16,6 +16,15 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Bootstrapping
+;; Find and load all the Scheme code for minara in the correct order.
+;; We don't handle dependencies at the moment.
+;; Loading the libraries, then the tools seems to work well, though.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Modules
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -33,23 +42,24 @@
 (load "./find-file.scm")
 (load "./write-buffer.scm")
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Startup
+;; Load Scheme files
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Load the global application configuration file
+;; Load the global application configuration file installed on this machine
 
 (define (load-config)
   (if (access? "./minara-config.scm" R_OK)
       (load "./minara-config.scm")))
 
-;; Load the user's ~/.minara file
+;; Load the user's ~/.minara file stored in their home directory
 
 (define (load-user-config)
   (if (access? "~/.minara" R_OK)
       (load "~/.minara")))
 
-;; Load the libraries
+;; Load the libraries in the correct order
 
 (define (load-libraries)
 ;;  (define dir (opendir "/usr/lib"))
@@ -66,17 +76,20 @@
   (load "./window.scm")
   (load "./command-line.scm")
   (load "./menu.scm")
+  (load "./geometry.scm")
   (load "./picking.scm")
   (load "./tool.scm")
-  (load "./undo.scm")
-  (load "./pen-tool.scm"))
+  (load "./undo.scm"))
 
 ;; Load the tools
 
 (define (load-tools)
-  #f)
+  (load "./pen-tool.scm"))
 
-;; Our main startup
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Our main startup routine
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (startup args)
   (debug-enable  'debug 'backtrace)
@@ -98,6 +111,9 @@
 
 (startup (program-arguments))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Run the tests
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (run-tests)

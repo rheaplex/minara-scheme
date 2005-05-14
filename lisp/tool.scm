@@ -22,10 +22,12 @@
 ;; hooked up to the main keymap and the tool menu.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Install a tool
 ;; This gives access to the tool from the menu and keyboard,
 ;; And installs an uninstall function (setup can be done by install-fun)
 ;; The install has to add the event handlers, the uninstall has to remove them
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (install-tool install-fun uninstall-fun menu-name . key-combo)
   (let ((install-fun-with-boilerplate
@@ -39,11 +41,15 @@
 	   install-fun-with-boilerplate 
 	   key-combo)))
 
-
 ;; Handle a tool stopping being the current tool
 
 (define (%remove-current-tool-hook)
   #f)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Remove the current tool
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (remove-current-tool)
   (if %remove-current-tool-hook

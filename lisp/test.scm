@@ -16,12 +16,22 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Globals
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;; Store all the tests as they are defined
 (define *tests* '())
 ;; The total number of tests run
 (define *tests-run* 0)
 ;; And the total number of tests failed
 (define *tests-failed* 0)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Defining tests
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; A single test assertion
 (define-macro (test-assert comparison comment expected code)
@@ -39,10 +49,10 @@
 	  *tests*)))
 
 (define-macro (test expected code)
-  `(test-assert = "Test unexpectedly failed" ,expected ,code))
+  `(test-assert equal? "Test unexpectedly failed" ,expected ,code))
 
 (define-macro (test-fail expected code)
-  `(test-assert (lambda (a b) (not (= a b))) 
+  `(test-assert (lambda (a b) (not (equal? a b))) 
 		"Test unexpectedly succeeded" ,expected ,code))
 
 (define-macro (test-section name)
@@ -50,6 +60,11 @@
 	 (cons
 	  ,name
 	  *tests*)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Running tests
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Run all the tests
 (define (run-tests)

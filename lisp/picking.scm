@@ -16,99 +16,169 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;; These are the art picking functions
-;; They are inefficient, having no optimization for bounding boxes for example
-;; It is possible to generate, cahche and update bounding boxes and other
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Picking (object selection, highlighting, choosing, whatever)
+;;
+;; How does this work?
+;;
+;; Precis:
+;; Count the shapes, hit-test the shapes, store the counts that hit, 
+;; find the s-expressions that contain those counts.
+;;
+;; Details:
+;; We install a rendering protocol that counts the number of 
+;; occurrences of the (begin-path) operator. 
+;; This allows us to identify which shape is being drawn.
+;;
+;; We then count the number of intersections between a ray
+;; from the target point and the result of evaluating each drawing command.
+;; When we get to the end of a path, if the number of intersections
+;; are odd the point is inside the shape so we push the current path number 
+;; onto a list.
+;; This count indicates the number of the hit path. There may be more than one,
+;; stored in Z-order.
+;;
+;; We then use the count to search the text for the relevent path description.
+;;
+;; This is slow, but we can cache a lot of the information and improve 
+;; performance.
+;;
+;; Note that picking returns a list of every item under the picking point
+;; from back to front rather than just the frontmost object. 
+;; A normal "selection" tool can then disard everything apart from the topmost
+;; object.
+;;
+;; Area-based selection will also be required and can be implemented similarly.
+;; A point and a rectangle (or other shape eg pen-drawing based selection) are
+;; just gemoetries to check for intersection or containment after all.
+;;
+;; This is all very single threaded.
+;;
+;; And inefficient, having no optimization for bounding boxes for example
+;; It is possible to generate, cache and update bounding boxes and other
 ;; optimizations (hashed to object counts) when editing the text, but this will
 ;; be done once the basic functionality is implemented.
+;; Ideally we'd evaluate the buffer front-to-back. :-)
+;; Nothing should be done or assumed to prevent the model of rebinding the 
+;; drawing routines to the picking routines then evaluating the drawing buffer
+;; from working.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Modules
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (use-modules (srfi srfi-13))
 
-;; How does hit testing work?
-;; We install a rendering protocol that counts the number of occurrences of
-;; the (finish-path) operator, and counts the number of intersections between a
-;; ray from the target point and the result of evaluating the current
-;; operator. When we get to the end of a path, if the number of intersections
-;; are odd we push the current path count onto a list.
-;; This count indicates the number of the hit path. There may be more than one,
-;; stored in Z-order.
-;; We can use the count to search the text for the relevent path description.
-;; This is slow, but the best we can do at the moment.
-;; Should use a ZMacs/Deuce linebuffer 
-;; and keep count of the lines as they're submitted
-;; BUT how do we do this using Guile? Can we?
-
-;; This is all very single threaded
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Globals
+;; Used within a single pass through the picking routines
+;; (so should be thread-local)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; The picking point
 (define pick-x #f)
 (define pick-y #f)
 
-;; Where we left the pen last time
+;; Where the last drawing operation left the pen
 (define previous-x #f)
 (define previous-y #f)
 
 ;; Keep track of which colour we're currently using
-;; Store it instead?
 (define current-colour #f)
 
-;; Keep track of which polygon we're currently checking
+;; Keep track of which polygon we're currently drawing
 (define current-polygon #f)
 
 ;; How many ray-line intersections with the current polygon
 (define intersections 0)
 
-;; The list of polygons picked
+;; The list of polygons picked. This will be back-to-front.
 (define picked-polygons '())
 
-;; Reset the picking state
-(define (write-header)
-  (setf pick-x #f)
-  (setf pick-y #f)
-  (setf previous-x #f)
-  (setf previous-y #f)
-  (setf current-colour 0)
-  (setf current-polygon 0)
-  (setf intersections 0)
-  (setf picked-polygons '()))
 
-;; Finish
-(define (write-footer) 
-  #f)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Picking "render" protocol
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (install-picking-rendering-protocol)
+  (reset-picking-rendering-protocol)
+  (set! set-colour picking-set-colour)
+  (set! path-begin picking-path-begin)
+  (set! path-end picking-path-end)
+  (set! move-to picking-move-to)
+  (set! line-to picking-line-to)
+  (set! curve-to picking-curve-to))
+
+;; Reset the picking state
+(define (reset-picking-rendering-protocol)
+  (set! pick-x #f)
+  (set! pick-y #f)
+  (set! previous-x #f)
+  (set! previous-y #f)
+  (set! current-colour 0)
+  (set! current-polygon 0)
+  (set! intersections 0)
+  (set! picked-polygons '()))
 
 ;; Keep track of the colour
-(define (set-colour &rest dummy)
-  (setf current-colour (+ current-colour 1)))
+(define (picking-set-colour r g b)
+  (set! current-colour (+ current-colour 1)))
 
 ;; Start a new pick pass
-(define (path-begin)
-  (setf in-polygon #t)
-  (setf intersections 0))
-
+(define (picking-path-begin)
+  (set! intersections 0))
 
 ;; Check the intersections. Even = inside, Odd = oustide
 ;; Store the colour and anything else in a list with the polygon number?
-(define (path-end)
-  (if (even current-polygon)
-  (setf picked-polygons 
+(define (picking-path-end)
+  (if (and (odd intersections)
+           (not (= intersections
+                   0)))
+  (set! picked-polygons 
 	(cons current-polygon 
-	      picked-polygons))))
+	      picked-polygons)))
+  (set! intersections 0))
 
 ;; Keep track of the "previous" position
-(define (move-to x y)
-  (setf previous-x x)
-  (setf pervious-y y))
+(define (picking-move-to x y)
+  (set! previous-x x)
+  (set! previous-y y))
+  
+;; Where to send the ray -uh- line to. Oh, the horror. Fixme!
 
-(define (line-to x y)
-  ;; do ray-line intersection:
-  ;; ray from pick-x/y to max-x/pick-y
-  ;; line from previous-x/y to x/y
-  (setf previous-x x)
-  (setf pervious-y y))
+(define %ray-x 65535.0)
+  
+;; Line segment hit test
 
-;; Recursive subdivision hit-test
-(define (curve-to)
-  #f)
+(define (picking-line-to x y)
+  (if
+   (lines-intersect-vertices 
+    previous-x previous-y x y pick-x pick-y %ray-x pick-y)
+   (set! intersections (+ intersections
+                          1)))
+  (set! previous-x x)
+  (set! previous-y y))
+
+;; Curve hit test
+
+(define (picking-curve-to x1 y1 x2 y2 x3 y3)
+  (let ((count (line-bezier-intersection-count-vertices 
+                pick-x pick-y %ray-x pick-y
+		previous-x previous-y x1 y1 x2 y2 x3 y3)))
+    (set! previous-x x3)
+    (set! previous-y y3)
+    (set! intersections (+ intersections
+                           count))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Buffer routines
+;; Find the positions in the buffer that match the s-expression that was
+;; evaluated to draw a particular shape.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Find the index of the start of the nth occurrence of a phrase
 (define (nth-occurrence buffer phrase nth)
@@ -179,10 +249,23 @@
 	;; Or find the bounds
 	(sexp-bounds buffer colour-start))))
 
-(test-section "picking")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; tests
 ;; Horribly tied to first minara logo file version. Need better checks...
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(test-section "picking: s-expressions")
 (define buf (find-file "../minara.minara"))
 (test 105 (car (get-nth-path buf 1)))
 (test 5025 (cadr (get-nth-path buf 1)))
 (test 1063 (car (get-nth-sexp buf "move-to" 3)))
 (test 1088 (cadr (get-nth-sexp buf "move-to" 3)))
+
+(test-section "picking: picking")
+(define %pickbuf (make-gap-buffer))
+(gb-insert-string! %pickbuf
+			     ";;minara file\n(set-colour 0.0 0.0 1.0)\n(path-begin)\n(move-to 10 10)\n(line-to 10 100)\n(line-to 100 10)\n(line-to 10 10)\n(path-end)\n(fill-path)\n")
+;;(test 40 (begin
+;;	   (install-picking-rendering-protocol)
+;;	   (eval-string (gb->string %pickbuf))))

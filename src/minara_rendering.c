@@ -17,6 +17,25 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+/*-----------------------------------------------------------------------------
+  Rendering
+  
+  The code called from Lisp to render graphics.
+  
+  We use OpenGL to render code into the current GLUT window.
+  
+  Since we're doing beziers, we use a glu_tesselator and have a cache for the 
+  resulting points. There's only one cache at the moment, which needs
+  making threadsafe...
+  
+  Only rgb colour is supported at this level. Any other colour should be done
+  in Lisp.
+  
+  Only filled shapes are supported at this level. Any stroking should be 
+  implemented in Lisp. Because it will remove compatibility, expansion and
+  pre-press headaches.
+  ---------------------------------------------------------------------------*/
+
 /*
   TODO:   gsave/grestore
   transformations

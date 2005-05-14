@@ -16,12 +16,79 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;; Ray-line intersection
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Mathematical functions for geometric calculations.
+;; Particularly for hit-testing.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Line-line intersection
+;; http://astronomy.swin.edu.au/~pbourke/geometry/lineline2d/
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (lines-intersect-vertices p1x p1y p2x p2y p3x p3y p4x p4y) 
+    (let ((denominator (- (* (- p4y p3y)
+			     (- p2x p1x)) 
+			  (* (- p4x p3x)
+			     (- p2y p1y)))))
+      (if (= denominator 0.0)
+	  #f ;; Parallel lines
+	  (let ((ua (/ (- (* (- p4x p3x) 
+			     (- p1y p3y))
+			  (* (- p4y p3y) 
+			     (- p1x p3x)))
+		       denominator))
+		(ub (/ (- (* (- p2x p1x) 
+			     (- p1y p3y)) 
+			  (* (- p2y p1y) 
+			     (- p1x p3x))) 
+		       denominator)))
+	    (if (and (>= ua 0.0)
+		     (<= ua 1.0)
+		     (>= ub 0.0)
+		     (<= ub 1.0)) ;; Intersection (or not)
+		ua
+		#f)))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Find out which side of an infinite line through p1 and p2 that p0 lies on.
+;;   < 0 = left, > 0 = right, == 0 = exactly on.
+;; From draw-something :-)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (point-line-side p0 p2 p1)
+    (- (* (- (x p1) (x p0)) (- (y p2) (y p0)))
+       (* (- (x p2) (x p0)) (- (y p1) (y p0)))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Point mathematics
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (add-point h0 v0 h1 v1)
+  (list (+ h0 h1) (+ v0 v1)))
+
+(define (divide-point h v d)
+  (list (/ h d) (/ v d)))
+
+(define (point-x p)
+  (first p))
+
+(define (point-y p)
+  (second p))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Beziers
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Evaluate the bezier at time t
 ;; Converted from the C in minara_rendering.c
 
-(define bezier-eval (h0 v0 h1 v1 h2 v2 h3 v3 t)
+(define (bezier-eval h0 v0 h1 v1 h2 v2 h3 v3 t)
   (let ((q1 (+ (* t t t -1.0) (* t t 3) (* t -3.0) 1.0))
 	(q2 (+ (* t t t 3.0) (* t t -6.0) (* t 3.0)))
 	(q3 (+ (* t t t -3.0) (* t t 3.0)))
@@ -30,27 +97,13 @@
 	  (qy (+ (* q1 v0) (* q2 v1) (* q3 v2) (* q4 v3))))
       (list qx qy))))
 
-;; Point mathematics
-
-(define add-point (h0 v0 h1 v1)
-  (list (+ h0 h1) (+ v0 v1)))
-
-(define divide-point (h v d)
-  (list (/ h d) (/ v d)))
-
-(define point-x (p)
-  (first p))
-
-(define point-y (p)
-  (second p))
-
-
 ;; Divide the bezier into two equal halves
 ;; Left first, then right. Two lists of vertex co-ordinates
-(define split-bezier (h0 v0 h1 v1 h2 v2 h3 v3)
+
+(define (split-bezier h0 v0 h1 v1 h2 v2 h3 v3)
   (let* ((p01 (/ (add-point h0 v0 h1 v1) 2.0))
 	 (p12 (/ (add-point h1 v1 h2 v2) 2.0))
-	 (p23 (/ (add-point h2 v2 h3 v2) 2.0))·
+	 (p23 (/ (add-point h2 v2 h3 v2) 2.0))?
 	 (p012 (/ (add-point (point-x p01) (point-y p01)
 			     (point-x p12) (point-y p12)) 2.0))
 	 (p123 (/ (add-point (point-x p12) (point-y p12)
@@ -64,7 +117,72 @@
 
 ;; Decide the flatness of the bezier
 
+;; Line-bezier intersection
+;; Terrible. Almost as good as our bezier drawing
+;; Replace with something less embarrasingly awful, 
+;; recursive subdivision at least
+;; And the name is bad, too
 
-;; Ray-bezier intersection
+(define %bez-eval-steps 10)
+(define %bez-eval-step (/ 1.0 
+                          %bez-eval-steps))
 
+(define (line-bezier-intersection-count-vertices 
+	 ax ay bx by h0 v0 h1 v1 h2 v2 h3 v3)
+  (let ((crossings '())
+        (ph h0)
+        (pv v0))
+    ;; Step through the bezier at a very coarse resolution
+    (do ((t %bez-eval-step (+ t %bez-eval-step)))
+	;; Return the count of intersections
+	((> t 1.0) (length crossings))
+      (let* ((p (bezier-eval h0 v0 h1 v1 h2 v2 h3 v3 t))
+	     (h (point-x p))
+	     (v (point-y p))
+	     (ti (lines-intersect-vertices ax ay bx by ph pv h v)))
+	(write h)
+	(write " ")
+	(write v)
+	(write "\n")
+	;; Counting the number of intersections
+	;; Ignoring intersections at 0.0 because 
+	;; they are the same as the previous 1.0 intersection...
+	(if (and ti
+		 (> ti 
+		    0.0))
+	    (begin (write ti)
+	    (write " ")
+	    (write h)
+	    (write " ")
+	    (write v)
+	    (write "\n")
+	    (let ((intersection (cons h v)))
+	      ;; Much siliness to avoid duplicate points from adjacent sections
+	      ;; when the ray passes exactly through the point
+	      (set! crossings (assoc-set! crossings 
+					  intersection 
+					  #t)))))
+	(set! ph h)
+	(set! pv v)))))
+
+  
 ;; Get the normal of the bezier at point t
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; tests
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(test-section "geometry: intersection")
+;;(test #t (lines-intersect-vertices 0 0 100 100 0 50 100 50))
+;;(test nil (lines-intersect-vertices 0 0 100 100 1000 1000 1000 1000))
+;;(test 0 (line-bezier-intersection-count-vertices 20 0 80 0
+	;;					 0 0 0 100 100 100 100 0))
+;; Aligned with end-point of a subdivision (given t step of 0.1)
+(test 1 (line-bezier-intersection-count-vertices 50 0 50 150
+						 0 0 0 100 100 100 100 0))
+;; Not aligned with end-point of subdivision (given t step of 0.1)
+;;(test 1 (line-bezier-intersection-count-vertices 52 0 52 150
+	;;					 0 0 0 100 100 100 100 0))
+;;(test 2 (line-bezier-intersection-count-vertices 0 50 100 50
+	;;					 0 0 0 100 100 100 100 0))

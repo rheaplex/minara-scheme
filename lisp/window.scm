@@ -18,6 +18,12 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Windows (frames)
+;; Documents are attached to a single window at the moment.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Modules
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -27,12 +33,17 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Windows
+;; Globals
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; The list of windows
 
 (define *windows* (make-hash-table 31))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Window objects
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Convert a GLUT window ID to a minra window structure
 
@@ -45,7 +56,8 @@
   (really-make-window id
 		      buffers
 		      matrix
-		      height)
+		      height
+		      status)
   window?
   ;; The window
   (id window-id)
@@ -58,7 +70,10 @@
   ;; The window's height
   ;; We store this to allow us to map from from GLUT event h to OpenGL y
   (height window-height
-	  %set-window-height!))
+	  %set-window-height!)
+  ;; The window's status string
+  (status window-status
+	  set-window-status!))
 
 ;; Set the title
 
@@ -74,7 +89,8 @@
 	  (window-make)
 	  '()
 	  (identity)
-	  0)))
+	  0
+	  "")))
     (hash-create-handle! *windows* (window-id window) window)
     ;; Redraw timestamp
     (initialise-timestamp! window)
@@ -118,6 +134,7 @@
 (define (set-window-title-info win info)
   (window-set-title (append (window-name-base (window-for-id win)) 
 			    "[" info "]")))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Window Buffers
@@ -179,7 +196,12 @@
 (define (window-redraw-event window-id)
     (let ((window (hash-ref *windows* window-id)))
       (if (not (equal? window #f))
-	  (window-draw window))))
+	  (begin
+	   (window-draw-begin window-id)
+	   (window-draw window)
+	   ;; Should be set status, like set title. But needs faking in GLUT...
+	   (window-draw-status window-id (window-status window))
+	   (window-draw-end window-id)))))
 
 (add-draw-hook window-redraw-event)
 

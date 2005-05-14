@@ -18,6 +18,15 @@
 */
 
 /*-----------------------------------------------------------------------------
+  Caches.
+  
+  A cache is a stored, optimised series of drawing instructions.
+  Drawing a cache should be faster than interpreting the instructions again.
+  A cache is currently an OpenGL display list, and this should probably be
+  the conceptual model for it.
+  ---------------------------------------------------------------------------*/
+  
+/*-----------------------------------------------------------------------------
   Includes
   ---------------------------------------------------------------------------*/
 
@@ -54,7 +63,7 @@
 // Scheme functions
 
 /**
-   Make a cache
+   Make a graphics instruction cache.
    @return The cache ID or '()
 */
 

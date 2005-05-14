@@ -16,9 +16,22 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;; FIXME: Use Emacs-style nested keymaps
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Keymaps
+;; Inspired by, but different from, Emacs keymaps.
+;; In particular keymaps fit within more general event handlers, rather than
+;; the other way round. (If that statement is incorrect, please correct it).
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; FIXME: Use Emacs-style nested keymaps
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Window-system-specific constants
+;; Here GLUT constants
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define GLUT_KEY_F1			1)
 (define GLUT_KEY_F2			2)
@@ -50,24 +63,22 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Globals
+;; Making and getting keymaps
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; The state of the key-pressing world
 
 ;; Make an empty keymap alist
 (define (keymap-make)
   (make-hash-table 31))
-
-;; Check that the object is a keymap
-(define (keymap? keymap)
-  (vector? keymap))
 
 ;; The one and only global keymap
 (define %global-keymap (keymap-make))
 
 ;; The current root keymap
 (define keymap-current-root (keymap-make))
+
+;; Check that the object is a keymap
+(define (keymap? keymap)
+  (vector? keymap))
 
 ;; The current keymap
 (define keymap-current keymap-current-root)
@@ -122,6 +133,11 @@
 	(write "Attempt to replace key with keymap.")))))
   keymap)
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Dispatching keypresses through keymaps
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;; Try to dispatch the key press in the keymap
 (define (dispatch-keymap keymap key)
   (let ((next-candidate (hash-ref keymap key)))
@@ -162,6 +178,11 @@
     (if alt
 	(set! key (string-append "A" key)))
     (dispatch-key key)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Setting up the keymaps in the events system
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Install the cancel key into the global keymap
 (keymap-add-fun %global-keymap reset-current-keymap "Cg")

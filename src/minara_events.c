@@ -17,6 +17,17 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+/*-----------------------------------------------------------------------------
+  Events
+  
+  These are our application framework event handler hooks.
+  Our event handlers receive events from the window system, does some setup
+  for the rendering system and then feed them into the scheme code.
+  Currently these are GLUT event handlers, which should probably be the 
+  conceptual model for them. We could have an event polling system or a class
+  with overriden event handlers and it wouldn't make any difference, though.
+  ---------------------------------------------------------------------------*/
+
 /*
     Make sure that mouse move/drag events only flow when the mouse pointer is
     in a window?
@@ -127,19 +138,7 @@ events_startup ()
 void
 glut_display ()
 {
-  //This may change as the renderer evolves
-  glShadeModel (GL_FLAT);
-//TODO:Anti - aliasing.
-    // Allow enabling / disabling from Scheme / preferences
-    // Disable costly functions
-    // (most are disabled anyway)
-    glDisable (GL_DITHER);
-  glDisable (GL_DEPTH_TEST);
-  glClearColor (1.0, 1.0, 1.0, 1.0);
-  glClear (GL_COLOR_BUFFER_BIT);
   scm_call_1 (draw_hook, minara_window_current ());
-  glFlush ();
-  glutSwapBuffers ();
 }
 
 /**

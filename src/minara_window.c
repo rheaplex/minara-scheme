@@ -17,6 +17,17 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+/*-----------------------------------------------------------------------------
+  Windows
+  
+  Windows. Think of them as Mac windows, not MDI windows.
+  
+  These are GLUT windows at present, but could be Cocoa or GTK windows.
+  
+  We do not have multiple views on a single document at the moment. The model
+  of a stack of overlay buffers over a document buffer may interact with this.
+  ---------------------------------------------------------------------------*/
+
 /*
   NOTES.
   We represent a window as an integer ID, the same as the GLUT id.
@@ -30,6 +41,7 @@
   ---------------------------------------------------------------------------*/
 
 #include <stdio.h>
+#include <string.h>
 
 #include <libguile.h>
 
@@ -104,7 +116,7 @@ SCM minara_window_make ()
     return SCM_EOL;
   }
   //Install the event handlers
-    glutReshapeFunc (glut_resize);
+  glutReshapeFunc (glut_resize);
   glutDisplayFunc (glut_display);
   glutKeyboardFunc (glut_key_press);
   glutMouseFunc (glut_mouse_button);
@@ -211,6 +223,84 @@ SCM minara_window_set_title (SCM win, SCM title)
 }
 
 
+/**
+   Draw (or set, depending on the API) the window status information.
+   @param win The window id to draw the status string on.
+   @param title The window status string.
+   @return '()
+*/
+
+SCM minara_window_draw_status(SCM win, SCM text)
+{
+  GLuint w = 0;
+  char *status = NULL;
+  int old_win = glutGetWindow ();
+  SCM_ASSERT (SCM_NUMBERP (win), win, SCM_ARG1, "minara-window-set-status");
+  w = (GLuint) scm_num2int (win, SCM_ARG1, "minara-window-set-status");
+  SCM_ASSERT (SCM_STRINGP (text), text, SCM_ARG2, "minara-window-set-status");
+  SCM_STRING_COERCE_0TERMINATION_X (text);
+  status = SCM_STRING_CHARS (text);
+  if (w != 0)
+  {
+    int i;
+    int len = strlen(status);
+    glutSetWindow (w);
+    glPushMatrix();
+    // De-hardcode me!
+    glColor3f(0.9, 0.8, 0.8);
+    glRasterPos2f(5.2, 4.8);
+    for (i = 0; i < len; i++)
+      {
+	// De-hardcode me!
+	glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, status[i]);
+      }
+    // De-hardcode me!
+    glColor3f(0.1, 0.1, 0.25);
+    glRasterPos2f(5.0, 5.0);
+    for (i = 0; i < len; i++)
+      {
+	// De-hardcode me!
+	glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, status[i]);
+      }
+    glPopMatrix();
+  }
+  if (old_win != 0)
+    glutSetWindow (old_win);
+  return SCM_EOL;
+}
+
+/**
+   Get the window ready for drawing.
+   @param win The window id to get ready for drawing.
+   @return '()
+*/
+
+SCM minara_window_draw_begin(SCM win)
+{
+  //This may change as the renderer evolves
+  glShadeModel (GL_FLAT);
+  //TODO:Anti - aliasing.
+  // Allow enabling / disabling from Scheme / preferences
+  // Disable costly functions
+  // (most are disabled anyway)
+  glDisable (GL_DITHER);
+  glDisable (GL_DEPTH_TEST);
+  glClearColor (1.0, 1.0, 1.0, 1.0);
+  glClear (GL_COLOR_BUFFER_BIT);
+}
+
+/**
+   Finish drawing in the window.
+   @param win The window id to finish drawing in.
+   @return '()
+*/
+
+SCM minara_window_draw_end(SCM win)
+{
+  glFlush ();
+  glutSwapBuffers ();
+}
+
 //Program lifecycle
 
 /**
@@ -225,6 +315,9 @@ window_startup ()
   scm_c_define_gsubr ("window-dispose", 0, 0, 0, minara_window_dispose);
   scm_c_define_gsubr ("window-current", 0, 0, 0, minara_window_current);
   scm_c_define_gsubr ("window-set", 1, 0, 0, minara_window_set);
-  scm_c_define_gsubr ("window-set-title", 2, 0, 0, minara_window_set);
+  scm_c_define_gsubr ("window-set-title", 2, 0, 0, minara_window_set_title);
+  scm_c_define_gsubr ("window-draw-status", 2, 0, 0, minara_window_draw_status);
   scm_c_define_gsubr ("window-invalidate", 1, 0, 0, minara_window_invalidate);
+  scm_c_define_gsubr ("window-draw-begin", 1, 0, 0, minara_window_draw_begin);
+  scm_c_define_gsubr ("window-draw-end", 1, 0, 0, minara_window_draw_end);
 }

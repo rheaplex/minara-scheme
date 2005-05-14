@@ -18,11 +18,16 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Menus
+;; We use GLUT contextual menus at the moment. This is terrible. Nothing should
+;; be done that relies on this, or that would prevent proper pull-down menus
+;; being used in future.
+;;
+;; Menu handlers receive the window id they're called on as their parameter.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Menu handlers receive the window id they're called on as their parameter.
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; The global menu / menu item id count 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define menu-item-id 1024)
 
@@ -31,7 +36,11 @@
     (set! menu-item-id (+ menu-item-id 1))
     id))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Callbacks for menu items
+;; So when the window system passes us a "menu selected" event, we look up the
+;; menu item id here and call the callback registered under that id.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define menu-callbacks '())
 
@@ -46,8 +55,10 @@
 (define (menu-callback id)
   (assoc id menu-callbacks))
 
-;; Create a (top-level) menu
-;; We only have 1-level deep menus at the moment
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Top-level menus
+;; We only have 1-level deep menus at the moment, no nested submenus.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (menu-make-toplevel title)
   (list (menu-make) title))
@@ -61,10 +72,16 @@
 (define (menu-install-toplevel menu)
   (menu-install (menu-id menu) (menu-name menu)))
 
+
 ;; Remove a menu
 ;; Unimplemented
 
-;; Create a menu item, installing a callback
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; menu items
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Create a menu item.
+;; This installs a callback that will be called when this item is selected.
 
 (define (menu-make-entry menu title callback)
   (let ((item-id (menu-id-make)))
@@ -73,9 +90,11 @@
     item-id))
 
 ;; Remove a menu item
+
 (define (menu-delete-entry menu-id)
   (menu-remove-entry menu-id)
   (menu-callback-remove menu-id))
+
 
 ;; Change a menu state
 
@@ -85,7 +104,16 @@
 
 ;; Disble a menu item
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Menu event handling
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; The standard menu event handler
+;; Hooked into the main event system in events.scm
+;; Don't replace.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (default-menu-handler window-id menu-id)
   (let ((handler (cdr (menu-callback menu-id))))
@@ -100,8 +128,9 @@
 (install-default-menu-handler)
 
 
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; testing
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; (define (pen-dummy window-id)
 ;   (write "called pen dummy"))

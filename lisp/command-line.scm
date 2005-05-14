@@ -16,6 +16,10 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Our help message in response to --help
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (define (cli-help)
   (write-line "Usage: minara [OPTION]...")
   (write-line "")
@@ -28,6 +32,11 @@
   (write-line "-v --version\t\tdisplay version information and exit")
   (exit 0))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Our version info in response to --version
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (define (cli-version)
   (write-line "minara 0.1")
   (write-line "Copyright (C) 2004 Rob Myers")
@@ -37,12 +46,18 @@
    "For more information about these matters, see the file named COPYING.")
   (exit 0))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Handling command-line arguments
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (define cli-option-spec
   '((version (single-char #\v))
     (help (single-char #\h))
     (file (single-char #\f) (value #t))))
 
 ;; Load the splash screen if required
+;; This is a GLUT wart: if we started without a window open we'd quit
 
 (define (load-splash-screen)
   (make-window-from-file "../minara.minara"))

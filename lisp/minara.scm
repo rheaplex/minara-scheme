@@ -17,16 +17,9 @@
 ;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-;; This is the work-in-progress file. 
-;; Code will be moved into other files as it matures.
-
-
-
-;; Suspend undo
-;; Resume undo
-;; with-undo-disabled macro
-
-;; Append tool buffer to file buffer
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; REMOVE THIS FILE
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 

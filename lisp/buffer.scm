@@ -34,6 +34,8 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Timestamps
+;; We use timestamps to keep track of when something has changed,
+;; particularly buffers of scheme code and the cached drawing of them.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Timestamps
@@ -55,6 +57,8 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Buffer
+;; A buffer of text, particularly the Scheme code describing the drawing
+;; instructions from a document or an overlay.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; The buffer record
@@ -75,11 +79,11 @@
 ;; Public constructor
 
 (define (make-buffer)
-  (let ((buf (really-make-buffer (make-gap-buffer) 
+  (let ((buf (really-make-buffer (make-gap-buffer)
 				 (cache-make)
 				 '())))
     (update-timestamp! (buffer-text buf))
-    (update-timestamp! (buffer-cache buf))
+    (initialise-timestamp! (buffer-cache buf))
     buf))
 
 ;; Public constrictor to load the buffer from file
@@ -100,6 +104,10 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Buffer Variables
+;; A buffer can have an arbitrary number of named variables set on it.
+;; These will last until the buffer is disposed of, and are unaffected by event
+;; handling, particularly redraws, unless the code inside the buffer affects 
+;; the variables when evaluated, which would be weird.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Set buffer variable
@@ -129,6 +137,8 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Buffer Drawing and Caching
+;; Note that we draw lazily, only evaluating a buffer if it has been updated
+;; since it was last cached.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Redraw the buffer (just run the cache if no timestamp variation)

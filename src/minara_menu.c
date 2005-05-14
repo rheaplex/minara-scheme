@@ -18,6 +18,15 @@
 */
 
 /*-----------------------------------------------------------------------------
+  Menus
+  
+  Lisp functions to allow tools to add, configure and remove menus.
+  
+  We use GLUT contextual menus. This is terrible. We need real menus. Nothing
+  should be done to prevent us using real menus one day.
+  ---------------------------------------------------------------------------*/
+
+/*-----------------------------------------------------------------------------
   Includes
   ---------------------------------------------------------------------------*/
 

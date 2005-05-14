@@ -21,6 +21,15 @@
 */
 
 /*-----------------------------------------------------------------------------
+  Scheme
+  
+  Our Lisp system. We currently use Guile, so it's actually our Scheme system.
+  This should still be called minara-lisp.c, though.
+  The code in this file extends Guile to allow us to evaluate code buffers 
+  exactly as we need to for minara to function as planned.
+  ---------------------------------------------------------------------------*/
+
+/*-----------------------------------------------------------------------------
   Includes
   ---------------------------------------------------------------------------*/
 
