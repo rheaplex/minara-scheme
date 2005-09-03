@@ -42,6 +42,8 @@
 			       "(set-colour 0.0 0.828 0.387 1.0)~%(path-begin)~%(move-to ~a ~a)~%" 
 			       x y))
     (gb-insert-string! close-buffer "(path-end)\n")
+    (window-undo-stack-push (window-for-id win) 
+			    pen-buffer)
     (set! pen-tool-mouse-down #t)))
 
 ;; When the mouse is dragged, add the new co-ordinate to the drawing buffer
@@ -50,11 +52,13 @@
 (define (pen-mouse-move win x y) 
   (if pen-tool-mouse-down
       (let* ((pen-buffer (window-buffer (window-for-id win) "pen"))
-	     (pen-text (buffer-text pen-buffer))
+	     ;;(pen-text (buffer-text pen-buffer))
 	     (pen-close-buffer (window-buffer (window-for-id win) "pen-close"))
 	     (move (format #f "(line-to ~a ~a)~%" x y)))
-	(gb-goto-char pen-text (gb-point-max pen-text))
-	(gb-insert-string! pen-text move)
+	(buffer-insert-undoable pen-buffer move)
+	(buffer-undo-mark pen-buffer)
+;;	(gb-goto-char pen-text (gb-point-max pen-text))
+;;	(gb-insert-string! pen-text move)
 	(buffer-invalidate pen-buffer)   
 	(buffer-invalidate pen-close-buffer)
 	(window-redraw win))))
@@ -70,17 +74,21 @@
 	(close-buffer (buffer-text (window-buffer 
 		       (window-for-id win)
 		       "pen-close")))
-	(main-buff (buffer-text (window-buffer-main (window-for-id win)))))
+	(main-buff (window-buffer-main (window-for-id win))))
     ;; Add the overlay to the main buffer
-    (gb-goto-char main-buff (gb-point-max main-buff))
-    (gb-insert-string! main-buff (gb->string buff))
-    (gb-goto-char main-buff (gb-point-max main-buff))
-    (gb-insert-string! main-buff (gb->string close-buffer))
+    ;;(gb-goto-char main-buff (gb-point-max main-buff))
+    ;;(gb-insert-string! main-buff (gb->string buff))
+    ;;(gb-goto-char main-buff (gb-point-max main-buff))
+    ;;(gb-insert-string! main-buff (gb->string close-buffer))
+    (buffer-insert-undoable main-buff (gb->string buff))
+    (buffer-insert-undoable main-buff (gb->string close-buffer))
+    (buffer-undo-mark main-buff)
+    (window-undo-stack-pop (window-for-id win))
     ;; Clean up and redraw
     (remove-window-buffer (window-for-id win) "pen")
-    (remove-window-buffer (window-for-id win) "pen-close"))
-  (buffer-invalidate (window-buffer-main (window-for-id win)))
-  (window-redraw win))
+    (remove-window-buffer (window-for-id win) "pen-close")
+    (buffer-invalidate (window-buffer-main (window-for-id win)))
+    (window-redraw win)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

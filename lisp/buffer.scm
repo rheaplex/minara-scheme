@@ -81,7 +81,7 @@
 (define (make-buffer)
   (let ((buf (really-make-buffer (make-gap-buffer)
 				 (cache-make)
-				 '())))
+				 (list))))
     (update-timestamp! (buffer-text buf))
     (initialise-timestamp! (buffer-cache buf))
     buf))
@@ -113,14 +113,17 @@
 ;; Set buffer variable
 
 (define (set-buffer-variable! buffer name value)
-  (set-buffer-variables! buffer 
-			 (assoc-set! (buffer-variables buffer) 
-				     name value)))
+  (let ((variables (buffer-variables buffer)))
+    (set-buffer-variables! buffer 
+			   (assoc-set! variables 
+				       name 
+				       value))))
 
 ;; Get buffer variable
 
-(define (buffer-variable buffer name value)
-  (assoc (buffer-variables buffer) name value))
+(define (buffer-variable buffer name)
+  (assoc-ref (buffer-variables buffer)
+	     name))
 
 ;; Remove buffer variable
 

@@ -43,18 +43,13 @@
   (set! path-begin rendering:path-begin)
   (set! path-end rendering:path-end)
   (set! move-to (lambda (x y) 
-		  (let ((pt (transform x y %ctm)))
-		    (rendering:move-to (car pt) (cdr pt)))))
+		  (rendering:move-to x y)))
   (set! line-to (lambda (x y) 
-		  (let ((pt (transform x y %ctm)))
-		    (rendering:line-to (car pt) (cdr pt)))))
+		    (rendering:line-to x y)))
   (set! curve-to (lambda (x1 y1 x2 y2 x3 y3)
-		   (let ((p1 (transform x1 y1 %ctm))
-			 (p2 (transform x2 y2 %ctm))
-			 (p3 (transform x3 y3 %ctm)))
-		     (rendering:curve-to (car p1) (cdr p1)
-					 (car p2) (cdr p2)
-					 (car p3) (cdr p3))))))
+		     (rendering:curve-to x1 y1
+					 x2 y2
+					 x3 y3))))
 
 
 ;; Macro to save/restore current protocol

@@ -55,25 +55,25 @@
 (define-record-type window
   (really-make-window id
 		      buffers
-		      matrix
 		      height
-		      status)
+		      status
+		      undo-stack)
   window?
   ;; The window
   (id window-id)
   ;; The buffers
   (buffers window-buffers
 	   set-window-buffers!)
-  ;; The window's view transform, so we can pan, zoom & spin
-  (matrix window-matrix
-	  set-window-matrix!)
   ;; The window's height
   ;; We store this to allow us to map from from GLUT event h to OpenGL y
   (height window-height
 	  %set-window-height!)
   ;; The window's status string
   (status window-status
-	  set-window-status!))
+	  set-window-status!)
+  ;; The window's undo stack
+  (undos window-undo-stack
+	 set-window-undo-stack!))
 
 ;; Set the title
 
@@ -88,9 +88,9 @@
 	 (really-make-window 
 	  (window-make)
 	  '()
-	  (identity)
 	  0
-	  "")))
+	  ""
+	  '())))
     (hash-create-handle! *windows* (window-id window) window)
     ;; Redraw timestamp
     (initialise-timestamp! window)
@@ -105,6 +105,8 @@
   (let* ((win (%make-window)))
     ;; Main buffer
     (make-window-buffer win "_main")
+    (window-undo-stack-push win
+			    (window-buffer-main win))
     ;; Set title
     (set-window-title! win %untitled-window-name)
     win))
@@ -113,6 +115,8 @@
   (let* ((win (%make-window)))
     ;; Main buffer from file
     (add-window-buffer win "_main" (make-buffer-from-file file-path))
+    (window-undo-stack-push win
+			    (window-buffer-main win))
     ;; Set buffer text timestamp to file timestamp so it's unchanged for saving
     (timestamp-from-file (buffer-text (window-buffer-main win)) 
 			 (buffer-file (window-buffer-main win)))

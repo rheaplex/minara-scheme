@@ -18,14 +18,256 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Undo/redo
-;; Memization-based.
+;; Memoization-based.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Suspend undo
-;; Resume undo
-;; with-undo-disabled macro
 
-;; Append tool buffer to file buffer
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Modules
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Records
+(use-modules (srfi srfi-9))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Window-level undo handling
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Set a buffer as the current undo target: user calls for undo will target it
+
+(define (window-undo-stack-push window buffer)
+  (set-window-undo-stack! window
+			  (cons buffer 
+				(window-undo-stack window))))
+
+;; Set the undo target to the previous one (possibly none)
+
+(define (window-undo-stack-pop window)
+  (set-window-undo-stack! window
+			  (cdr (window-undo-stack window))))
+
+;; Ask the window to get its current undo target to undo
+
+(define (window-undo window)
+  (let ((current-undo-buffer  (car (window-undo-stack window))))
+    (if current-undo-buffer
+	(buffer-undo current-undo-buffer))))
+
+;; Ask the window to get its current undo target to redo
+
+(define (window-redo window)
+  (let ((current-undo-buffer  (car (window-undo-stack window))))
+    (if current-undo-buffer
+	(buffer-redo current-undo-buffer))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Buffer-level undo handling
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; The undo record
+;; A linked list node containing an undo and redo method for the action
+
+
+(define-record-type undoer
+  (really-make-undoer undo
+		      redo
+		      next
+		      previous)
+  undoer?
+  ;; The undo function
+  (undo undoer-undo)
+  ;; The redo function
+  (redo undoer-redo)
+  ;; The next undoer
+  (next undoer-next
+	  set-undoer-next!)
+  ;; The previous undoer
+  (previous undoer-previous
+	  set-undoer-previous!))
+
+;; Make an undo record
+
+(define (undoer-make undo redo previous next)
+  (really-make-undoer undo
+		      redo
+		      next
+		      previous))
+
+;; Get the buffer undo stack
+
+(define (buffer-undo-stack buffer)
+  (let ((stack (buffer-variable buffer 
+				"%undo-stack")))
+    (if stack ;; Lazy create stack. Uh. Not sure about this: #f???
+	stack
+	(begin
+	  (set-buffer-variable! buffer 
+				"%undo-stack"
+				'())
+	  (buffer-undo-mark buffer) ;; Make sure there's a mark at the bottom
+	  (buffer-variable buffer 
+			   "%undo-stack")))))
+
+(define (set-buffer-undo-stack! buffer new-stack)
+  (set-buffer-variable! buffer 
+			"%undo-stack"
+			new-stack))
+
+;; Undo the buffer until we hit the next mark or the end of the undo list
+
+(define (buffer-undo buffer)
+  (let* ((undos (buffer-undo-stack buffer)) ;; Get mark at top of stack
+	 (previous (undoer-previous undos))) ;; Get previous undo (or nil)
+    (if (undoer? previous) ;; If we are not at the base of the undo stack
+	(buffer-undo-aux buffer ;; Move past the mark and start undoing
+			 previous))))
+
+(define (buffer-undo-aux buffer undos)
+  (let ((undo (undoer-undo undos))
+	(previous (undoer-previous undos)))
+    (if undo ;; If we haven't hit the next mark down
+	(begin
+	  (undo) ;; Call the undo action
+	  (buffer-undo-aux buffer ;; Then recurse
+			   previous))
+	(begin ;; If there isn't an undo it's a mark
+	  (set-buffer-undo-stack! buffer ;; So set current to mark
+				  undos)
+	  (buffer-invalidate buffer)))))
+
+;; Redo the buffer until we hit the next mark or the beginning of the undo list
+
+(define (buffer-redo buffer)
+  (let* ((undos (buffer-undo-stack buffer)) ;; Get the redos
+	(redos (undoer-next undos))) ;; Get redo after current undo
+	  (if (undoer? redos) ;; If it exists
+		(buffer-redo-aux buffer 
+				 redos))))
+
+(define (buffer-redo-aux buffer redos)
+  (let ((redo (undoer-redo redos))
+	(next (undoer-next redos)))
+    (if redo ;; If we haven't hit the next mark up
+	(begin
+	  (redo) ;; Call the redo action
+	  (buffer-redo-aux buffer ;; Then recurse
+			   next))
+	(begin ;; If there isn't a redo it's a mark
+	  (set-buffer-undo-stack! buffer ;; So set current to mark
+				  redos)
+	  (buffer-invalidate buffer)))))
+
+;; Push the undo/redo methods & double link them into the undo list
+
+(define (buffer-undo-stack-push buffer undo redo)
+  (let* ((current-undo (buffer-undo-stack buffer))
+	 (new-undo (undoer-make undo 
+				redo 
+				current-undo
+				#f)))
+    (if (undoer? current-undo)
+	(set-undoer-next! current-undo new-undo))
+    (set-buffer-undo-stack! buffer
+			    new-undo)))
 
 
 
+;; Placed at the bottom of / before a series of events 
+;; When we undo to this, it makes the *next* item the current undo & stop
+;; When we redo to it, it makes the *previous* item the current undo & stop
+
+(define (buffer-undo-mark buffer)
+  (buffer-undo-stack-push buffer
+			  #f
+			  #f))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Buffer undoable actions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Set a variable in an undoable way
+
+(define (buffer-variable-set-undoable buffer variable-name value)
+  (let ((old-value (buffer-variable buffer variable-name)))
+    (buffer-undo-stack-push buffer
+			    (lambda (undos)
+			      (set-buffer-variable! buffer 
+						    variable-name
+						    old-value))
+			    (lambda ()
+			      (set-buffer-variable! buffer 
+						    variable-name 
+						    value))))
+  (set-buffer-variable! buffer variable-name value))
+
+;; Insert text into a buffer.
+
+(define (buffer-insert-undoable buffer text)
+  (let* ((gap-buffer (buffer-text buffer))
+	 (current-end (gb-point-max gap-buffer))
+	 (text-length (string-length text)))
+    (buffer-undo-stack-push buffer
+			    (lambda ()
+			      (gb-goto-char gap-buffer
+					    current-end)
+			      (gb-delete-char! gap-buffer 
+					       text-length))
+			    (lambda ()
+			      (write text)
+			      (gb-goto-char gap-buffer 
+					    current-end)
+			      (gb-insert-string! gap-buffer 
+						 text)))
+    (gb-goto-char gap-buffer 
+		  current-end)
+    (gb-insert-string! gap-buffer 
+		       text)))
+
+;; 
+
+(define (buffer-delete-undoable buffer text)
+  (let* ((gap-buffer (buffer-text buffer))
+	(current-end (gb-point-max gap-buffer))
+	(length (size text)))
+    (buffer-undo-stack-push buffer
+			    (lambda ()
+			      (gb-delete-char! gap-buffer 
+					       current-end 
+					       length))
+			    (lambda ()
+			      (gb-goto-char gap-buffer 
+					    current-end)
+			      (gb-insert-string! gap-buffer 
+						 text)))
+    (gb-goto-char gap-buffer 
+		  current-end)
+    (gb-insert-string! gap-buffer 
+		       text)))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Keymap
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (call-window-undo)
+  (let* ((window-id (window-current))
+	  (win (window-for-id window-id)))
+    (window-undo win)
+    (window-redraw window-id)))
+
+(keymap-add-fun %global-keymap 
+		call-window-undo
+		"z")
+
+(define (call-window-redo)
+  (let* ((window-id (window-current))
+	  (win (window-for-id window-id)))
+    (window-redo win)
+    (window-redraw window-id)))
+
+(keymap-add-fun %global-keymap 
+		call-window-redo
+		"Z")

@@ -35,27 +35,38 @@
 
 ;; identity
 
-(define (identity)
+(define (matrix-identity-make)
   (list 1.0 0.0 0.0 1.0 0.0 0.0))
 
 ;; scale
 
-(define (scale x y)
+(define (matrix-scale-make x y)
   (list x 0.0 0.0 y 0.0 0.0))
 
 ;; translate
 
-(define (translate x y)
+(define (matrix-translate-make x y)
   (list 1.0 0.0 0.0 1.0 x y))
 
 ;; rotate
 
-(define (rotate z)
+(define (matrix-rotate-make z)
   (let ((c (cos z))
 	(s (sin z))
 	(ns (- (sin z))))
   (list c s nc c 0.0 0.0)))
 
+;; to string
+
+(define (matrix-to-lisp matrix)
+  (matrix-to-lisp-aux matrix "(push-matrix"))
+ 
+(define (matrix-to-lisp-aux matrix string)
+  (if matrix
+      (matrix-to-lisp-aux (cdr string)
+			  (string-append string
+					 (format t " ~f" (car matrix))))
+      (string-append string ")")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Matrix Concatenation
@@ -65,7 +76,7 @@
 ;; This is going to be a bottleneck, so unroll it
 ;; Optimise so rather than first, second, third, we use car/cdr on each cdr
 
-(define (concatenate a b)
+(define (matrix-concatenate a b)
   (let* ((a1 (first a))
 	 (a2 (second a))
 	 (a3 (third a))
@@ -100,7 +111,7 @@
 ;; concatenaten
 ;; Concatenate a list of matrices
 
-(define (concatenaten a . ms)
+(define (matrix-concatenaten a . ms)
   (let ((product (concatenate a (car ms)))
 	(rest (cdr ms)))
     (if (nilp rest)
@@ -117,7 +128,7 @@
 ;; This is going to be a bottleneck, so unroll it
 ;; Optimise so rather than first, second, third, we use car/cdr on each cdr
 
-(define (transform x y m)
+(define (matrix-point-transform x y m)
   (let* ((a (first m))
 	 (b (second m))
 	 (c (third m))
@@ -138,10 +149,13 @@
 ;; Used during a single run of the renderer, so should be thread local.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; Use GL for matrices, expose via scheme
+
+
 ;; %ctm
 ;; Current transformation matrix, thread-local
 
-(define %ctm (identity))
+(define %ctm (matrix-identity-make))
 
 ;; %ctms
 ;; Current transformation matrices stack, thread-local
