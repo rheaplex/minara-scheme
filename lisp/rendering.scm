@@ -34,6 +34,8 @@
 (define move-to #f)
 (define line-to #f)
 (define curve-to #f)
+(define push-matrix #f)
+(define pop-matrix #f)
 
 ;; Install the window rendering protocol
 ;; Now with added current transformation matrix
@@ -42,14 +44,11 @@
   (set! set-colour rendering:set-colour)
   (set! path-begin rendering:path-begin)
   (set! path-end rendering:path-end)
-  (set! move-to (lambda (x y) 
-		  (rendering:move-to x y)))
-  (set! line-to (lambda (x y) 
-		    (rendering:line-to x y)))
-  (set! curve-to (lambda (x1 y1 x2 y2 x3 y3)
-		     (rendering:curve-to x1 y1
-					 x2 y2
-					 x3 y3))))
+  (set! move-to rendering:move-to )
+  (set! line-to rendering:line-to)
+  (set! curve-to rendering:curve-to)
+  (set! push-matrix rendering:push-matrix)
+  (set! pop-matrix rendering:pop-matrix))
 
 
 ;; Macro to save/restore current protocol

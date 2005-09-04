@@ -215,7 +215,6 @@
 			      (gb-delete-char! gap-buffer 
 					       text-length))
 			    (lambda ()
-			      (write text)
 			      (gb-goto-char gap-buffer 
 					    current-end)
 			      (gb-insert-string! gap-buffer 

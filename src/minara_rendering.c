@@ -357,6 +357,41 @@ render_curve_to (SCM x1, SCM y1, SCM x2, SCM y2, SCM x3, SCM y3)
   return SCM_EOL;
 }
 
+
+SCM
+render_push_matrix (SCM m11, SCM m12, SCM m21, SCM m22, SCM m31, SCM m32)
+{
+  GLdouble matrix[4][4] = {{0.0, 0.0, 0.0, 0.0},
+			   {0.0, 0.0, 0.0, 0.0},
+			   {0.0, 0.0, 0.0, 0.0},
+			   {0.0, 0.0, 0.0, 1.0}};
+  SCM_ASSERT (SCM_NUMBERP (m11), m11, SCM_ARG1, "render-push-matrix");
+  SCM_ASSERT (SCM_NUMBERP (m12), m12, SCM_ARG2, "render-push-matrix");
+  SCM_ASSERT (SCM_NUMBERP (m21), m21, SCM_ARG3, "render-push-matrix");
+  SCM_ASSERT (SCM_NUMBERP (m22), m22, SCM_ARG4, "render-push-matrix");
+  SCM_ASSERT (SCM_NUMBERP (m31), m31, SCM_ARG5, "render-push-matrix");
+  SCM_ASSERT (SCM_NUMBERP (m32), m32, SCM_ARG6, "render-push-matrix");
+  matrix[0][0] = scm_num2dbl (m11, "render-push-matrix");
+  matrix[0][1] = scm_num2dbl (m12, "render-push-matrix");
+  matrix[1][0] = scm_num2dbl (m21, "render-push-matrix");
+  matrix[1][1] = scm_num2dbl (m22, "render-push-matrix");
+  matrix[2][0] = scm_num2dbl (m31, "render-push-matrix");
+  matrix[2][1] = scm_num2dbl (m32, "render-push-matrix");
+  
+  glPushMatrix ();
+  glLoadMatrixd ((GLdouble*)matrix);
+
+  return SCM_EOL;
+}
+
+SCM
+render_pop_matrix ()
+{
+  glPopMatrix ();
+  return SCM_EOL;
+}
+
+
 //Rendering
 
 /**
@@ -500,11 +535,13 @@ define_rendering_module ()
   scm_c_define_gsubr ("mask-end", 0, 0, 0, render_mask_end);
   scm_c_define_gsubr ("masking-begin", 0, 0, 0, render_masking_begin);
   scm_c_define_gsubr ("masking-end", 0, 0, 0, render_masking_end);
+  scm_c_define_gsubr ("push-matrix", 6, 0, 0, render_push_matrix);
+  scm_c_define_gsubr ("pop-matrix", 0, 0, 0, render_pop_matrix);
   //Export them
     scm_c_export ("path-begin", "path-end", "move-to",
 		  "line-to", "curve-to", "set-colour",
 		  "mask-begin", "mask-end", "masking-begin",
-		  "masking-end", NULL);
+		  "masking-end", "push-matrix", "pop-matrix", NULL);
 }
 
 void
@@ -512,11 +549,13 @@ rendering_startup ()
 {
   //Make our tesselator
   glu_tesselator = gluNewTess ();
-  gluTessCallback (glu_tesselator, GLU_TESS_VERTEX, glVertex3dv);
-  gluTessCallback (glu_tesselator, GLU_TESS_BEGIN, glBegin);
-  gluTessCallback (glu_tesselator, GLU_TESS_END, glEnd);
-  gluTessCallback (glu_tesselator, GLU_TESS_ERROR, tesselator_error_callback);
-  gluTessCallback (glu_tesselator, GLU_TESS_COMBINE, tesselator_combine_callback);
+  gluTessCallback (glu_tesselator, GLU_TESS_VERTEX, (_GLUfuncptr)glVertex3dv);
+  gluTessCallback (glu_tesselator, GLU_TESS_BEGIN, (_GLUfuncptr)glBegin);
+  gluTessCallback (glu_tesselator, GLU_TESS_END, (_GLUfuncptr)glEnd);
+  gluTessCallback (glu_tesselator, GLU_TESS_ERROR, 
+		   (_GLUfuncptr)tesselator_error_callback);
+  gluTessCallback (glu_tesselator, GLU_TESS_COMBINE, 
+		   (_GLUfuncptr)tesselator_combine_callback);
   //Define our module
     scm_c_define_module ("rendering", define_rendering_module, NULL);
 }
