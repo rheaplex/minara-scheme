@@ -79,7 +79,7 @@
   (load "./geometry.scm")
   (load "./picking.scm")
   (load "./tool.scm")
-  (load "./window-tools.scm")
+  (load "./view-tools.scm")
   (load "./undo.scm"))
 
 ;; Load the tools
