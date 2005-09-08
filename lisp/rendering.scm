@@ -26,6 +26,11 @@
 
 ;; The top-level bindings for the protocol functions
 
+;; Note we have rotate/translate/scale as well as matrix concatenate.
+;; This is because OpenGL and PS have these as optimised operations
+;; so it makes sense to allow them to be called from code.
+;; Graphics toolkits without them can simulate them.
+
 (define write-header #f)
 (define write-footer #f)
 (define set-colour #f)
@@ -36,6 +41,10 @@
 (define curve-to #f)
 (define push-matrix #f)
 (define pop-matrix #f)
+(define concatenate-matrix #f)
+(define translate #f)
+(define rotate #f)
+(define scale #f)
 
 ;; Install the window rendering protocol
 ;; Now with added current transformation matrix
@@ -47,8 +56,12 @@
   (set! move-to rendering:move-to )
   (set! line-to rendering:line-to)
   (set! curve-to rendering:curve-to)
-  (set! push-matrix rendering:push-matrix)
-  (set! pop-matrix rendering:pop-matrix))
+  (set! push-matrix rendering:matrix-push)
+  (set! pop-matrix rendering:matrix-push)
+  (set! concatenate-matrix rendering:matrix-concatenate)
+  (set! translate rendering:translate)
+  (set! scale rendering:scale)
+  (set! rotate rendering:rotate))
 
 
 ;; Macro to save/restore current protocol

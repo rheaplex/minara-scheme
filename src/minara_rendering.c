@@ -357,10 +357,24 @@ render_curve_to (SCM x1, SCM y1, SCM x2, SCM y2, SCM x3, SCM y3)
   return SCM_EOL;
 }
 
+SCM
+render_matrix_push ()
+{
+  glPushMatrix ();
+  return SCM_EOL;
+}
 
 SCM
-render_push_matrix (SCM m11, SCM m12, SCM m21, SCM m22, SCM m31, SCM m32)
+render_matrix_pop ()
 {
+  glPopMatrix ();
+  return SCM_EOL;
+}
+
+SCM
+render_matrix_concatenate (SCM m11, SCM m12, SCM m21, SCM m22, SCM m31, SCM m32)
+{
+  // Matrix must be 4x4, column-major order
   GLdouble matrix[4][4] = {{0.0, 0.0, 0.0, 0.0},
 			   {0.0, 0.0, 0.0, 0.0},
 			   {0.0, 0.0, 0.0, 0.0},
@@ -377,20 +391,52 @@ render_push_matrix (SCM m11, SCM m12, SCM m21, SCM m22, SCM m31, SCM m32)
   matrix[1][1] = scm_num2dbl (m22, "render-push-matrix");
   matrix[2][0] = scm_num2dbl (m31, "render-push-matrix");
   matrix[2][1] = scm_num2dbl (m32, "render-push-matrix");
-  
-  glPushMatrix ();
-  glLoadMatrixd ((GLdouble*)matrix);
 
+  glMultMatrixd ((GLdouble *)matrix);
+  
   return SCM_EOL;
 }
 
 SCM
-render_pop_matrix ()
+render_translate (SCM sx, SCM sy)
 {
-  glPopMatrix ();
+  double x;
+  double y;
+  SCM_ASSERT (SCM_NUMBERP (sx), sx, SCM_ARG1, "render-translate");
+  SCM_ASSERT (SCM_NUMBERP (sy), sy, SCM_ARG2, "render-translate");
+  x = scm_num2dbl (sx, "render-translate");
+  y = scm_num2dbl (sy, "render-translate");
+
+  glTranslated (x, y, 0.0);
+  
+  return SCM_EOL;
+}
+SCM
+render_scale (SCM sx, SCM sy)
+{
+  double x;
+  double y;
+  SCM_ASSERT (SCM_NUMBERP (sx), sx, SCM_ARG1, "render-scale");
+  SCM_ASSERT (SCM_NUMBERP (sy), sy, SCM_ARG2, "render-scale");
+  x = scm_num2dbl (sx, "render-scale");
+  y = scm_num2dbl (sy, "render-scale");
+
+  glScaled (x, y, 0.0);
+  
   return SCM_EOL;
 }
 
+SCM
+render_rotate (SCM sr)
+{
+  double r;
+  SCM_ASSERT (SCM_NUMBERP (sr), sr, SCM_ARG1, "render-rotate");
+  r = scm_num2dbl (sr, "render-rotate");
+
+  glRotated (r, 0.0, 0.0, 1.0);
+  
+  return SCM_EOL;
+}
 
 //Rendering
 
@@ -535,13 +581,20 @@ define_rendering_module ()
   scm_c_define_gsubr ("mask-end", 0, 0, 0, render_mask_end);
   scm_c_define_gsubr ("masking-begin", 0, 0, 0, render_masking_begin);
   scm_c_define_gsubr ("masking-end", 0, 0, 0, render_masking_end);
-  scm_c_define_gsubr ("push-matrix", 6, 0, 0, render_push_matrix);
-  scm_c_define_gsubr ("pop-matrix", 0, 0, 0, render_pop_matrix);
+  scm_c_define_gsubr ("matrix-push", 6, 0, 0, render_matrix_push);
+  scm_c_define_gsubr ("matrix-pop", 0, 0, 0, render_matrix_pop);
+  scm_c_define_gsubr ("matrix-concatenate", 6, 0, 0, 
+		      render_matrix_concatenate);
+  scm_c_define_gsubr ("translate", 2, 0, 0, render_translate);
+  scm_c_define_gsubr ("scale", 2, 0, 0, render_scale);
+  scm_c_define_gsubr ("rotate", 1, 0, 0, render_rotate);
   //Export them
     scm_c_export ("path-begin", "path-end", "move-to",
 		  "line-to", "curve-to", "set-colour",
 		  "mask-begin", "mask-end", "masking-begin",
-		  "masking-end", "push-matrix", "pop-matrix", NULL);
+		  "masking-end", "matrix-push", "matrix-pop",
+		  "matrix-concatenate", "translate", "scale",
+		  "rotate", NULL);
 }
 
 void

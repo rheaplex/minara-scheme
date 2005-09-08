@@ -147,7 +147,8 @@
 ;; Get window buffer
 
 (define (window-buffer window name)
-  (cdr (assoc name (window-buffers window))))
+  (assoc-ref (window-buffers window)
+	     name))
 
 ;; Get main window buffer
 
