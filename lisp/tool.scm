@@ -46,6 +46,13 @@
 (define (%remove-current-tool-hook)
   #f)
 
+;; Keep track of the current tool name
+
+(define %current-tool-name "")
+
+(define (set-current-tool-name! name)
+  (set! %current-tool-name name)
+  (window-redraw (window-current)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Remove the current tool
@@ -55,4 +62,5 @@
   (if %remove-current-tool-hook
       (%remove-current-tool-hook))
   (set! %remove-current-tool-hook #f)
+  (set! %current-tool-name "")
   (install-window-rendering-protocol))

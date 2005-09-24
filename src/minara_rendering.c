@@ -581,7 +581,7 @@ define_rendering_module ()
   scm_c_define_gsubr ("mask-end", 0, 0, 0, render_mask_end);
   scm_c_define_gsubr ("masking-begin", 0, 0, 0, render_masking_begin);
   scm_c_define_gsubr ("masking-end", 0, 0, 0, render_masking_end);
-  scm_c_define_gsubr ("matrix-push", 6, 0, 0, render_matrix_push);
+  scm_c_define_gsubr ("matrix-push", 0, 0, 0, render_matrix_push);
   scm_c_define_gsubr ("matrix-pop", 0, 0, 0, render_matrix_pop);
   scm_c_define_gsubr ("matrix-concatenate", 6, 0, 0, 
 		      render_matrix_concatenate);

@@ -68,16 +68,6 @@
 static void glut_window_set (int win);
 
 /*-----------------------------------------------------------------------------
-  Global Variables
-  ---------------------------------------------------------------------------*/
-
-//Get these from the launch environment
-/** The window startup width */
-int screen_width = 640;
-/** The window startup height */
-int screen_height = 480;
-
-/*-----------------------------------------------------------------------------
   Functions
   ---------------------------------------------------------------------------*/
 
@@ -104,11 +94,18 @@ glut_window_set (int win)
    @return The window ID or '()
 */
 
-SCM minara_window_make ()
+SCM minara_window_make (SCM width, SCM height)
 {
   int win = 0;
+  int w;
+  int h;
+  SCM_ASSERT (SCM_NUMBERP (width), width, SCM_ARG1, "minara_window_make");
+  SCM_ASSERT (SCM_NUMBERP (height), height, SCM_ARG2, "minara_window_make");
+  w = scm_num2dbl (width, "minara_window_make");
+  h = scm_num2dbl (height, "minara_window_make");
+
   glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB);
-  glutInitWindowSize (screen_width, screen_height);
+  glutInitWindowSize (w, h);
   //glutInitWindowPosition (0, 0);
   win = glutCreateWindow ("");
   if (win == 0)
@@ -311,7 +308,7 @@ void
 window_startup ()
 {
   //Register our scheme functions
-  scm_c_define_gsubr ("window-make", 0, 0, 0, minara_window_make);
+  scm_c_define_gsubr ("window-make", 2, 0, 0, minara_window_make);
   scm_c_define_gsubr ("window-dispose", 0, 0, 0, minara_window_dispose);
   scm_c_define_gsubr ("window-current", 0, 0, 0, minara_window_current);
   scm_c_define_gsubr ("window-set", 1, 0, 0, minara_window_set);

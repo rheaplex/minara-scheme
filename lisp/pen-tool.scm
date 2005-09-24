@@ -98,6 +98,7 @@
 ;; Install
 
 (define (pen-tool-install)
+  (set-current-tool-name! "Simple Pen")
   (add-mouse-move-hook pen-mouse-move)
   (add-mouse-down-hook pen-mouse-down)
   (add-mouse-up-hook pen-mouse-up))

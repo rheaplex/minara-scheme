@@ -31,13 +31,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (window-transform-buffer window)
-  (let ((buf (window-buffer window "transform-buffer")))
-    (if buf
-	buf
-	(window-transform-buffer-make window))))
+  (window-buffer window "transform-buffer"))
 
 (define (window-transform-buffer-current)
   (window-transform-buffer (current-window)))
+
+;; This is called in the window constructor. Don't call it in your own code.
 
 (define (window-transform-buffer-make window)
   (make-window-buffer window "transform-buffer")
@@ -51,15 +50,15 @@
 			  (cons 0.0 0.0))
     (set-buffer-variable! buffer 
 			  "tilt-rotation" 
-			  0.0)
-    buffer))
+			  0.0)))
 
 (define (transform-buffer-update buffer)
-  (gb-erase! buffer)
  (let ((translation (buffer-translation buffer))
-       (scale (buffer-scale buffer)))
+       (scale (buffer-scale buffer))
+       (text (buffer-text buffer)))
+   (gb-erase! text)
    (gb-insert-string!
-    (buffer-text buffer)
+    text
     (format #f
 	    "(rotate ~f)~%(scale ~f ~f)~%(translate ~f ~f)"
 	    (buffer-rotation buffer)
@@ -129,6 +128,7 @@
 ;; Install
 
 (define (zoom-tool-install)
+  (set-current-tool-name! "Zoom")
   (add-mouse-up-hook zoom-mouse-up))
 
 ;; Uninstall
@@ -220,6 +220,7 @@
 ;; Uninstall
 
 (define (pan-tool-uninstall)
+  (set-current-tool-name! "Pan")
   (remove-mouse-down-hook pan-mouse-down)
   (remove-mouse-move-hook pan-mouse-move)
   (remove-mouse-up-hook pan-mouse-up))

@@ -33,6 +33,13 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Constants
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define $window-width 600)
+(define $window-height 400)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Globals
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -86,15 +93,21 @@
   ;; Window must be made before any display lists (MacOSX)!
   (let ((window
 	 (really-make-window 
-	  (window-make)
+	  (window-make $window-width $window-height)
 	  '()
-	  0
+	  -1
 	  ""
 	  '())))
     (hash-create-handle! *windows* (window-id window) window)
     ;; Redraw timestamp
     (initialise-timestamp! window)
-    ;; timestamp
+
+    ;; Buffers *under* the main buffer, created bottom to top
+    ;; Ask before adding anything here
+    (window-resizing-buffer-make window)
+    (window-transform-buffer-make window)
+    
+    ;; Return the window
     window))
 
 ;; Public constructors
@@ -156,11 +169,15 @@
   (window-buffer window "_main"))
 
 ;; Add window buffer
+;; We add buffers to the end of the list so we draw newer buffers last
+;; This means doing our own assoc-set equivalent
 
 (define (add-window-buffer window buffer-name buffer)
-  (set-window-buffers! window 
-			 (assoc-set! (window-buffers window) 
-				     buffer-name buffer)))
+  (if (not (assoc-ref buffer-name
+		      buffer))
+      (set-window-buffers! window 
+			   (append (window-buffers window) 
+				   (list (cons buffer-name buffer))))))
 
 (define (make-window-buffer window buffer-name)
   (let ((buf (make-buffer)))
@@ -190,10 +207,12 @@
   ;; Check timestamps, short circuiting on the first earlier than the window
   ;; If the window cache is more recent than the buffer timestamps
     (install-window-rendering-protocol)
+    (push-matrix)
     (for-each
      (lambda (buf-cons)
        (draw-buffer (cdr buf-cons)))
      (window-buffers cb))
+    (pop-matrix)
     (update-timestamp! cb))
 
 ;; Draw or redraw a window's buffers/caches
@@ -205,7 +224,10 @@
 	   (window-draw-begin window-id)
 	   (window-draw window)
 	   ;; Should be set status, like set title. But needs faking in GLUT...
-	   (window-draw-status window-id (window-status window))
+	   (window-draw-status window-id 
+			       (string-append %current-tool-name 
+					      " "
+					      (window-status window)))
 	   (window-draw-end window-id)))))
 
 (add-draw-hook window-redraw-event)
@@ -278,3 +300,26 @@
 ;; Register keys for closing a window
 
 ;(keymap-add-fun %global-keymap close-current-window "x" "c")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Window resize offset
+;; The window co-ordinate system starts at the bottom left
+;; So when the window is resized, it shifts and the page moves
+;; Which doesn't look good, so we counteract that here
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (window-resizing-buffer-make window)
+  (make-window-buffer window "resizing-buffer"))
+
+(define (window-resizing-buffer-update window)
+  (let* ((buffer (window-buffer window
+			       "resizing-buffer"))
+	 (text (buffer-text buffer)))
+    (gb-erase! text)
+    (gb-insert-string!
+     text
+     (format #f
+	     "(translate 0.0 ~f)"
+	     (- (window-height window)
+		   $window-height)))
+    (buffer-invalidate buffer)))

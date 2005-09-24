@@ -78,7 +78,9 @@
 ;; So we need to allow for this
 
 (define (%save-window-height win width height)
-  (%set-window-height! (window-for-id win) height))
+  (let ((window (window-for-id win)))
+    (%set-window-height! window height)
+    (window-resizing-buffer-update window)))
 
 (add-resize-hook %save-window-height)
 
@@ -104,7 +106,7 @@
 	    (cons fun 
 		  %draw-funs))))
 
-(define (remove-mouse-down-hook fun)
+(define (remove-draw-hook fun)
   (set! %draw-funs
 	(delq fun 
 	      %draw-funs)))
