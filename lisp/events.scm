@@ -77,12 +77,13 @@
 ;; GLUT's window co-ords go down, OGL's go up.
 ;; So we need to allow for this
 
-(define (%save-window-height win width height)
+(define (%update-window-dimensions win width height)
   (let ((window (window-for-id win)))
+    (%set-window-width! window width)
     (%set-window-height! window height)
     (window-resizing-buffer-update window)))
 
-(add-resize-hook %save-window-height)
+(add-resize-hook %update-window-dimensions)
 
 (define (%swizzle-y win y)
   (- (window-height (window-for-id win))

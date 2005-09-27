@@ -610,5 +610,5 @@ rendering_startup ()
   gluTessCallback (glu_tesselator, GLU_TESS_COMBINE, 
 		   (_GLUfuncptr)tesselator_combine_callback);
   //Define our module
-    scm_c_define_module ("rendering", define_rendering_module, NULL);
+  scm_c_define_module ("rendering", define_rendering_module, NULL);
 }

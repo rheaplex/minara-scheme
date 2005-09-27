@@ -62,6 +62,7 @@
 (define-record-type window
   (really-make-window id
 		      buffers
+		      width
 		      height
 		      status
 		      undo-stack)
@@ -71,8 +72,10 @@
   ;; The buffers
   (buffers window-buffers
 	   set-window-buffers!)
+  ;; The window's width
+  (height window-width
+	  %set-window-width!)
   ;; The window's height
-  ;; We store this to allow us to map from from GLUT event h to OpenGL y
   (height window-height
 	  %set-window-height!)
   ;; The window's status string
@@ -95,6 +98,7 @@
 	 (really-make-window 
 	  (window-make $window-width $window-height)
 	  '()
+	  -1
 	  -1
 	  ""
 	  '())))

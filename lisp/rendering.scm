@@ -57,7 +57,7 @@
   (set! line-to rendering:line-to)
   (set! curve-to rendering:curve-to)
   (set! push-matrix rendering:matrix-push)
-  (set! pop-matrix rendering:matrix-push)
+  (set! pop-matrix rendering:matrix-pop)
   (set! concatenate-matrix rendering:matrix-concatenate)
   (set! translate rendering:translate)
   (set! scale rendering:scale)

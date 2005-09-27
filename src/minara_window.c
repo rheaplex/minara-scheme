@@ -25,7 +25,7 @@
   These are GLUT windows at present, but could be Cocoa or GTK windows.
   
   We do not have multiple views on a single document at the moment. The model
-  of a stack of overlay buffers over a document buffer may interact with this.
+  of a stack of buffers around a document buffer may interact with this.
   ---------------------------------------------------------------------------*/
 
 /*
@@ -243,6 +243,7 @@ SCM minara_window_draw_status(SCM win, SCM text)
     int len = strlen(status);
     glutSetWindow (w);
     glPushMatrix();
+    
     // De-hardcode me!
     glColor3f(0.9, 0.8, 0.8);
     glRasterPos2f(5.2, 4.8);
