@@ -73,7 +73,7 @@
   (buffers window-buffers
 	   set-window-buffers!)
   ;; The window's width
-  (height window-width
+  (width window-width
 	  %set-window-width!)
   ;; The window's height
   (height window-height
@@ -109,7 +109,7 @@
     ;; Buffers *under* the main buffer, created bottom to top
     ;; Ask before adding anything here
     (window-resizing-buffer-make window)
-    (window-transform-buffer-make window)
+    (window-view-buffer-make window)
     
     ;; Return the window
     window))
