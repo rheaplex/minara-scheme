@@ -71,12 +71,12 @@
  (let ((scale (buffer-scale buffer))
        (text (buffer-text buffer)))
    (gb-erase! text)
-   (gb-insert-string!
-    text
-    (format #f
-	    "(translate ~f ~f)~%"
-	    (buffer-scale-tx buffer)
-	    (buffer-scale-ty buffer)))
+    (gb-insert-string!
+     text
+     (format #f
+ 	    "(translate ~f ~f)~%"
+ 	    (buffer-scale-tx buffer)
+ 	    (buffer-scale-ty buffer)))
    (gb-insert-string!
     text
     (format #f
@@ -100,7 +100,7 @@
 	    "(scale ~f ~f)"
 	    scale
 	    scale))
-   (format #t "~A~%~%" (gb->string text))
+   ;;(format #t "~A~%~%" (gb->string text))
  (buffer-invalidate buffer)))
 
 (define (window-view-update window)
@@ -114,7 +114,7 @@
 ;; Scale factors and view translation factors.
 ;; If anyone can explain this to me I'd be very grateful... - Rob.
 
-(define $zooms '((16.0 . -7.5) (8.0 . -3.5) (4.0 . -1.5) (2.0 . -0.5) 
+(define $zooms '((16.0 . -7.5) (8.0 . -3.5) (4.0 . -1.5) (2.0 . -0.25) 
 		 (1.0 . 0.0)
 		 (0.5 . 0.25) (0.25 . 0.375) (0.125 . 0.4375) (0.0625 . 0.46875)))
 (define $zoom-max-out 8)
@@ -364,29 +364,33 @@
      (window-scale window)))
 
 (define (window-view-left window)
-  (+ (window-tx window)
-     (window-scale-tx window)))
+  (/ (+ (window-tx window)
+     (window-scale-tx window))
+	(- (window-scale window))))
 
 (define (window-view-right window)
   (+ (window-view-width window)
-     (window-view-left window)))
+     (window-tx window)))
 
 (define (window-view-bottom window)
-  (+ (window-ty window)
-     (window-scale-ty window)))
+  (/ (+ (window-ty window)
+	(window-scale-ty window))
+     (- (window-scale window))))
 
 (define (window-view-top window)
   (+ (window-view-height window)
-     (window-view-bottom window)))
+     (window-ty window)))
 
 (define (window-view-x window x)
-  (- (/ x
+  (+ (/ x
 	(window-scale window))
      (window-view-left window)))
-
+  
+  
 (define (window-view-y window y)
-  (- (/ (- y
+  (+ (/ (- y
 	   (- (window-height window) ;; Cache this on window resize
 	      $window-height))
 	(window-scale window))
      (window-view-bottom window)))
+	
