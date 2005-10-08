@@ -100,7 +100,7 @@
 	    "(scale ~f ~f)"
 	    scale
 	    scale))
-   (format #t "~A~%~%" (gb->string text))
+;;   (format #t "~A~%~%" (gb->string text))
  (buffer-invalidate buffer)))
 
 (define (window-view-update window)
