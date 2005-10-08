@@ -1,6 +1,8 @@
 ;; The minara logotype as a minara file
 ;; Copyright (c) 2004 Rob Myers
 (set-colour 0.0 0.828 0.387 1.0)
+(push-matrix)
+(translate 145 125) ;; Centre on a 600 x 400 window
 (path-begin)
 (move-to 130.9441 79.3721)
 (curve-to 125.2566 77.5049 131.3196 69.6743 125.5374 63.8911)
@@ -118,3 +120,4 @@
 (curve-to 106.6765 84.874 110.8728 89.0703 116.0027 89.0703)
 (line-to 116.0027 70.4224)
 (path-end)
+(pop-matrix)

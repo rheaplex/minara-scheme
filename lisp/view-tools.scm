@@ -100,7 +100,7 @@
 	    "(scale ~f ~f)"
 	    scale
 	    scale))
-   ;;(format #t "~A~%~%" (gb->string text))
+   (format #t "~A~%~%" (gb->string text))
  (buffer-invalidate buffer)))
 
 (define (window-view-update window)
@@ -114,28 +114,18 @@
 ;; Scale factors and view translation factors.
 ;; If anyone can explain this to me I'd be very grateful... - Rob.
 
-(define $zooms '((16.0 . -7.5) (8.0 . -3.5) (4.0 . -1.5) (2.0 . -0.25) 
-		 (1.0 . 0.0)
-		 (0.5 . 0.25) (0.25 . 0.375) (0.125 . 0.4375) (0.0625 . 0.46875)))
-(define $zoom-max-out 8)
-(define $zoom-normal 4)
-(define $zoom-max-in 0)
 
-(define (buffer-scale-level buffer)
-  (buffer-variable buffer
-		   "scale"))
+(define $zoom-max-out 0.0625)
+(define $zoom-normal 1.0)
+(define $zoom-max-in 16.0)
 
 (define (buffer-scale buffer)
-  (car (list-ref $zooms
-		 (buffer-scale-level buffer))))
+  (buffer-variable buffer
+		   "scale"))
 
 (define (window-scale window)
   (buffer-scale (window-buffer window
 			       "_view")))
-
-(define (buffer-scale-offset buffer)
-  (cdr (list-ref $zooms
-		 (buffer-scale-level buffer))))
 
 (define (buffer-scale-tx buffer)
   (buffer-variable buffer
@@ -157,15 +147,15 @@
   (if (= current 
 	 $zoom-max-out)
       #f
-      (+ current
-	 1)))
+      (/ current
+	 2.0)))
 
 (define (next-zoom-in-level current)
   (if (= current 
 	 $zoom-max-in)
       #f
-      (- current
-	 1)))
+      (* current
+	 2.0)))
 
 (define (next-zoom-level current in?)
   (if in?
@@ -182,22 +172,26 @@
 				     "_view") 
 		      zoom)
   (let* ((buffer (window-view-buffer window))
-	 (scale (buffer-scale-offset buffer)))
+	 (scale (buffer-scale buffer)))
     (set-buffer-variable! buffer
 			  "scale-tx"
-			  (* (window-width window)
-			     scale))
+			  (/ (- (window-width window)
+				(* (window-width window)
+				   scale))
+			     2.0))
     (set-buffer-variable! buffer
 			  "scale-ty"
-			  (* (window-height window)
-			     scale)))
+			  (/ (- (window-height window)
+				(* (window-height window)
+				   scale))
+			     2.0)))
   (window-view-update window))
 
 (define (zoom-mouse-up win button x y)
   ;; Ultimately zoom & pan with same click here
   (let* ((window (window-for-id win))
 	 (buffer (window-view-buffer window))
-	 (current-zoom (buffer-scale-level buffer))
+	 (current-zoom (buffer-scale buffer))
 	 (zoom (next-zoom-level current-zoom 
 				(= button
 				   1))))
