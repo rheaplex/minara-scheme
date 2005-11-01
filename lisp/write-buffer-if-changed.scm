@@ -1,13 +1,13 @@
 ;;; ttn/write-buffer-if-changed.scm --- Avoid unnecessary mtime modifcation
 
-;; Rel:v-0-37-sempre-SUDRA
+;; Rel:v-0-42-corrente-staccata
 ;;
-;; Copyright (C) 2001-2002,2004 Thien-Thi Nguyen
+;; Copyright (C) 2001-2002,2004-2005 Thien-Thi Nguyen
 ;; This file is part of ttn's personal scheme library, released under GNU
 ;; GPL with ABSOLUTELY NO WARRANTY.  See the file COPYING for details.
 
 (define-module (ttn write-buffer-if-changed)
-  #:autoload (ttn gap-buffer) (gb-point-max gb->string)
+  #:autoload (ice-9 gap-buffer) (gb-point-max gb->string)
   #:autoload (scripts slurp) (slurp)
   #:autoload (ttn write-buffer) (write-buffer)
   #:export (write-buffer-if-changed))

@@ -1,13 +1,13 @@
 ;;; ttn/save-buffer.scm --- save visting buffer to disk
 
-;; Rel:v-0-37-sempre-SUDRA
+;; Rel:v-0-42-corrente-staccata
 ;;
-;; Copyright (C) 2001-2002,2004 Thien-Thi Nguyen
+;; Copyright (C) 2001-2002,2004-2005 Thien-Thi Nguyen
 ;; This file is part of ttn's personal scheme library, released under GNU
 ;; GPL with ABSOLUTELY NO WARRANTY.  See the file COPYING for details.
 
 (define-module (ttn save-buffer)
-  #:autoload (ttn gap-buffer) (gb->port!)
+  #:autoload (ice-9 gap-buffer) (gb->port!)
   #:export (save-buffer))
 
 ;; Save @var{buffer} to disk.  @var{buffer} should be visiting a file.

@@ -108,7 +108,6 @@
 
     ;; Buffers *under* the main buffer, created bottom to top
     ;; Ask before adding anything here
-    (window-resizing-buffer-make window)
     (window-view-buffer-make window)
     
     ;; Return the window
@@ -195,7 +194,33 @@
 		       (assoc-remove! (window-buffers window) 
 				      name)))
 
+;; Get the main buffer path
 
+(define (window-buffer-path window)
+    (buffer-file (window-buffer-main window)))
+
+;; Reload the document buffer
+
+(define (reload-window-buffer window)
+    (let* ((main (window-buffer-main window))
+	   (path (window-buffer-path window))
+	   (main-timestamp (timestamp (buffer-text main)))
+	   (path-timestamp (stat:mtime (stat path))))
+      (if (< main-timestamp
+	     path-timestamp)
+	  (begin
+	   (buffer-file-reload main)
+	   (window-redraw (window-id window))))))
+;;(window-status-temporary window 
+;;			   "Buffer changed, not reloaded!" 
+;;		   2))))
+
+(define (reload-current-window)
+    (reload-window-buffer (window-for-id (window-current))))
+ 
+(keymap-add-fun %global-keymap reload-current-window "x" "r")
+
+     
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Window Drawing
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -259,6 +284,8 @@
 	      #t
 	      #f))))
 
+;; Get the file path for a window
+
 ;; Save a window buffer, updating the timestamp
 
 (define (save-window win)
@@ -305,25 +332,53 @@
 
 ;(keymap-add-fun %global-keymap close-current-window "x" "c")
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Window resize offset
-;; The window co-ordinate system starts at the bottom left
-;; So when the window is resized, it shifts and the page moves
-;; Which doesn't look good, so we counteract that here
+;; Window External editor
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define (window-resizing-buffer-make window)
-  (make-window-buffer window "resizing-buffer"))
+;; Edit the window's main buffer in an external editor
 
-(define (window-resizing-buffer-update window)
-  (let* ((buffer (window-buffer window
-			       "resizing-buffer"))
-	 (text (buffer-text buffer)))
-    (gb-erase! text)
-    (gb-insert-string!
-     text
-     (format #f
-	     "(translate 0.0 ~f)"
-	     (- (window-height window)
-		   $window-height)))
-    (buffer-invalidate buffer)))
+(define %$default-external-edit-command "/usr/bin/open -a /Applications/TextEdit.app")
+
+(define $external-edit-command %$default-external-edit-command)
+
+(define (external-edit-window window)
+    ;; TODO:  Warn user if unsaved!!!!!
+    (save-window win)
+    (system (string-append $external-edit-command
+			   " "
+			   (window-buffer-path window)
+			   " &")))
+
+;; Edit the current frontmost window
+
+(define (external-edit-current-window)
+  (external-edit-window (window-for-id (window-current))))
+
+;; Register keys for editing a window
+
+(keymap-add-fun %global-keymap external-edit-current-window "x" "e")
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Window status line
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Set the status temporarily
+;; Argh, relies on threads which may not have been compiled in.
+
+(define (window-status-temporary window status duration)
+    (let ((old-status (window-status window)))
+      (set-window-status! window
+			  status)
+      (window-redraw (window-id window))
+      (begin-thread
+	  (lambda ()
+	    (sleep duration)
+	    (if (string= status
+			 (window-status window))
+		(begin
+		 (set-window-status! window 
+				     old-status)
+		 (window-redraw (window-id window))))))))

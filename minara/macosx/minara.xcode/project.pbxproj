@@ -51,8 +51,7 @@
 			sourceTree = "<group>";
 		};
 		1058C7A1FEA54F0111CA2CBB = {
-			fallbackIsa = PBXFileReference;
-			isa = PBXFrameworkReference;
+			isa = PBXFileReference;
 			lastKnownFileType = wrapper.framework;
 			name = Cocoa.framework;
 			path = /System/Library/Frameworks/Cocoa.framework;
@@ -77,8 +76,7 @@
 //174
 		17587328FF379C6511CA2CBB = {
 			explicitFileType = wrapper.application;
-			fallbackIsa = PBXFileReference;
-			isa = PBXApplicationReference;
+			isa = PBXFileReference;
 			path = minara.app;
 			refType = 3;
 			sourceTree = BUILT_PRODUCTS_DIR;
@@ -311,7 +309,6 @@
 				8FB597C105A8C5CB00E06CEA,
 				8FB597C305A8C5CB00E06CEA,
 				8FB597C405A8C5CB00E06CEA,
-				8F5B999C05AC53F1009E9986,
 			);
 			isa = PBXHeadersBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -333,7 +330,6 @@
 				8FB597BE05A8C5CB00E06CEA,
 				8FB597C005A8C5CB00E06CEA,
 				8FB597C205A8C5CB00E06CEA,
-				8F5B999B05AC53F1009E9986,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -360,8 +356,6 @@
 //4A3
 //4A4
 		4A9504CCFFE6A4B311CA0CBA = {
-			buildRules = (
-			);
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -375,8 +369,6 @@
 			name = Development;
 		};
 		4A9504CDFFE6A4B311CA0CBA = {
-			buildRules = (
-			);
 			buildSettings = {
 				COPY_PHASE_STRIP = YES;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
@@ -410,8 +402,7 @@
 			};
 		};
 		8E0A62C60397EE1700353532 = {
-			fallbackIsa = PBXFileReference;
-			isa = PBXFrameworkReference;
+			isa = PBXFileReference;
 			lastKnownFileType = wrapper.framework;
 			name = GLUT.framework;
 			path = /System/Library/Frameworks/GLUT.framework;
@@ -425,8 +416,7 @@
 			};
 		};
 		8E0A62CA0397F19800353532 = {
-			fallbackIsa = PBXFileReference;
-			isa = PBXFrameworkReference;
+			isa = PBXFileReference;
 			lastKnownFileType = wrapper.framework;
 			name = OpenGL.framework;
 			path = /System/Library/Frameworks/OpenGL.framework;
@@ -449,36 +439,6 @@
 //8F2
 //8F3
 //8F4
-		8F5B999905AC53F1009E9986 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.c;
-			name = text.c;
-			path = ../src/text.c;
-			refType = 2;
-			sourceTree = SOURCE_ROOT;
-		};
-		8F5B999A05AC53F1009E9986 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.h;
-			name = text.h;
-			path = ../src/text.h;
-			refType = 2;
-			sourceTree = SOURCE_ROOT;
-		};
-		8F5B999B05AC53F1009E9986 = {
-			fileRef = 8F5B999905AC53F1009E9986;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		8F5B999C05AC53F1009E9986 = {
-			fileRef = 8F5B999A05AC53F1009E9986;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		8F70B56905A85E3300740B98 = {
 			children = (
 				8FB597B005A8C5CB00E06CEA,
@@ -492,8 +452,6 @@
 				8FB597B805A8C5CB00E06CEA,
 				8FB597B905A8C5CB00E06CEA,
 				8FB597AF05A8C5CB00E06CEA,
-				8F5B999905AC53F1009E9986,
-				8F5B999A05AC53F1009E9986,
 			);
 			isa = PBXGroup;
 			name = src;

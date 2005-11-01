@@ -60,6 +60,7 @@
 	     (pen-close-buffer (window-buffer (window-for-id win) 
 					      "pen-close")))
 	(buffer-insert-undoable pen-buffer 
+				#f
 				(format #f 
 					"(line-to ~a ~a)~%" 
 					(window-view-x window x)
@@ -89,9 +90,11 @@
     ;;(gb-insert-string! main-buff (gb->string buff))
     ;;(gb-goto-char main-buff (gb-point-max main-buff))
     ;;(gb-insert-string! main-buff (gb->string close-buffer))
-    (buffer-insert-undoable main-buff 
+    (buffer-insert-undoable main-buff
+			    #f
 			    (gb->string buff))
-    (buffer-insert-undoable main-buff 
+    (buffer-insert-undoable main-buff
+			    #f
 			    (gb->string close-buffer))
     (buffer-undo-mark main-buff)
     (window-undo-stack-pop window)

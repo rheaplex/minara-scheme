@@ -550,7 +550,7 @@ tesselator_combine_callback (GLdouble coords[3], GLdouble * vertex_data[4],
    * vertex_data[1][5] + weights[2] * vertex_data[2][5] + weights[3] *
    * vertex_data[3][5];
    *
-  /*vertex[6] = weights[0] * vertex_data[0][6] + weights[1] *
+   *vertex[6] = weights[0] * vertex_data[0][6] + weights[1] *
    * vertex_data[1][6] + weights[2] * vertex_data[2][6] + weights[3] *
    * vertex_data[3][6];
    */
@@ -602,13 +602,13 @@ rendering_startup ()
 {
   //Make our tesselator
   glu_tesselator = gluNewTess ();
-  gluTessCallback (glu_tesselator, GLU_TESS_VERTEX, (_GLUfuncptr)glVertex3dv);
-  gluTessCallback (glu_tesselator, GLU_TESS_BEGIN, (_GLUfuncptr)glBegin);
-  gluTessCallback (glu_tesselator, GLU_TESS_END, (_GLUfuncptr)glEnd);
+  gluTessCallback (glu_tesselator, GLU_TESS_VERTEX, glVertex3dv);
+  gluTessCallback (glu_tesselator, GLU_TESS_BEGIN, glBegin);
+  gluTessCallback (glu_tesselator, GLU_TESS_END, glEnd);
   gluTessCallback (glu_tesselator, GLU_TESS_ERROR, 
-		   (_GLUfuncptr)tesselator_error_callback);
+		   tesselator_error_callback);
   gluTessCallback (glu_tesselator, GLU_TESS_COMBINE, 
-		   (_GLUfuncptr)tesselator_combine_callback);
+		   tesselator_combine_callback);
   //Define our module
   scm_c_define_module ("rendering", define_rendering_module, NULL);
 }

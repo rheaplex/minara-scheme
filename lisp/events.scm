@@ -80,8 +80,7 @@
 (define (%update-window-dimensions win width height)
   (let ((window (window-for-id win)))
     (%set-window-width! window width)
-    (%set-window-height! window height)
-    (window-resizing-buffer-update window)))
+    (%set-window-height! window height)))
 
 (add-resize-hook %update-window-dimensions)
 

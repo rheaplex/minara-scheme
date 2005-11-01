@@ -1,14 +1,14 @@
 ;;; ttn/write-buffer.scm --- write buffer to file and visit it
 
-;; Rel:v-0-37-sempre-SUDRA
+;; Rel:v-0-42-corrente-staccata
 ;;
-;; Copyright (C) 2001-2002,2004 Thien-Thi Nguyen
+;; Copyright (C) 2001-2002,2004-2005 Thien-Thi Nguyen
 ;; This file is part of ttn's personal scheme library, released under GNU
 ;; GPL with ABSOLUTELY NO WARRANTY.  See the file COPYING for details.
 
 (define-module (ttn write-buffer)
   #:use-module ((ttn expand-file-name) #:select (expand-file-name))
-  #:use-module ((ttn gap-buffer)     #:select (gb->string))
+  #:use-module ((ice-9 gap-buffer)     #:select (gb->string))
   #:export (write-buffer))
 
 ;; Write @var{buffer} into file @var{filename}.

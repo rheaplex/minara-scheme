@@ -51,8 +51,7 @@
 			sourceTree = "<group>";
 		};
 		1058C7A1FEA54F0111CA2CBB = {
-			fallbackIsa = PBXFileReference;
-			isa = PBXFrameworkReference;
+			isa = PBXFileReference;
 			lastKnownFileType = wrapper.framework;
 			name = Cocoa.framework;
 			path = /System/Library/Frameworks/Cocoa.framework;
@@ -77,8 +76,7 @@
 //174
 		17587328FF379C6511CA2CBB = {
 			explicitFileType = wrapper.application;
-			fallbackIsa = PBXFileReference;
-			isa = PBXApplicationReference;
+			isa = PBXFileReference;
 			path = minara.app;
 			refType = 3;
 			sourceTree = BUILT_PRODUCTS_DIR;
@@ -129,6 +127,7 @@
 		};
 		29B97314FDCFA39411CA2CEA = {
 			children = (
+				8F55AE530901911500028490,
 				8F70B56905A85E3300740B98,
 				29B97317FDCFA39411CA2CEA,
 				29B97323FDCFA39411CA2CEA,
@@ -144,6 +143,7 @@
 		};
 		29B97317FDCFA39411CA2CEA = {
 			children = (
+				8F55AEAC090192A900028490,
 				089C165CFE840E0CC02AAC07,
 			);
 			isa = PBXGroup;
@@ -168,6 +168,8 @@
 				29B97328FDCFA39411CA2CEA,
 				29B9732BFDCFA39411CA2CEA,
 				29B9732DFDCFA39411CA2CEA,
+				8F55AE8A0901917800028490,
+				8F55AEAE0901933D00028490,
 			);
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = "";
@@ -312,6 +314,7 @@
 				8FB597C305A8C5CB00E06CEA,
 				8FB597C405A8C5CB00E06CEA,
 				8FB6742D05C983C300A308F9,
+				8F55ADEF0901750B00028490,
 			);
 			isa = PBXHeadersBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -321,6 +324,7 @@
 			files = (
 				089C165EFE840E0CC02AAC07,
 				8E0690E704A24F6300105D83,
+				8F55AEAD090192A900028490,
 			);
 			isa = PBXResourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -334,6 +338,7 @@
 				8FB597C005A8C5CB00E06CEA,
 				8FB597C205A8C5CB00E06CEA,
 				8FB6742C05C983C300A308F9,
+				8F55ADF00901750B00028490,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -360,8 +365,6 @@
 //4A3
 //4A4
 		4A9504CCFFE6A4B311CA0CBA = {
-			buildRules = (
-			);
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -375,8 +378,6 @@
 			name = Development;
 		};
 		4A9504CDFFE6A4B311CA0CBA = {
-			buildRules = (
-			);
 			buildSettings = {
 				COPY_PHASE_STRIP = YES;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
@@ -410,8 +411,7 @@
 			};
 		};
 		8E0A62C60397EE1700353532 = {
-			fallbackIsa = PBXFileReference;
-			isa = PBXFrameworkReference;
+			isa = PBXFileReference;
 			lastKnownFileType = wrapper.framework;
 			name = GLUT.framework;
 			path = /System/Library/Frameworks/GLUT.framework;
@@ -425,8 +425,7 @@
 			};
 		};
 		8E0A62CA0397F19800353532 = {
-			fallbackIsa = PBXFileReference;
-			isa = PBXFrameworkReference;
+			isa = PBXFileReference;
 			lastKnownFileType = wrapper.framework;
 			name = OpenGL.framework;
 			path = /System/Library/Frameworks/OpenGL.framework;
@@ -449,19 +448,530 @@
 //8F2
 //8F3
 //8F4
+		8F55ADED0901750B00028490 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			path = minara_menu.h;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F55ADEE0901750B00028490 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.c;
+			path = minara_menu.c;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F55ADEF0901750B00028490 = {
+			fileRef = 8F55ADED0901750B00028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		8F55ADF00901750B00028490 = {
+			fileRef = 8F55ADEE0901750B00028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		8F55AE530901911500028490 = {
+			children = (
+				8F55AE540901911500028490,
+				8F55AE550901911500028490,
+				8F55AE560901911500028490,
+				8F55AE570901911500028490,
+				8F55AE580901911500028490,
+				8F55AE590901911500028490,
+				8F55AE5A0901911500028490,
+				8F55AE5B0901911500028490,
+				8F55AE5C0901911500028490,
+				8F55AE5D0901911500028490,
+				8F55AE5E0901911500028490,
+				8F55AE5F0901911500028490,
+				8F55AE600901911500028490,
+				8F55AE610901911500028490,
+				8F55AE620901911500028490,
+				8F55AE630901911500028490,
+				8F55AE640901911500028490,
+				8F55AE650901911500028490,
+				8F55AE660901911500028490,
+				8F55AE670901911500028490,
+				8F55AE680901911500028490,
+				8F55AE690901911500028490,
+				8F55AE6A0901911500028490,
+				8F55AE6B0901911500028490,
+				8F55AE6C0901911500028490,
+				8F55AE6D0901911500028490,
+				8F55AE6E0901911500028490,
+			);
+			isa = PBXGroup;
+			name = lisp;
+			path = ../lisp;
+			refType = 2;
+			sourceTree = SOURCE_ROOT;
+		};
+		8F55AE540901911500028490 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = buffer.scm;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F55AE550901911500028490 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = "command-line.scm";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F55AE560901911500028490 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = events.scm;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F55AE570901911500028490 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = "expand-file-name.scm";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F55AE580901911500028490 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = fileutils.scm;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F55AE590901911500028490 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = fill.scm;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F55AE5A0901911500028490 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = "find-file.scm";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F55AE5B0901911500028490 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = "gap-buffer.scm";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F55AE5C0901911500028490 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = geometry.scm;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F55AE5D0901911500028490 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = keymap.scm;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F55AE5E0901911500028490 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = menu.scm;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F55AE5F0901911500028490 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = "minara-bootstrap.scm";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F55AE600901911500028490 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = minara.scm;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F55AE610901911500028490 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = "pen-tool.scm";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F55AE620901911500028490 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = picking.scm;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F55AE630901911500028490 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = rendering.scm;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F55AE640901911500028490 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = "save-buffer.scm";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F55AE650901911500028490 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = slurp.scm;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F55AE660901911500028490 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = "split-string-no-nulls.scm";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F55AE670901911500028490 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = test.scm;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F55AE680901911500028490 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = tool.scm;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F55AE690901911500028490 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = transformations.scm;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F55AE6A0901911500028490 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = undo.scm;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F55AE6B0901911500028490 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = "view-tools.scm";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F55AE6C0901911500028490 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = window.scm;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F55AE6D0901911500028490 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = "write-buffer-if-changed.scm";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F55AE6E0901911500028490 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = "write-buffer.scm";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F55AE8A0901917800028490 = {
+			buildActionMask = 2147483647;
+			dstPath = lisp;
+			dstSubfolderSpec = 7;
+			files = (
+				8F55AE8E0901919100028490,
+				8F55AE8F0901919100028490,
+				8F55AE900901919100028490,
+				8F55AE910901919100028490,
+				8F55AE920901919100028490,
+				8F55AE930901919100028490,
+				8F55AE940901919100028490,
+				8F55AE950901919100028490,
+				8F55AE960901919100028490,
+				8F55AE970901919100028490,
+				8F55AE980901919100028490,
+				8F55AE990901919100028490,
+				8F55AE9A0901919100028490,
+				8F55AE9B0901919100028490,
+				8F55AE9C0901919100028490,
+				8F55AE9D0901919100028490,
+				8F55AE9E0901919100028490,
+				8F55AE9F0901919100028490,
+				8F55AEA00901919100028490,
+				8F55AEA10901919100028490,
+				8F55AEA20901919100028490,
+				8F55AEA30901919100028490,
+				8F55AEA40901919100028490,
+				8F55AEA50901919100028490,
+				8F55AEA60901919100028490,
+				8F55AEA70901919100028490,
+				8F55AEA80901919100028490,
+			);
+			isa = PBXCopyFilesBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8F55AE8E0901919100028490 = {
+			fileRef = 8F55AE540901911500028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		8F55AE8F0901919100028490 = {
+			fileRef = 8F55AE550901911500028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		8F55AE900901919100028490 = {
+			fileRef = 8F55AE560901911500028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		8F55AE910901919100028490 = {
+			fileRef = 8F55AE570901911500028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		8F55AE920901919100028490 = {
+			fileRef = 8F55AE580901911500028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		8F55AE930901919100028490 = {
+			fileRef = 8F55AE590901911500028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		8F55AE940901919100028490 = {
+			fileRef = 8F55AE5A0901911500028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		8F55AE950901919100028490 = {
+			fileRef = 8F55AE5B0901911500028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		8F55AE960901919100028490 = {
+			fileRef = 8F55AE5C0901911500028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		8F55AE970901919100028490 = {
+			fileRef = 8F55AE5D0901911500028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		8F55AE980901919100028490 = {
+			fileRef = 8F55AE5E0901911500028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		8F55AE990901919100028490 = {
+			fileRef = 8F55AE5F0901911500028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		8F55AE9A0901919100028490 = {
+			fileRef = 8F55AE600901911500028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		8F55AE9B0901919100028490 = {
+			fileRef = 8F55AE610901911500028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		8F55AE9C0901919100028490 = {
+			fileRef = 8F55AE620901911500028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		8F55AE9D0901919100028490 = {
+			fileRef = 8F55AE630901911500028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		8F55AE9E0901919100028490 = {
+			fileRef = 8F55AE640901911500028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		8F55AE9F0901919100028490 = {
+			fileRef = 8F55AE650901911500028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		8F55AEA00901919100028490 = {
+			fileRef = 8F55AE660901911500028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		8F55AEA10901919100028490 = {
+			fileRef = 8F55AE670901911500028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		8F55AEA20901919100028490 = {
+			fileRef = 8F55AE680901911500028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		8F55AEA30901919100028490 = {
+			fileRef = 8F55AE690901911500028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		8F55AEA40901919100028490 = {
+			fileRef = 8F55AE6A0901911500028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		8F55AEA50901919100028490 = {
+			fileRef = 8F55AE6B0901911500028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		8F55AEA60901919100028490 = {
+			fileRef = 8F55AE6C0901911500028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		8F55AEA70901919100028490 = {
+			fileRef = 8F55AE6D0901911500028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		8F55AEA80901919100028490 = {
+			fileRef = 8F55AE6E0901911500028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		8F55AEAC090192A900028490 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			name = minara.minara;
+			path = ../minara.minara;
+			refType = 2;
+			sourceTree = SOURCE_ROOT;
+		};
+		8F55AEAD090192A900028490 = {
+			fileRef = 8F55AEAC090192A900028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		8F55AEAE0901933D00028490 = {
+			buildActionMask = 2147483647;
+			dstPath = Contents;
+			dstSubfolderSpec = 1;
+			files = (
+				8F55AEB00901934E00028490,
+			);
+			isa = PBXCopyFilesBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8F55AEB00901934E00028490 = {
+			fileRef = 8F55AEAC090192A900028490;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		8F70B56905A85E3300740B98 = {
 			children = (
 				8FB6742A05C983C300A308F9,
 				8FB6742B05C983C300A308F9,
-				8FB597B005A8C5CB00E06CEA,
-				8FB597B105A8C5CB00E06CEA,
-				8FB597B205A8C5CB00E06CEA,
-				8FB597B305A8C5CB00E06CEA,
-				8FB597B405A8C5CB00E06CEA,
-				8FB597B505A8C5CB00E06CEA,
 				8FB597B605A8C5CB00E06CEA,
 				8FB597B705A8C5CB00E06CEA,
 				8FB597B805A8C5CB00E06CEA,
+				8FB597B405A8C5CB00E06CEA,
+				8FB597B505A8C5CB00E06CEA,
+				8FB597B205A8C5CB00E06CEA,
+				8FB597B305A8C5CB00E06CEA,
+				8F55ADED0901750B00028490,
+				8F55ADEE0901750B00028490,
+				8FB597B005A8C5CB00E06CEA,
+				8FB597B105A8C5CB00E06CEA,
 				8FB597B905A8C5CB00E06CEA,
 				8FB597AF05A8C5CB00E06CEA,
 			);

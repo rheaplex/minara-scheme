@@ -60,8 +60,12 @@
   Constants
   ---------------------------------------------------------------------------*/
 
-static const char *bootstrap_file = "../lisp/minara-bootstrap.scm";
-
+static const char *bootstrap_file = 
+#ifdef __APPLE__
+	"../Resources/lisp/minara-bootstrap.scm";
+#else
+	"../lisp/minara-bootstrap.scm";
+#endif
 
 /*-----------------------------------------------------------------------------
   Globals

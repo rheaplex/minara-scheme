@@ -70,7 +70,7 @@
 				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
 				PBXFileTableDataSourceColumnWidthsKey = (
 					20,
-					322,
+					230,
 					20,
 					61,
 					43,
@@ -137,7 +137,7 @@
 					PBXFileDataSource_Warnings_ColumnID,
 				);
 			};
-			PBXPerProjectTemplateStateSaveDate = 95179736;
+			PBXPerProjectTemplateStateSaveDate = 152397375;
 			PBXPrepackagedSmartGroups_v2 = (
 				{
 					PBXTransientLocationAtTop = bottom;
@@ -525,7 +525,7 @@
 				Frame = "{{0, 0}, {745, 442}}";
 				WindowFrame = "{{426, 105}, {745, 464}}";
 			};
-			PBXWorkspaceStateSaveDate = 95179736;
+			PBXWorkspaceStateSaveDate = 152397375;
 		};
 		sourceControlManager = 8F7B9C1C05A717AE0097257C;
 		userBuildSettings = {
@@ -545,22 +545,6 @@
 			sepNavWindowFrame = "{{130, 78}, {750, 558}}";
 		};
 	};
-	8F5B999905AC53F1009E9986 = {
-		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {711, 21391}}";
-			sepNavSelRange = "{0, 0}";
-			sepNavVisRect = "{{0, 448}, {711, 449}}";
-			sepNavWindowFrame = "{{130, 78}, {750, 558}}";
-		};
-	};
-	8F5B999A05AC53F1009E9986 = {
-		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {950, 6803}}";
-			sepNavSelRange = "{0, 0}";
-			sepNavVisRect = "{{0, 3228}, {711, 449}}";
-			sepNavWindowFrame = "{{153, 57}, {750, 558}}";
-		};
-	};
 	8F7B9C1005A7177F0097257C = {
 		activeArgIndex = 2147483647;
 		activeArgIndices = (
@@ -569,19 +553,30 @@
 		);
 		configStateDict = {
 		};
+		cppStopOnCatchEnabled = 0;
+		cppStopOnThrowEnabled = 0;
+		customDataFormattersEnabled = 1;
 		debuggerPlugin = GDBDebugging;
+		disassemblyDisplayState = 0;
 		dylibVariantSuffix = "";
 		enableDebugStr = 1;
 		environmentEntries = (
 		);
+		executableSystemSymbolLevel = 0;
+		executableUserSymbolLevel = 0;
 		isa = PBXExecutable;
+		libgmallocEnabled = 0;
 		name = minara;
 		shlibInfoDictList = (
+		);
+		shlibInfoDictList_v2 = (
 		);
 		sourceDirectories = (
 		);
 	};
 	8F7B9C1C05A717AE0097257C = {
+		fallbackIsa = XCSourceControlManager;
+		isSCMEnabled = 0;
 		isa = PBXSourceControlManager;
 		scmConfiguration = {
 		};
@@ -590,16 +585,6 @@
 	8F7B9C1D05A717AE0097257C = {
 		indexTemplatePath = "";
 		isa = PBXCodeSenseManager;
-		usesDefaults = 1;
-		wantsCodeCompletion = 1;
-		wantsCodeCompletionAutoPopup = 0;
-		wantsCodeCompletionAutoSuggestions = 0;
-		wantsCodeCompletionCaseSensitivity = 1;
-		wantsCodeCompletionOnlyMatchingItems = 1;
-		wantsCodeCompletionParametersIncluded = 1;
-		wantsCodeCompletionPlaceholdersInserted = 1;
-		wantsCodeCompletionTabCompletes = 1;
-		wantsIndex = 1;
 	};
 	8FA91B7105AB2D2000BBE102 = {
 		fileReference = 8FB597B105A8C5CB00E06CEA;
@@ -631,9 +616,9 @@
 	};
 	8FB597B105A8C5CB00E06CEA = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {686, 5193}}";
-			sepNavSelRange = "{5170, 0}";
-			sepNavVisRect = "{{0, 2131}, {533, 235}}";
+			sepNavIntBoundsRect = "{{0, 0}, {686, 5194}}";
+			sepNavSelRange = "{4591, 47}";
+			sepNavVisRect = "{{0, 1874}, {459, 186}}";
 			sepNavWindowFrame = "{{603, -282}, {746, 791}}";
 		};
 	};
