@@ -40,7 +40,7 @@
     (gb-goto-char pen-buffer (gb-point-max pen-buffer))
     (gb-insert-string! pen-buffer 
 		       (format #f 
-			       "(set-colour 0.0 0.828 0.387 1.0)~%(path-begin)~%(move-to ~a ~a)~%" 
+			       "(set-colour 0.625 0.5 0.987 0.0)~%(path-begin)~%(move-to ~a ~a)~%" 
 			       (window-view-x window x)
 			       (window-view-y window y)))
     (gb-insert-string! close-buffer "(path-end)\n")
@@ -114,7 +114,6 @@
 ;; Install
 
 (define (pen-tool-install)
-  (set-current-tool-name! "Simple Pen")
   (add-mouse-move-hook pen-mouse-move)
   (add-mouse-down-hook pen-mouse-down)
   (add-mouse-up-hook pen-mouse-up))
@@ -130,5 +129,5 @@
 
 (install-tool pen-tool-install 
 	      pen-tool-uninstall
-	      "Pen"
+	      "Simple Pen"
 	      "t" "p")

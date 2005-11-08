@@ -33,6 +33,7 @@
   (let ((install-fun-with-boilerplate
 	 (lambda () 
 	   (%remove-current-tool-hook)
+	   (set-current-tool-name! menu-name)
 	   (set! %remove-current-tool-hook uninstall-fun)
 	   (install-fun))))
     (menu-callback-add menu-name install-fun-with-boilerplate)

@@ -43,6 +43,9 @@
   (let ((buffer (window-buffer window
 			       "_view")))
     (set-buffer-variable! buffer 
+			  "resize-ty" 
+			  0.0)
+    (set-buffer-variable! buffer 
 			  "scale" 
 			  $zoom-normal)
     (set-buffer-variable! buffer
@@ -71,24 +74,32 @@
  (let ((scale (buffer-scale buffer))
        (text (buffer-text buffer)))
    (gb-erase! text)
+   (gb-insert-string!
+     text
+     (format #f
+ 	    "(translate 0 ~f) ;; Window resize offset~%"
+	    (* scale
+	       (buffer-variable buffer "resize-ty"))))
     (gb-insert-string!
      text
      (format #f
- 	    "(translate ~f ~f)~%"
- 	    (buffer-scale-tx buffer)
- 	    (buffer-scale-ty buffer)))
+ 	    "(translate ~f ~f) ;; Scale translate~%"
+	    (buffer-scale-tx buffer)
+	    (buffer-scale-ty buffer)))
    (gb-insert-string!
     text
     (format #f
-	    "(translate ~f ~f)~%"
-	    (buffer-tx buffer)
-	    (buffer-ty buffer)))
+	    "(translate ~f ~f) ;; Pan translate~%"
+	    (* scale
+	       (buffer-tx buffer))
+	    (* scale
+	       (buffer-ty buffer))))
    (gb-insert-string!
     text
     (format #f
-	    "(translate ~f ~f)~%"
-	    (buffer-pan-tx buffer)
-	    (buffer-pan-ty buffer)))
+	    "(translate ~f ~f) ;; Pan tool temp translate~%"
+	       (buffer-pan-tx buffer)
+	       (buffer-pan-ty buffer)))
    (gb-insert-string!
     text
     (format #f
@@ -100,7 +111,7 @@
 	    "(scale ~f ~f)"
 	    scale
 	    scale))
-;;   (format #t "~A~%~%" (gb->string text))
+ (format #t "~A~%~%" (gb->string text))
  (buffer-invalidate buffer)))
 
 (define (window-view-update window)
@@ -187,35 +198,40 @@
 			     2.0)))
   (window-view-update window))
 
-(define (zoom-mouse-up win button x y)
+(define (zoom in)
   ;; Ultimately zoom & pan with same click here
-  (let* ((window (window-for-id win))
+  (let* ((window (window-for-id (window-current)))
 	 (buffer (window-view-buffer window))
 	 (current-zoom (buffer-scale buffer))
 	 (zoom (next-zoom-level current-zoom 
-				(= button
-				   1))))
+				in)))
     (if zoom
 	  (window-zoom-update window
 			      zoom))))
 
-;; Install
+(define (zoom-default)
+    (let ((window (window-for-id (window-current))))
+      (window-zoom-update window
+			  $zoom-normal)))
+    
 
-(define (zoom-tool-install)
-  (set-current-tool-name! "Zoom")
-  (add-mouse-up-hook zoom-mouse-up))
+(define (zoom-in)
+    (zoom #t))
 
-;; Uninstall
+(define (zoom-out)
+    (zoom #f))
 
-(define (zoom-tool-uninstall)
-  (remove-mouse-up-hook zoom-mouse-up))
+(keymap-add-fun %global-keymap 
+		zoom-in
+		"i")
 
-;; Register
+(keymap-add-fun %global-keymap 
+		zoom-out
+		"I")
 
-(install-tool zoom-tool-install 
-	      zoom-tool-uninstall
-	      "Zoom"
-	      "t" "s")
+(keymap-add-fun %global-keymap 
+		zoom-default
+		"Ai")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Pan
@@ -275,13 +291,23 @@
 (define (window-ty window)
   (buffer-ty (window-view-buffer window)))
 
+(define (set-window-tx! window tx)
+  (set-buffer-tx! (window-view-buffer window)
+		  tx))
+
+(define (set-window-ty! window ty)
+  (set-buffer-ty! (window-view-buffer window)
+		  ty))
+
 (define (set-window-transform window)
   (let ((buffer (window-view-buffer window)))
     (set-buffer-tx! buffer 
-		    (+ (buffer-pan-tx buffer)
+		    (+ (/ (buffer-pan-tx buffer)
+			  (buffer-scale buffer))
 		       (buffer-tx buffer)))
     (set-buffer-ty! buffer
-		    (+ (buffer-pan-ty buffer)
+		    (+ (/ (buffer-pan-ty buffer)
+			  (buffer-scale buffer))
 		       (buffer-ty buffer)))
     (set-buffer-pan-tx! buffer 0.0)
     (set-buffer-pan-ty! buffer 0.0)))
@@ -300,19 +326,25 @@
   (if pan-tool-mouse-down
       (let* ((window (window-for-id win))
 	     (buffer (window-view-buffer window)))
-	(set-buffer-pan-tx! buffer
-			    (- x;;(window-view-x window x)
-			       pan-tool-mousedown-x))
+	(set-buffer-pan-tx! buffer(- x;;(window-view-x window x)
+				  pan-tool-mousedown-x))
 	(set-buffer-pan-ty! buffer
 			    (- y;;(window-view-y window y)
-			       pan-tool-mousedown-y))
+				  pan-tool-mousedown-y))
 	(window-view-update window))))
 
 (define (pan-mouse-up win button x y) 
-  (set! pan-tool-mouse-down #f)
+    (set! pan-tool-mouse-down #f)
   (let ((window (window-for-id win)))
     (set-window-transform window)
     (window-view-update window)))
+
+(define (pan-default)
+    (let ((window (window-for-id (window-current))))
+      (set-window-tx! window 0.0)
+      (set-window-ty! window 0.0)
+      (set-window-transform window)
+      (window-view-update window)))
 
 ;; Install
 
@@ -324,7 +356,6 @@
 ;; Uninstall
 
 (define (pan-tool-uninstall)
-  (set-current-tool-name! "Pan")
   (remove-mouse-down-hook pan-mouse-down)
   (remove-mouse-move-hook pan-mouse-move)
   (remove-mouse-up-hook pan-mouse-up))
@@ -334,7 +365,24 @@
 (install-tool pan-tool-install 
 	      pan-tool-uninstall
 	      "Pan"
-	      "t" "t")
+	      "p")
+
+(keymap-add-fun %global-keymap 
+		pan-default
+		"Ap")
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Reset the view to the identity matrix
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (view-panic)
+    (zoom-default)
+  (pan-default))
+
+(keymap-add-fun %global-keymap 
+		view-panic
+		"AP")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Tilt
@@ -358,33 +406,73 @@
      (window-scale window)))
 
 (define (window-view-left window)
-  (/ (+ (window-tx window)
-     (window-scale-tx window))
-	(- (window-scale window))))
+    (- (/ (- (window-scale-tx window))
+	  (window-scale window))
+       (window-tx window)))
 
 (define (window-view-right window)
   (+ (window-view-width window)
      (window-tx window)))
 
 (define (window-view-bottom window)
-  (/ (+ (window-ty window)
-	(window-scale-ty window))
-     (- (window-scale window))))
+    (-  (/ (- (window-scale-ty window))
+	   (window-scale window))
+	(window-ty window)))
 
 (define (window-view-top window)
-  (+ (window-view-height window)
-     (window-ty window)))
+    (+ (window-view-height window)
+       (window-ty window)))
 
 (define (window-view-x window x)
-  (+ (/ x
-	(window-scale window))
-     (window-view-left window)))
-  
-  
+    (+ (/ x
+	  (window-scale window))
+       (window-view-left window)))
+
 (define (window-view-y window y)
   (+ (/ (- y
-	   (- (window-height window) ;; Cache this on window resize
-	      $window-height))
+	   (* (- (window-height window)
+		 $window-height)
+	      (window-scale window)))
 	(window-scale window))
      (window-view-bottom window)))
-	
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Window resize offset
+;; The window co-ordinate system starts at the bottom left
+;; So when the window is resized, it shifts and the page moves
+;; which doesn't look good, so we counteract that here
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (window-resizing-buffer-make window)
+    (make-window-buffer window "resizing-buffer"))
+
+(define (window-previous-height window)
+   (or (buffer-variable (window-view-buffer window)
+			"old-height")
+       $window-height))
+
+(define (update-window-previous-height window)
+    (set-buffer-variable! (window-view-buffer window)
+			  "old-height"
+			  (window-height window)))
+
+(define (window-view-resize win x y)
+    (let* ((window (window-for-id win))
+	   (height (window-height window)))
+      (if (not (= height
+		   -1))
+	  (let* ((buffer (window-view-buffer window))
+		 (old-ty (buffer-variable buffer
+					  "resize-ty")))
+	    (set-buffer-variable! buffer
+				  "resize-ty"
+				  (+ old-ty
+				     (/ (- height
+					   (window-previous-height window))
+					(window-scale window))))
+	    (window-view-update window)
+	    (update-window-previous-height window)))))
+
+(add-resize-hook window-view-resize)
+

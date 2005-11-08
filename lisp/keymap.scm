@@ -130,7 +130,7 @@
 	     next-keys)))
        ;; If the keymap is a function we have a clash, report it
        (else ;;(fun? keymap)
-	(write "Attempt to replace key with keymap.")))))
+	(format #t "Attempt to replace key ~a with keymap.~%" key)))))
   keymap)
 
 
@@ -168,9 +168,13 @@
 ;; Note that whilst getting shift alt ans control is GLUT-dependent,
 ;; once we make the booleans it could be any windowing system
 (define (key-dispatch-hook-method win key modifiers)
-  (let ((shift (= 1 (logand modifiers GLUT_ACTIVE_SHIFT)))
-	(control (= 1 (logand modifiers GLUT_ACTIVE_CTRL)))
-	(alt (= 1 (logand modifiers GLUT_ACTIVE_ALT))))
+  (let ((shift (= 1 (logand modifiers 
+			    GLUT_ACTIVE_SHIFT)))
+	(control (= 2 (logand modifiers 
+			      GLUT_ACTIVE_CTRL)))
+	(alt (= 4 (logand modifiers 
+			  GLUT_ACTIVE_ALT))))
+    ;; Shift is just the upper-case character
     ;(if shift
 	;(set! key (string-append "S" key)))
     (if control

@@ -345,7 +345,7 @@
 
 (define (external-edit-window window)
     ;; TODO:  Warn user if unsaved!!!!!
-    (save-window win)
+    (save-window window)
     (system (string-append $external-edit-command
 			   " "
 			   (window-buffer-path window)
