@@ -22,6 +22,42 @@
 ;; Particularly for hit-testing.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; Find the distance between the points x1,y1 and x2,y2
+
+(define (distance-between-points x1 y1 x2 y2)
+    (sqrt (+ (expt (- x2 
+		      x1)
+		   2.0)
+	     (expt (- y2
+		      y1)
+		   2.0))))
+
+;; Find polar angle of point px,py around point ox,oy
+
+(define (angle-around-point ox oy px py)
+    (let ((x (- px
+		ox))
+	  (y (- py
+		oy)))
+      (case x
+	((0.0)
+	 (cond 
+	   ((< y 0.0) 
+	    270.0)
+	   ((> v 0.0)
+	    90.0)
+	   ((= v 0.0)
+	    0.0)))
+	(else
+	 (let ((r (* (atan (/ y
+			      x)) 
+		     (/ 180.0
+			3.14159))))
+	   (if (< x 0.0)
+	       (+ r
+		  180.0)
+	       r))))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Line-line intersection

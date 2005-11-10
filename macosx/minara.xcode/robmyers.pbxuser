@@ -74,6 +74,20 @@
 					PBXErrorsWarningsDataSource_LocationID,
 				);
 			};
+			PBXConfiguration.PBXFileTableDataSource3.PBXExecutablesDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXExecutablesDataSource_NameID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					22,
+					300,
+					252,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXExecutablesDataSource_ActiveFlagID,
+					PBXExecutablesDataSource_NameID,
+					PBXExecutablesDataSource_CommentsID,
+				);
+			};
 			PBXConfiguration.PBXFileTableDataSource3.PBXFileTableDataSource = {
 				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
 				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
@@ -146,7 +160,7 @@
 					PBXFileDataSource_Warnings_ColumnID,
 				);
 			};
-			PBXPerProjectTemplateStateSaveDate = 152832294;
+			PBXPerProjectTemplateStateSaveDate = 153270347;
 			PBXPrepackagedSmartGroups_v2 = (
 				{
 					PBXTransientLocationAtTop = bottom;
@@ -566,7 +580,7 @@
 				Frame = "{{0, 0}, {745, 366}}";
 				RubberWindowFrame = "255 124 745 408 0 0 1024 746 ";
 			};
-			PBXWorkspaceStateSaveDate = 152832294;
+			PBXWorkspaceStateSaveDate = 153270347;
 		};
 		sourceControlManager = 8F7B9C1C05A717AE0097257C;
 		userBuildSettings = {
@@ -612,9 +626,9 @@
 	};
 	8F55AE5F0901911500028490 = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {737, 1708}}";
-			sepNavSelRange = "{0, 0}";
-			sepNavVisRect = "{{0, 104}, {737, 608}}";
+			sepNavIntBoundsRect = "{{0, 0}, {737, 1638}}";
+			sepNavSelRange = "{2744, 0}";
+			sepNavVisRect = "{{0, 708}, {737, 608}}";
 			sepNavWindowFrame = "{{15, 4}, {776, 737}}";
 		};
 	};
@@ -793,9 +807,9 @@
 	};
 	8FB597B305A8C5CB00E06CEA = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {711, 1680}}";
-			sepNavSelRange = "{2014, 0}";
-			sepNavVisRect = "{{0, 649}, {711, 429}}";
+			sepNavIntBoundsRect = "{{0, 0}, {740, 1680}}";
+			sepNavSelRange = "{1848, 0}";
+			sepNavVisRect = "{{0, 814}, {740, 180}}";
 			sepNavWindowFrame = "{{84, 120}, {750, 558}}";
 		};
 	};

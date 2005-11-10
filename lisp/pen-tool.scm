@@ -31,7 +31,7 @@
   
 ;; When the button is pressed, make and initialise the pen drawing buffers
 
-(define (pen-mouse-down win button x y) 
+(define (begin-drawing win button x y)
   (let* ((window (window-for-id win))
 	 (pen-buffer (buffer-text (make-window-buffer window
 				       "pen")))
@@ -45,38 +45,41 @@
 			       (window-view-y window y)))
     (gb-insert-string! close-buffer "(path-end)\n")
     (window-undo-stack-push window
-			    pen-buffer)
-    (set! pen-tool-mouse-down #t)))
+			    pen-buffer)))
+
+(define (pen-mouse-down win button x y) 
+    (begin-drawing win button x y)
+    (set! pen-tool-mouse-down #t))
 
 ;; When the mouse is dragged, add the new co-ordinate to the drawing buffer
 ;; And redraw the pen drawing buffers
 
-(define (pen-mouse-move win x y) 
+(define (draw-point win button x y)
+    (let* ((window (window-for-id win))
+	   (pen-buffer (window-buffer window
+				      "pen"))
+	   ;;(pen-text (buffer-text pen-buffer))
+	   (pen-close-buffer (window-buffer (window-for-id win) 
+					    "pen-close")))
+      (buffer-insert-undoable pen-buffer 
+			      #f
+			      (format #f 
+				      "(line-to ~a ~a)~%" 
+				      (window-view-x window x)
+				      (window-view-y window y)))
+      (buffer-undo-mark pen-buffer)
+      (buffer-invalidate pen-buffer)   
+      (buffer-invalidate pen-close-buffer)
+      (window-redraw win)))
+
+(define (pen-mouse-move win button x y) 
   (if pen-tool-mouse-down
-      (let* ((window (window-for-id win))
-	     (pen-buffer (window-buffer window
-					"pen"))
-	     ;;(pen-text (buffer-text pen-buffer))
-	     (pen-close-buffer (window-buffer (window-for-id win) 
-					      "pen-close")))
-	(buffer-insert-undoable pen-buffer 
-				#f
-				(format #f 
-					"(line-to ~a ~a)~%" 
-					(window-view-x window x)
-					(window-view-y window y)))
-	(buffer-undo-mark pen-buffer)
-	;;	(gb-goto-char pen-text (gb-point-max pen-text))
-	;;	(gb-insert-string! pen-text move)
-	(buffer-invalidate pen-buffer)   
-	(buffer-invalidate pen-close-buffer)
-	(window-redraw win))))
+      (draw-point win button x y)))
 
 ;; When the mouse is released, add the pen drawing buffers to the main buffer
 ;; Redraw the main buffer, and release the pen drawing buffers
 
-(define (pen-mouse-up win button x y) 
-  (set! pen-tool-mouse-down #f)
+(define (end-drawing win button x y) 
   (let* ((window (window-for-id win))
 	 (buff (buffer-text (window-buffer
 			     window
@@ -85,11 +88,6 @@
 				    window
 				    "pen-close")))
 	(main-buff (window-buffer-main window)))
-    ;; Add the overlay to the main buffer
-    ;;(gb-goto-char main-buff (gb-point-max main-buff))
-    ;;(gb-insert-string! main-buff (gb->string buff))
-    ;;(gb-goto-char main-buff (gb-point-max main-buff))
-    ;;(gb-insert-string! main-buff (gb->string close-buffer))
     (buffer-insert-undoable main-buff
 			    #f
 			    (gb->string buff))
@@ -107,9 +105,9 @@
     (window-redraw win)))
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Tool lifecycle
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define (pen-mouse-up win button x y)
+    (end-drawing win button x y)
+    (set! pen-tool-mouse-down #f)) 
 
 ;; Install
 
@@ -131,3 +129,51 @@
 	      pen-tool-uninstall
 	      "Simple Pen"
 	      "t" "p")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Polyline
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define polyline-timestamp #f)
+
+(define (polyline-begin-drawing win button x y)
+    (begin-drawing win button x y)
+    (set! polyline-timestamp (get-internal-real-time)))
+
+(define (polyline-draw win button x y)
+    (draw-point win button x y)
+    (set! polyline-timestamp (get-internal-real-time)))
+
+(define (polyline-finish-drawing win button x y)
+    (end-drawing win button x y)
+    (set! polyline-timestamp #f))
+
+(define (polyline-mouse-up win button x y)
+    (if (not polyline-timestamp)
+	(polyline-begin-drawing win button x y)
+	(let* ((now (get-internal-real-time))
+	       (delta (- now
+			 polyline-timestamp)))
+	  ;; If it's not a double-click, then draw
+	  (if (> (/ delta
+		    internal-time-units-per-second)
+		 0.25)
+	      (polyline-draw win button x y)
+	      (polyline-finish-drawing win button x y)))))
+
+;; Install
+
+(define (pen-tool-install)
+  (add-mouse-up-hook polyline-mouse-up))
+
+;; Uninstall
+
+(define (pen-tool-uninstall)
+  (remove-mouse-up-hook polyline-mouse-up))
+
+;; Register
+
+(install-tool pen-tool-install 
+	      pen-tool-uninstall
+	      "Polyline"
+	      "t" "P")

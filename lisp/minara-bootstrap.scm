@@ -48,17 +48,13 @@
 ;; Load Scheme files
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Load the global application configuration file installed on this machine
-
-(define (load-config)
-  (if (access? "./minara-config.scm" R_OK)
-      (load "./minara-config.scm")))
-
 ;; Load the user's ~/.minara file stored in their home directory
 
 (define (load-user-config)
-  (if (access? "~/.minara" R_OK)
-      (load "~/.minara")))
+    (let ((config (string-append (getenv "HOME")
+				 "/.minara")))
+      (if (access? config R_OK)
+      (primitive-load config))))
 
 ;; Load the libraries in the correct order
 
@@ -86,7 +82,8 @@
 ;; Load the tools
 
 (define (load-tools)
-  (load "./pen-tool.scm"))
+  (load "./pen-tool.scm")
+  (load "./shape-tools.scm"))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -96,16 +93,14 @@
 (define (startup args)
   (debug-enable  'debug 'backtrace)
   (trace)
-  ;; Load the application configuration file
-  (load-config)
-  ;; Load the user config file
-  (load-user-config)
   ;; Load the libraries
   (load-libraries)
   ;; Load the tools
   (load-tools)
   ;; Get the event hooks back into C in case anyone forgot to
   (bind-event-hooks)
+  ;; Load the user config file
+  (load-user-config)
   ;; Handle the command line
   (cli-handle-arguments))
 
