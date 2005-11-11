@@ -31,7 +31,7 @@
   
 ;; When the button is pressed, make and initialise the pen drawing buffers
 
-(define (begin-drawing win button x y)
+(define (begin-drawing win x y)
   (let* ((window (window-for-id win))
 	 (pen-buffer (buffer-text (make-window-buffer window
 				       "pen")))
@@ -48,13 +48,13 @@
 			    pen-buffer)))
 
 (define (pen-mouse-down win button x y) 
-    (begin-drawing win button x y)
+    (begin-drawing win x y)
     (set! pen-tool-mouse-down #t))
 
 ;; When the mouse is dragged, add the new co-ordinate to the drawing buffer
 ;; And redraw the pen drawing buffers
 
-(define (draw-point win button x y)
+(define (draw-point win x y)
     (let* ((window (window-for-id win))
 	   (pen-buffer (window-buffer window
 				      "pen"))
@@ -72,14 +72,14 @@
       (buffer-invalidate pen-close-buffer)
       (window-redraw win)))
 
-(define (pen-mouse-move win button x y) 
+(define (pen-mouse-move win x y) 
   (if pen-tool-mouse-down
-      (draw-point win button x y)))
+      (draw-point win x y)))
 
 ;; When the mouse is released, add the pen drawing buffers to the main buffer
 ;; Redraw the main buffer, and release the pen drawing buffers
 
-(define (end-drawing win button x y) 
+(define (end-drawing win) 
   (let* ((window (window-for-id win))
 	 (buff (buffer-text (window-buffer
 			     window
@@ -106,7 +106,7 @@
 
 
 (define (pen-mouse-up win button x y)
-    (end-drawing win button x y)
+    (end-drawing win)
     (set! pen-tool-mouse-down #f)) 
 
 ;; Install
@@ -134,46 +134,65 @@
 ;; Polyline
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define polyline-timestamp #f)
+(define (polyline-timestamp win)
+    (let* ((window (window-for-id win))
+	   (buffer (window-buffer window
+				  "pen")))
+      (if buffer
+	  (buffer-variable buffer
+			   "polyline-timestamp")
+	  #f)))
+
+(define (update-polyline-timestamp win)
+    (let* ((window (window-for-id win))
+	   (buffer (window-buffer window
+				  "pen")))
+      (if buffer
+	  (set-buffer-variable! buffer
+			   "polyline-timestamp"
+			   (get-internal-real-time)))))
 
 (define (polyline-begin-drawing win button x y)
-    (begin-drawing win button x y)
-    (set! polyline-timestamp (get-internal-real-time)))
+    (begin-drawing win x y)
+    (update-polyline-timestamp win))
 
 (define (polyline-draw win button x y)
-    (draw-point win button x y)
-    (set! polyline-timestamp (get-internal-real-time)))
+    (draw-point win x y)
+    (update-polyline-timestamp win))
 
-(define (polyline-finish-drawing win button x y)
-    (end-drawing win button x y)
-    (set! polyline-timestamp #f))
+(define (polyline-finish-drawing win)
+    (end-drawing win))
 
 (define (polyline-mouse-up win button x y)
-    (if (not polyline-timestamp)
-	(polyline-begin-drawing win button x y)
-	(let* ((now (get-internal-real-time))
-	       (delta (- now
-			 polyline-timestamp)))
-	  ;; If it's not a double-click, then draw
-	  (if (> (/ delta
-		    internal-time-units-per-second)
-		 0.25)
-	      (polyline-draw win button x y)
-	      (polyline-finish-drawing win button x y)))))
+    (let ((last-time (polyline-timestamp win)))
+      (if (not last-time)
+	  (polyline-begin-drawing win button x y)
+	  (let* ((now (get-internal-real-time))
+		 (delta (- now
+			   last-time)))
+	    ;; If it's not a double-click, then draw
+	    (if (> (/ delta
+		      internal-time-units-per-second)
+		   0.25)
+		(polyline-draw win button x y)
+		(polyline-finish-drawing win))))))
 
 ;; Install
 
-(define (pen-tool-install)
+(define (polyline-tool-install)
   (add-mouse-up-hook polyline-mouse-up))
 
 ;; Uninstall
 
-(define (pen-tool-uninstall)
+(define (polyline-tool-uninstall)
+    (let ((win (window-current)))
+      (if (polyline-timestamp win)
+	  (polyline-finish-drawing win)))
   (remove-mouse-up-hook polyline-mouse-up))
 
 ;; Register
 
-(install-tool pen-tool-install 
-	      pen-tool-uninstall
+(install-tool polyline-tool-install 
+	      polyline-tool-uninstall
 	      "Polyline"
 	      "t" "P")

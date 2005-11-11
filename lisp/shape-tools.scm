@@ -52,10 +52,17 @@
 						     circle-tool-mouse-down-y
 						     x
 						     y)))
-	       (left (- circle-tool-mouse-down-x radius))
-	       (right (+ circle-tool-mouse-down-x radius))
-	       (top (+ circle-tool-mouse-down-y radius))
-	       (bottom (- circle-tool-mouse-down-y radius)))
+	       ;; http://www.whizkidtech.redprince.net/bezier/circle/
+	       (l (* radius
+		     0.5522847498))
+	       (left (- circle-tool-mouse-down-x 
+			radius))
+	       (right (+ circle-tool-mouse-down-x 
+			 radius))
+	       (top (+ circle-tool-mouse-down-y 
+		       radius))
+	       (bottom (- circle-tool-mouse-down-y 
+			  radius)))
 	  (gb-erase! (buffer-text circle-buffer))
 	  (buffer-insert-undoable circle-buffer 
 				  #f
@@ -64,35 +71,35 @@
 				  #f
 				  (format #f 
 					  "(move-to ~f ~f)~%"
-					  left y))
+					  left circle-tool-mouse-down-y))
 	  (buffer-insert-undoable circle-buffer 
 				  #f
 				  (format #f 
 					  "(curve-to ~f ~f ~f ~f ~f ~f)~%"
-					  left top
-					  left top
-					  x top))
+					  left (+ circle-tool-mouse-down-y l)
+					  (- circle-tool-mouse-down-x l) top
+					  circle-tool-mouse-down-x top))
 	  (buffer-insert-undoable circle-buffer 
 				  #f
 				  (format #f 
 					  "(curve-to ~f ~f ~f ~f ~f ~f)~%"
-					  right top
-					  right top
-					  right y))
+					  (+ circle-tool-mouse-down-x l) top
+					  right (+ circle-tool-mouse-down-y l)
+					  right circle-tool-mouse-down-y))
 	  (buffer-insert-undoable circle-buffer 
 				  #f
 				  (format #f 
 					  "(curve-to ~f ~f ~f ~f ~f ~f)~%"
-					  right bottom
-					  right bottom
-					  x bottom))
+					  right (- circle-tool-mouse-down-y l)
+					  (+ circle-tool-mouse-down-x l) bottom
+					  circle-tool-mouse-down-x bottom))
 	  (buffer-insert-undoable circle-buffer 
 				  #f
 				  (format #f 
 					  "(curve-to ~f ~f ~f ~f ~f ~f)~%"
-					  left bottom
-					  left bottom
-					  left y))
+					  (- circle-tool-mouse-down-x l) bottom
+					  left (- circle-tool-mouse-down-y l)
+					  left circle-tool-mouse-down-y))
 	  (buffer-insert-undoable circle-buffer 
 				  #f
 				  "(path-end)\n")
@@ -376,5 +383,8 @@
 	      rectangle-tool-uninstall
 	      "Rectangle"
 	      "t" "r")
+
+
+;; Equilateral triangle
 
 ;; Star
