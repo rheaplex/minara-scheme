@@ -36,16 +36,16 @@
 (define the-last-stack #f)
 
 
-;;(define (call-with-backtrace call-me)
-;;(call-me))
-
 (define (call-with-backtrace call-me)
-    (set! the-last-stack 
-	  (make-stack #t)) 
-  (catch #t
-    call-me
-    event-error-handler)
-  (set! the-last-stack #f))
+(call-me))
+
+;;(define (call-with-backtrace call-me)
+ ;;   (set! the-last-stack 
+;;	  (make-stack #t)) 
+ ;; (catch #t
+ ;;   call-me
+;;    event-error-handler)
+ ;; (set! the-last-stack #f))
 
 (define (event-error-handler . args)
     (if (= (length args) 5)

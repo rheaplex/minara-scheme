@@ -50,7 +50,7 @@
 ;; Ask the window to get its current undo target to undo
 
 (define (window-undo window)
-    (let ((current-undo-buffer  (car (window-undo-stack window))))
+    (let ((current-undo-buffer (car (window-undo-stack window))))
       (if current-undo-buffer
 	  (buffer-undo current-undo-buffer))))
 
@@ -258,20 +258,18 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (call-window-undo)
-    (let* ((window-id (window-current))
-	   (win (window-for-id window-id)))
+    (let* ((win (window-current)))
       (window-undo win)
-      (window-redraw window-id)))
+      (window-redraw win)))
 
 (keymap-add-fun %global-keymap 
 		call-window-undo
 		"z")
 
 (define (call-window-redo)
-    (let* ((window-id (window-current))
-	   (win (window-for-id window-id)))
+    (let* ((win (window-current)))
       (window-redo win)
-      (window-redraw window-id)))
+      (window-redraw win)))
 
 (keymap-add-fun %global-keymap 
 		call-window-redo
