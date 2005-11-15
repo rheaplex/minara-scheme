@@ -116,6 +116,7 @@ SCM minara_window_make (SCM width, SCM height)
   glutReshapeFunc (glut_resize);
   glutDisplayFunc (glut_display);
   glutKeyboardFunc (glut_key_press);
+  glutKeyboardUpFunc (glut_key_release);
   glutMouseFunc (glut_mouse_button);
   glutMotionFunc (glut_mouse_drag);
   glutPassiveMotionFunc (glut_mouse_move);
@@ -285,6 +286,7 @@ SCM minara_window_draw_begin(SCM win)
   glDisable (GL_DEPTH_TEST);
   glClearColor (1.0, 1.0, 1.0, 1.0);
   glClear (GL_COLOR_BUFFER_BIT);
+  return SCM_EOL;
 }
 
 /**
@@ -297,6 +299,7 @@ SCM minara_window_draw_end(SCM win)
 {
   glFlush ();
   glutSwapBuffers ();
+  return SCM_EOL;
 }
 
 //Program lifecycle
@@ -311,7 +314,7 @@ window_startup ()
   //Register our scheme functions
   scm_c_define_gsubr ("window-make", 2, 0, 0, minara_window_make);
   scm_c_define_gsubr ("window-dispose", 0, 0, 0, minara_window_dispose);
-  scm_c_define_gsubr ("window-current", 0, 0, 0, minara_window_current);
+  scm_c_define_gsubr ("window-current-id", 0, 0, 0, minara_window_current);
   scm_c_define_gsubr ("window-set", 1, 0, 0, minara_window_set);
   scm_c_define_gsubr ("window-set-title", 2, 0, 0, minara_window_set_title);
   scm_c_define_gsubr ("window-draw-status", 2, 0, 0, minara_window_draw_status);

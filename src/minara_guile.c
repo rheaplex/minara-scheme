@@ -81,13 +81,13 @@ char *guile_do_nothinevent_handlers = \
    @return The result of evaluation
 */
 
-SCM our_inner_eval_string (SCM port)
+SCM our_inner_eval_string (void * port)
 {
   SCM form;
   SCM result = SCM_UNSPECIFIED;
 
   /* Read expressions from that port; ignore the values.  */
-  while (!SCM_EOF_OBJECT_P (form = scm_read (port)))
+  while (!SCM_EOF_OBJECT_P (form = scm_read ((SCM)port)))
     result = scm_primitive_eval_x (form);
 
   /*

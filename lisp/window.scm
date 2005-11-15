@@ -152,8 +152,11 @@
 ;; Set a window title bar information
 
 (define (set-window-title-info win info)
-  (window-set-title (append (window-name-base (window-for-id win)) 
+  (window-set-title (append (window-name-base win) 
 			    "[" info "]")))
+
+(define (window-current)
+    (window-for-id (window-current-id)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -216,7 +219,7 @@
 ;;		   2))))
 
 (define (reload-current-window)
-    (reload-window-buffer (window-for-id (window-current))))
+    (reload-window-buffer (current-window)))
  
 (keymap-add-fun %global-keymap reload-current-window "x" "r")
 
@@ -228,7 +231,7 @@
 ;; Flag a window as needing redrawing
 
 (define (window-redraw win)
-  (window-invalidate win))
+  (window-invalidate (window-id win)))
 
 ;; Draw the window, rebuilding buffer caches as needed
 
@@ -246,14 +249,14 @@
 
 ;; Draw or redraw a window's buffers/caches
 
-(define (window-redraw-event window-id)
-    (let ((window (hash-ref *windows* window-id)))
+(define (window-redraw-event window)
+    (let ((window-id (window-id window)))
       (if (not (equal? window #f))
 	  (begin
 	   (window-draw-begin window-id)
 	   (window-draw window)
 	   ;; Should be set status, like set title. But needs faking in GLUT...
-	   (window-draw-status window-id 
+	   (window-draw-status window-id
 			       (string-append %current-tool-name 
 					      " "
 					      (window-status window)))
@@ -301,7 +304,7 @@
 ;; Save the current frontmost window
 
 (define (save-current-window)
-  (save-window (window-for-id (window-current))))
+  (save-window (current-window)))
 
 ;; Register keys for saving a window
 
@@ -339,7 +342,8 @@
 
 ;; Edit the window's main buffer in an external editor
 
-(define %$default-external-edit-command "/usr/bin/open -a /Applications/TextEdit.app")
+(define %$default-external-edit-command 
+    "/usr/bin/open -a /Applications/TextEdit.app")
 
 (define $external-edit-command %$default-external-edit-command)
 
@@ -354,7 +358,7 @@
 ;; Edit the current frontmost window
 
 (define (external-edit-current-window)
-  (external-edit-window (window-for-id (window-current))))
+  (external-edit-window (current-window)))
 
 ;; Register keys for editing a window
 

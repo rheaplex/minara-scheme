@@ -25,12 +25,12 @@
 ;; Find the distance between the points x1,y1 and x2,y2
 
 (define (distance-between-points x1 y1 x2 y2)
-    (sqrt (+ (expt (- x2 
-		      x1)
-		   2.0)
-	     (expt (- y2
+    (abs (sqrt (+ (expt (- x2 
+			   x1)
+			2.0)
+		  (expt (- y2
 		      y1)
-		   2.0))))
+			2.0)))))
 
 ;; Find polar angle of point px,py around point ox,oy
 
@@ -57,6 +57,35 @@
 	       (+ r
 		  180.0)
 	       r))))))
+
+(define $pi 
+    3.1415926535897932384626433832795029)
+
+(define $degrees-to-radians
+    (/ $pi
+       180.0))
+
+(define (degrees-to-radians degrees)
+    (* degrees
+       $degrees-to-radians))
+
+(define (rotate-point-around-point x1 y1 x2 y2 theta)
+    (let ((st (sin (degrees-to-radians theta)))
+	  (ct (cos (degrees-to-radians theta)))
+	  (x (- x2
+		x1))
+	  (y (- y2
+		y1)))
+      (cons (+ x1 
+	       (- (* x
+		     ct)
+		  (* y
+		   st)))
+	    (+ y1 
+	       (+ (* y
+		     ct)
+		  (* x
+		     st))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -112,6 +112,14 @@
   (buffer-undo-mark buf)
   (buffer-invalidate buf))
 
+;; Convert the buffer to a string
+
+(define (buffer-to-string buf)
+    (gb->string (buffer-text buf)))
+
+(define (buffer-erase buf)
+    (gb-erase! (buffer-text buf)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Buffer Variables
 ;; A buffer can have an arbitrary number of named variables set on it.
@@ -165,7 +173,7 @@
       ;; Otherwise, generate the cache and update the cache timestamp
       (let ((c (buffer-cache cb)))
 	(cache-record-begin c)
-	(eval-string (gb->string (buffer-text cb)))
+	(eval-string (buffer-to-string cb))
 	  (cache-record-end c)
 	  (update-timestamp! (buffer-cache cb)))))
 

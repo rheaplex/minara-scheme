@@ -54,36 +54,74 @@
     (let ((config (string-append (getenv "HOME")
 				 "/.minara")))
       (if (access? config R_OK)
-      (primitive-load config))))
+	  (primitive-load config))))
 
 ;; Load the libraries in the correct order
 
+(define $library-files
+    '("test"
+      "transformations"
+      "rendering"
+      "test"
+      "transformations"
+      "rendering"
+      "events"
+      "keymap"
+      "buffer"
+      "window"
+      "command-line"
+      "menu"
+      "geometry"
+      "picking"
+      "tool"
+      "undo"
+      "development"))
+
+(define $tool-files
+    '("view-tools"
+      "pen-tool"
+      "shape-tools"))
+
+(define (load-file path file)
+    (primitive-load (string-append path
+			 "/"
+			 file
+			 ".scm")))
+
+(define (load-files path files)
+    (for-each (lambda (file)
+		(load-file path file))
+	      files))
+
 (define (load-libraries)
-;;  (define dir (opendir "/usr/lib"))
-;;  (do ((entry (readdir dir) (readdir dir)))
-;;      ((eof-object? entry))
-;;    (display entry)(newline))
-;;  (closedir dir))
-  (load "./test.scm")
-  (load "./transformations.scm")
-  (load "./rendering.scm")
-  (load "./events.scm")
-  (load "./keymap.scm")
-  (load "./buffer.scm")
-  (load "./window.scm")
-  (load "./command-line.scm")
-  (load "./menu.scm")
-  (load "./geometry.scm")
-  (load "./picking.scm")
-  (load "./tool.scm")
-  (load "./view-tools.scm")
-  (load "./undo.scm"))
+    (load-files $minara-lisp-dir
+		$library-files))
 
 ;; Load the tools
 
 (define (load-tools)
-  (load "./pen-tool.scm")
-  (load "./shape-tools.scm"))
+    (load-files $minara-lisp-dir
+		$tool-files))
+
+
+(define (load-minara-files)
+  ;; Load the libraries
+  (load-libraries)
+  ;; Load the tools
+  (load-tools)
+  ;; Load the user config file
+  (load-user-config))
+
+(define (load-and-initialise)
+    (load-minara-files)
+  ;; Get the event hooks back into C in case anyone forgot to
+  (bind-event-hooks))
+  
+(define $minara-lisp-dir
+    (if (string=? (utsname:machine (uname))
+		  "Power Macintosh")
+	"../Resources/lisp/"
+	"../lisp/"))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -91,16 +129,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (startup args)
-  (debug-enable  'debug 'backtrace)
-  (trace)
-  ;; Load the libraries
-  (load-libraries)
-  ;; Load the tools
-  (load-tools)
-  ;; Get the event hooks back into C in case anyone forgot to
-  (bind-event-hooks)
-  ;; Load the user config file
-  (load-user-config)
+    (debug-enable 'backtrace)
+  (load-and-initialise)
   ;; Handle the command line
   (cli-handle-arguments))
 

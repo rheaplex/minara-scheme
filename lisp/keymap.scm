@@ -97,41 +97,53 @@
   (set! keymap-current keymap))
 
 ;; Add a possibly nested key fun to the keymap
-;; A key is a basic key (abc123) prefixed with SCA for shift, control and/or alt
-;; The explicit set! and return on keymap is to make the logic clearer
+;; A key is a basic key (aA1) prefixed with CA for control and/or alt
+
 (define (keymap-add-fun keymap fun . keys)
-  (let ((key (car keys))
-	(next-keys (cdr keys)))
-    (let ((next-keymap (hash-ref keymap key)))
-      (cond
-       ;; If no keymap exists for the key press
-       ((not next-keymap)
-	;; If no more keys, just add the fun
-	(if (equal? next-keys '())
-	    (hash-set! keymap key fun)
-	    ;; Otherwise add an empty keymap under the key, get it
-	    ;; And recuse to add the rest of the keys (or the function)
-	    (begin
-	      (hash-set! keymap key (make-hash-table 31))
-	      (apply keymap-add-fun
-	       (hash-ref keymap key)
-	       fun
-	       next-keys))))
-       ;; If the keymap exists, just add
-       ((keymap? next-keymap)
-	;; If no more keys, just add the fun TO THE CURRENT KEYMAP
-	(if (equal? next-keys '())
-	    (hash-set! keymap key fun)
-	    ;; Otherwise recuse to add the rest of the keys 
-	    ;; (or the function)
-	    (apply keymap-add-fun
-	     next-keymap
-	     fun
-	     next-keys)))
-       ;; If the keymap is a function we have a clash, report it
-       (else ;;(fun? keymap)
-	(format #t "Attempt to replace key ~a with keymap.~%" key)))))
-  keymap)
+  (keymap-add-fun-list keymap fun keys))
+
+(define (keymap-add-fun-list keymap fun keys)
+  (let* ((key (car keys))
+         (rest-of-keys (cdr keys))
+         (keymap-entry-for-key (hash-ref keymap
+                                         key)))
+    ;;(format #t "keys: ~a~%key: ~a~%keymap-for-key: ~a~%rest: ~a~%~%"
+    ;;        keys key keymap-entry-for-key rest-of-keys)
+    (cond
+     ;; Last key? Insert in current keymap
+     ((equal? rest-of-keys
+              '())
+      ;; Warn if rebinding key
+      ;;(if (hash-ref keymap
+      ;;              key)
+      ;;    (format #t "Redefined key ~a in keymap ~a~%" key keymap))
+      (hash-set! keymap
+                 key
+                 fun))
+     ;; No keymap for key?
+     ((equal? keymap-entry-for-key
+             #f)
+      ;; Create it
+      (hash-set! keymap
+                 key
+                 (make-hash-table 31))
+      ;; And recurse
+      (keymap-add-fun-list (hash-ref keymap
+                                     key)
+                           fun
+                           rest-of-keys))
+     ;; Keymap exists but key is not last key?
+     (else
+      ;; If it's a key, replace witha  keymap
+      (if (procedure? keymap-entry-for-key)
+          (hash-set! keymap
+                     key
+                     (make-hash-table 31)))
+      ;; Just recurse, re-getting keymap in case we replaced key with keymap
+      (keymap-add-fun-list (hash-ref keymap
+                                     key)
+                           fun
+                           rest-of-keys)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -192,7 +204,7 @@
 (keymap-add-fun %global-keymap reset-current-keymap "Cg")
 
 ;; Hook into the event system
-(add-key-press-hook key-dispatch-hook-method)
+(add-key-release-hook key-dispatch-hook-method)
 
 
 ;; TEST

@@ -30,6 +30,7 @@ extern SCM mouse_button_down_hook;
 extern SCM mouse_button_up_hook;
 extern SCM mouse_move_hook;
 extern SCM key_press_hook;
+extern SCM key_release_hook;
 extern SCM menu_select_hook;
 
 void bind_event_hooks ();
@@ -38,6 +39,7 @@ void events_startup ();
 void glut_display ();
 void glut_resize (int width, int height);
 void glut_key_press (unsigned char key, int x, int y);
+void glut_key_release (unsigned char key, int x, int y);
 void glut_mouse_button (int button, int state, int x, int y);
 void glut_mouse_drag (int x, int y);
 void glut_mouse_move (int x, int y);

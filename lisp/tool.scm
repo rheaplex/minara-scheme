@@ -32,7 +32,7 @@
 (define (install-tool install-fun uninstall-fun menu-name . key-combo)
   (let ((install-fun-with-boilerplate
 	 (lambda () 
-	   (%remove-current-tool-hook)
+	   (remove-current-tool)
 	   (set-current-tool-name! menu-name)
 	   (set! %remove-current-tool-hook uninstall-fun)
 	   (install-fun))))
@@ -45,7 +45,7 @@
 ;; Handle a tool stopping being the current tool
 
 (define (%remove-current-tool-hook)
-  #f)
+    #f)
 
 ;; Keep track of the current tool name
 
@@ -64,4 +64,5 @@
       (%remove-current-tool-hook))
   (set! %remove-current-tool-hook #f)
   (set! %current-tool-name "")
-  (install-window-rendering-protocol))
+  (install-window-rendering-protocol)
+  (window-redraw (window-current)))

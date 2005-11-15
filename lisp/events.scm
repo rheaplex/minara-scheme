@@ -30,26 +30,59 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Calling event handlers with good error recovery and diagnostics
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define the-last-stack #f)
+
+
+;;(define (call-with-backtrace call-me)
+;;(call-me))
+
+(define (call-with-backtrace call-me)
+    (set! the-last-stack 
+	  (make-stack #t)) 
+  (catch #t
+    call-me
+    event-error-handler)
+  (set! the-last-stack #f))
+
+(define (event-error-handler . args)
+    (if (= (length args) 5)
+	(begin
+	 (apply display-error 
+		#f 
+		(current-error-port) 
+		(cdr args))
+	 (display-backtrace the-last-stack
+			    (current-error-port)))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Quitting
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define %quit-funs '())
 
 (define (%quit-hook)
-  (for-each (lambda (fun)
-	      (fun))
-	    %quit-funs))
+    (call-with-backtrace
+     (lambda ()
+       (for-each (lambda (fun)
+		   (fun))
+		 %quit-funs))
+     event-error-handler))
 
 (define (add-quit-hook fun)
-  (if (not (memq fun %quit-funs))
-      (set! %quit-funs 
-	    (cons fun 
-		  %quit-funs))))
+    (if (not (memq fun 
+		   %quit-funs))
+	(set! %quit-funs 
+	      (cons fun 
+		    %quit-funs))))
 
 (define (remove-quit-hook fun)
-  (set! %quit-funs
-	(delq fun 
-	      %quit-funs)))
+    (set! %quit-funs
+	  (delq fun 
+		%quit-funs)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -59,34 +92,41 @@
 (define %resize-funs '())
 
 (define (%resize-hook win width height)
-  (for-each (lambda (fun)
-	      (fun win width height))
-	    %resize-funs))
+    (let ((window (window-for-id win)))
+      (call-with-backtrace
+       (lambda ()
+	 (for-each (lambda (fun)
+		     (fun window 
+			  width 
+			  height))
+		   %resize-funs)))))
 
 (define (add-resize-hook fun)
-  (if (not (memq fun %resize-funs))
-      (set! %resize-funs 
-	    (cons fun 
-		  %resize-funs))))
+    (if (not (memq fun 
+		   %resize-funs))
+	(set! %resize-funs 
+	      (cons fun 
+		    %resize-funs))))
 
 (define (remove-resize-hook fun)
-  (set! %resize-funs
-	(delq fun 
-	      %resize-funs)))
+    (set! %resize-funs
+	  (delq fun 
+		%resize-funs)))
 
 ;; GLUT's window co-ords go down, OGL's go up.
 ;; So we need to allow for this
 
-(define (%update-window-dimensions win width height)
-  (let ((window (window-for-id win)))
-    (%set-window-width! window width)
-    (%set-window-height! window height)))
+(define (%update-window-dimensions window width height)
+    (%set-window-width! window 
+			width)
+  (%set-window-height! window 
+		       height))
 
 (add-resize-hook %update-window-dimensions)
 
 (define (%swizzle-y win y)
-  (- (window-height (window-for-id win))
-     y))
+    (- (window-height win)
+       y))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -96,20 +136,24 @@
 (define %draw-funs '())
 
 (define (%draw-hook win)
-  (for-each (lambda (fun)
-	      (fun win))
-	    %draw-funs))
+    (let ((window (window-for-id win)))
+      (call-with-backtrace
+       (lambda ()
+	 (for-each (lambda (fun)
+		     (fun window))
+		   %draw-funs)))))
 
 (define (add-draw-hook fun)
-  (if (not (memq fun %draw-funs))
-      (set! %draw-funs 
-	    (cons fun 
-		  %draw-funs))))
+    (if (not (memq fun 
+		   %draw-funs))
+	(set! %draw-funs 
+	      (cons fun 
+		    %draw-funs))))
 
 (define (remove-draw-hook fun)
-  (set! %draw-funs
-	(delq fun 
-	      %draw-funs)))
+    (set! %draw-funs
+	  (delq fun 
+		%draw-funs)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -119,21 +163,29 @@
 (define %mouse-down-funs '())
 
 (define (%mouse-down-hook win button x y)
-  (let ((yy (%swizzle-y win y)))
-    (for-each (lambda (fun)
-		(fun win button x yy))
-	      %mouse-down-funs)))
+    (let ((window (window-for-id win)))
+      (call-with-backtrace
+       (lambda ()
+	 (let ((yy (%swizzle-y window 
+			       y)))
+	   (for-each (lambda (fun)
+		       (fun window 
+			    button 
+			    x 
+			    yy))
+		     %mouse-down-funs))))))
 
 (define (add-mouse-down-hook fun)
-  (if (not (memq fun %mouse-down-funs))
-      (set! %mouse-down-funs 
-	    (cons fun 
-		  %mouse-down-funs))))
+    (if (not (memq fun 
+		   %mouse-down-funs))
+	(set! %mouse-down-funs 
+	      (cons fun 
+		    %mouse-down-funs))))
 
 (define (remove-mouse-down-hook fun)
-  (set! %mouse-down-funs
-	(delq fun 
-	      %mouse-down-funs)))
+    (set! %mouse-down-funs
+	  (delq fun 
+		%mouse-down-funs)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -143,21 +195,29 @@
 (define %mouse-up-funs '())
 
 (define (%mouse-up-hook win button x y)
-  (let ((yy (%swizzle-y win y)))
-    (for-each (lambda (fun)
-		(fun win button x yy))
-	      %mouse-up-funs)))
+    (let ((window (window-for-id win)))
+      (call-with-backtrace
+       (lambda ()
+	 (let ((yy (%swizzle-y window 
+			       y)))
+	   (for-each (lambda (fun)
+		       (fun window 
+			    button 
+			    x 
+			    yy))
+		     %mouse-up-funs))))))
 
 (define (add-mouse-up-hook fun)
-  (if (not (memq fun %mouse-up-funs))
-      (set! %mouse-up-funs 
-	    (cons fun 
-		  %mouse-up-funs))))
+    (if (not (memq fun 
+		   %mouse-up-funs))
+	(set! %mouse-up-funs 
+	      (cons fun 
+		    %mouse-up-funs))))
 
 (define (remove-mouse-up-hook fun)
-  (set! %mouse-up-funs
-	(delq fun 
-	      %mouse-up-funs)))
+    (set! %mouse-up-funs
+	  (delq fun 
+		%mouse-up-funs)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -167,21 +227,28 @@
 (define %mouse-move-funs '())
 
 (define (%mouse-move-hook win x y)
-  (let ((yy (%swizzle-y win y)))
-    (for-each (lambda (fun)
-		(fun win x yy))
-	      %mouse-move-funs)))
+    (let ((window (window-for-id win)))
+      (call-with-backtrace
+       (lambda ()
+	 (let ((yy (%swizzle-y window 
+			       y)))
+	   (for-each (lambda (fun)
+		       (fun window 
+			    x 
+			    yy))
+		     %mouse-move-funs))))))
 
 (define (add-mouse-move-hook fun)
-  (if (not (memq fun %mouse-move-funs))
-      (set! %mouse-move-funs 
-	    (cons fun 
-		  %mouse-move-funs))))
+    (if (not (memq fun 
+		   %mouse-move-funs))
+	(set! %mouse-move-funs 
+	      (cons fun 
+		    %mouse-move-funs))))
 
 (define (remove-mouse-move-hook fun)
-  (set! %mouse-move-funs
-	(delq fun 
-	      %mouse-move-funs)))
+    (set! %mouse-move-funs
+	  (delq fun 
+		%mouse-move-funs)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -191,20 +258,56 @@
 (define %key-press-funs '())
 
 (define (%key-press-hook win key modifiers)
-  (for-each (lambda (fun)
-	      (fun win key modifiers))
-	    %key-press-funs))
+    (let ((window (window-for-id win)))
+      (call-with-backtrace
+       (lambda ()
+	 (for-each (lambda (fun)
+		     (fun window 
+			  key 
+			  modifiers))
+		   %key-press-funs)))))
 
 (define (add-key-press-hook fun)
-  (if (not (memq fun %key-press-funs))
-      (set! %key-press-funs 
-	    (cons fun 
-		  %key-press-funs))))
+    (if (not (memq fun 
+		   %key-press-funs))
+	(set! %key-press-funs 
+	      (cons fun 
+		    %key-press-funs))))
 
 (define (remove-key-press-hook fun)
-  (set! %key-press-funs 
-	(delq fun 
-	      %key-press-funs)))
+    (set! %key-press-funs 
+	  (delq fun 
+		%key-press-funs)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Key releases
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define %key-release-funs '())
+
+(define (%key-release-hook win key modifiers)
+    (let ((window (window-for-id win)))
+      (call-with-backtrace
+       (lambda ()
+	 (for-each (lambda (fun)
+		     (fun window 
+			  key 
+			  modifiers))
+		   %key-release-funs)))))
+
+(define (add-key-release-hook fun)
+    (if (not (memq fun 
+		   %key-release-funs))
+	(set! %key-release-funs 
+	      (cons fun 
+		    %key-release-funs))))
+
+(define (remove-key-release-hook fun)
+    (set! %key-release-funs 
+	  (delq fun 
+		%key-release-funs)))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Menu Selection
@@ -213,20 +316,25 @@
 (define %menu-select-funs '())
 
 (define (%menu-select-hook win menu-id)
-  (for-each (lambda (fun)
-	      (fun win menu-id))
-	    %menu-select-funs))
+    (let ((window (window-for-id win)))
+      (call-with-backtrace
+       (lambda ()
+	 (for-each (lambda (fun)
+		     (fun window 
+			  menu-id))
+		   %menu-select-funs)))))
 
 (define (add-menu-select-hook fun)
-  (if (not (memq fun %menu-select-funs))
-      (set! %menu-select-funs 
-	    (cons fun 
-		  %menu-select-funs))))
+    (if (not (memq fun 
+		   %menu-select-funs))
+	(set! %menu-select-funs 
+	      (cons fun 
+		    %menu-select-funs))))
 
 (define (remove-menu-select-hook fun)
-  (set! %menu-select-funs
-	(delq fun 
-	      %menu-select-funs)))
+    (set! %menu-select-funs
+	  (delq fun 
+		%menu-select-funs)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

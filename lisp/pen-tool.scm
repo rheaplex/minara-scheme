@@ -31,16 +31,15 @@
   
 ;; When the button is pressed, make and initialise the pen drawing buffers
 
-(define (begin-drawing win x y)
-  (let* ((window (window-for-id win))
-	 (pen-buffer (buffer-text (make-window-buffer window
+(define (begin-drawing window x y)
+  (let ((pen-buffer (buffer-text (make-window-buffer window
 				       "pen")))
 	(close-buffer (buffer-text (make-window-buffer window
 						       "pen-close"))))
     (gb-goto-char pen-buffer (gb-point-max pen-buffer))
     (gb-insert-string! pen-buffer 
 		       (format #f 
-			       "(set-colour 0.625 0.5 0.987 0.0)~%(path-begin)~%(move-to ~a ~a)~%" 
+			       "(path-begin)~%(move-to ~a ~a)~%" 
 			       (window-view-x window x)
 			       (window-view-y window y)))
     (gb-insert-string! close-buffer "(path-end)\n")
@@ -54,13 +53,12 @@
 ;; When the mouse is dragged, add the new co-ordinate to the drawing buffer
 ;; And redraw the pen drawing buffers
 
-(define (draw-point win x y)
-    (let* ((window (window-for-id win))
-	   (pen-buffer (window-buffer window
-				      "pen"))
-	   ;;(pen-text (buffer-text pen-buffer))
-	   (pen-close-buffer (window-buffer (window-for-id win) 
-					    "pen-close")))
+(define (draw-point window x y)
+    (let ((pen-buffer (window-buffer window
+				     "pen"))
+	  ;;(pen-text (buffer-text pen-buffer))
+	  (pen-close-buffer (window-buffer window 
+					   "pen-close")))
       (buffer-insert-undoable pen-buffer 
 			      #f
 			      (format #f 
@@ -70,7 +68,7 @@
       (buffer-undo-mark pen-buffer)
       (buffer-invalidate pen-buffer)   
       (buffer-invalidate pen-close-buffer)
-      (window-redraw win)))
+      (window-redraw window)))
 
 (define (pen-mouse-move win x y) 
   (if pen-tool-mouse-down
@@ -79,21 +77,18 @@
 ;; When the mouse is released, add the pen drawing buffers to the main buffer
 ;; Redraw the main buffer, and release the pen drawing buffers
 
-(define (end-drawing win) 
-  (let* ((window (window-for-id win))
-	 (buff (buffer-text (window-buffer
-			     window
-			    "pen")))
-	(close-buffer (buffer-text (window-buffer 
-				    window
-				    "pen-close")))
-	(main-buff (window-buffer-main window)))
+(define (end-drawing window) 
+    (let ((buff (window-buffer window
+			       "pen"))
+	  (close-buffer (window-buffer window
+				       "pen-close"))
+	  (main-buff (window-buffer-main window)))
+      (buffer-insert-undoable main-buff
+			      #f
+			      (buffer-to-string buff))
     (buffer-insert-undoable main-buff
 			    #f
-			    (gb->string buff))
-    (buffer-insert-undoable main-buff
-			    #f
-			    (gb->string close-buffer))
+			    (buffer-to-string close-buffer))
     (buffer-undo-mark main-buff)
     (window-undo-stack-pop window)
     ;; Clean up and redraw
@@ -102,7 +97,7 @@
     (remove-window-buffer window 
 			  "pen-close")
     (buffer-invalidate (window-buffer-main window))
-    (window-redraw win)))
+    (window-redraw window)))
 
 
 (define (pen-mouse-up win button x y)
@@ -134,19 +129,22 @@
 ;; Polyline
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define (polyline-timestamp win)
-    (let* ((window (window-for-id win))
-	   (buffer (window-buffer window
-				  "pen")))
+;; TODO:
+;; Show first click as point
+;; Show second click as line
+;; Then show other clicks as poly
+
+(define (polyline-timestamp window)
+    (let ((buffer (window-buffer window
+				 "pen")))
       (if buffer
 	  (buffer-variable buffer
 			   "polyline-timestamp")
 	  #f)))
 
-(define (update-polyline-timestamp win)
-    (let* ((window (window-for-id win))
-	   (buffer (window-buffer window
-				  "pen")))
+(define (update-polyline-timestamp window)
+    (let ((buffer (window-buffer window
+				 "pen")))
       (if buffer
 	  (set-buffer-variable! buffer
 			   "polyline-timestamp"

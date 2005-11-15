@@ -111,7 +111,7 @@ static GLdouble previous_point[2] = {0.0, 0.0};
   ---------------------------------------------------------------------------*/
 
 static MErr point_cache_initialise (point_cache ** root);
-static void point_cache_finalise (point_cache ** root);
+//static void point_cache_finalise (point_cache ** root);
 static MErr point_cache_increase_capacity (point_cache ** root);
 static MErr point_cache_insert_point (point_cache ** root, GLdouble ** coords, GLdouble x, GLdouble y, GLdouble z);
 
@@ -167,7 +167,7 @@ point_cache_increase_capacity (point_cache ** root)
    definitely null on output.
 */
 
-void
+/*void
 point_cache_finalise (point_cache ** root)
 {
   point_cache *c = *root;
@@ -178,7 +178,7 @@ point_cache_finalise (point_cache ** root)
     c = next;
   }
   *root = NULL;
-}
+}*/
 
 /**
    Insert a point into the cache.

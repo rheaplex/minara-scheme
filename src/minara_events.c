@@ -74,6 +74,8 @@ SCM mouse_button_up_hook;
 SCM mouse_move_hook;
 /** The current key pressed event scheme hook */
 SCM key_press_hook;
+/** The current key releaseded event scheme hook */
+SCM key_release_hook;
 /** The current menu selected event scheme hook */
 SCM menu_select_hook;
 
@@ -100,6 +102,7 @@ bind_event_hooks ()
   mouse_button_up_hook = scm_c_eval_string ("%mouse-up-hook");
   mouse_move_hook = scm_c_eval_string ("%mouse-move-hook");
   key_press_hook = scm_c_eval_string ("%key-press-hook");
+  key_release_hook = scm_c_eval_string ("%key-release-hook");
   menu_select_hook = scm_c_eval_string ("%menu-select-hook");
 }
 
@@ -165,7 +168,7 @@ glut_resize (int width, int height)
 }
 
 /**
-   The mouse motion callback for GLUT.
+   The key press callback for GLUT.
    @param key The ascii key code.
    @param x The x co-ordinate the mouse is at.
    @param y The y co-ordinate the mouse is at.
@@ -175,8 +178,24 @@ void
 glut_key_press (unsigned char key, int x, int y)
 {
   int modifiers = glutGetModifiers ();
-  char keyString[] = {key, NULL};
+  char keyString[] = {key, '\0'};
   scm_call_3 (key_press_hook, minara_window_current (),
+	      scm_makfrom0str (keyString), scm_long2num (modifiers));
+}
+
+/**
+   The key release callback for GLUT.
+   @param key The ascii key code.
+   @param x The x co-ordinate the mouse is at.
+   @param y The y co-ordinate the mouse is at.
+*/
+
+void
+glut_key_release (unsigned char key, int x, int y)
+{
+  int modifiers = glutGetModifiers ();
+  char keyString[] = {key, '\0'};
+  scm_call_3 (key_release_hook, minara_window_current (),
 	      scm_makfrom0str (keyString), scm_long2num (modifiers));
 }
 

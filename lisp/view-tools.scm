@@ -34,7 +34,7 @@
   (window-buffer window "_view"))
 
 (define (window-view-buffer-current)
-  (window-view-buffer (current-window)))
+  (window-view-buffer (window-current)))
 
 ;; This is called in the window constructor. Don't call it in your own code.
 
@@ -73,7 +73,7 @@
 (define (view-buffer-update buffer)
  (let ((scale (buffer-scale buffer))
        (text (buffer-text buffer)))
-   (gb-erase! text)
+   (buffer-erase buffer)
    (gb-insert-string!
      text
      (format #f
@@ -111,12 +111,12 @@
 	    "(scale ~f ~f)"
 	    scale
 	    scale))
- (format #t "~A~%~%" (gb->string text))
+ ;;(format #t "~A~%~%" (buffer-to-string text))
  (buffer-invalidate buffer)))
 
 (define (window-view-update window)
   (view-buffer-update (window-view-buffer window))
-  (window-redraw (window-id window)))
+  (window-redraw window))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Zoom
@@ -200,7 +200,7 @@
 
 (define (zoom in)
   ;; Ultimately zoom & pan with same click here
-  (let* ((window (window-for-id (window-current)))
+  (let* ((window (window-current))
 	 (buffer (window-view-buffer window))
 	 (current-zoom (buffer-scale buffer))
 	 (zoom (next-zoom-level current-zoom 
@@ -210,11 +210,9 @@
 			      zoom))))
 
 (define (zoom-default)
-    (let ((window (window-for-id (window-current))))
-      (window-zoom-update window
-			  $zoom-normal)))
+    (window-zoom-update (window-current)
+			$zoom-normal))
     
-
 (define (zoom-in)
     (zoom #t))
 
@@ -316,16 +314,16 @@
 (define pan-tool-mousedown-x #f)
 (define pan-tool-mousedown-y #f)
 
-(define (pan-mouse-down win button x y) 
+(define (pan-mouse-down window button x y) 
   (set! pan-tool-mouse-down #t)
-  (let ((window (window-for-id win)))
-    (set! pan-tool-mousedown-x x)
-    (set! pan-tool-mousedown-y y)))
+    (set! pan-tool-mousedown-x 
+	  x)
+    (set! pan-tool-mousedown-y 
+	  y))
 
-(define (pan-mouse-move win x y) 
+(define (pan-mouse-move window x y) 
   (if pan-tool-mouse-down
-      (let* ((window (window-for-id win))
-	     (buffer (window-view-buffer window)))
+      (let ((buffer (window-view-buffer window)))
 	(set-buffer-pan-tx! buffer(- x;;(window-view-x window x)
 				  pan-tool-mousedown-x))
 	(set-buffer-pan-ty! buffer
@@ -333,16 +331,17 @@
 				  pan-tool-mousedown-y))
 	(window-view-update window))))
 
-(define (pan-mouse-up win button x y) 
+(define (pan-mouse-up window button x y) 
     (set! pan-tool-mouse-down #f)
-  (let ((window (window-for-id win)))
     (set-window-transform window)
-    (window-view-update window)))
+    (window-view-update window))
 
 (define (pan-default)
-    (let ((window (window-for-id (window-current))))
-      (set-window-tx! window 0.0)
-      (set-window-ty! window 0.0)
+    (let ((window (window-current)))
+      (set-window-tx! window 
+		      0.0)
+      (set-window-ty! window 
+		      0.0)
       (set-window-transform window)
       (window-view-update window)))
 
@@ -457,9 +456,8 @@
 			  "old-height"
 			  (window-height window)))
 
-(define (window-view-resize win x y)
-    (let* ((window (window-for-id win))
-	   (height (window-height window)))
+(define (window-view-resize window x y)
+    (let* ((height (window-height window)))
       (if (not (= height
 		   -1))
 	  (let* ((buffer (window-view-buffer window))
