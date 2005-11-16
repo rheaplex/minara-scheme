@@ -68,8 +68,7 @@
 (define (rgb-set-current-component to)
     (if rgb-current-component
 	(rgb-set-component rgb-current-component 
-			   to))
-  (write rgb-current-component))
+			   to)))
 
 (define (rgb-current-status-update window)
     (set-window-status! window
@@ -102,8 +101,7 @@
 			      #f
 			      "(path-begin)\n(move-to 10 40)\n(line-to 10 90)\n (line-to 60 90)\n(line-to 60 40)\n(path-end)")
       (buffer-undo-mark buff)
-      (buffer-invalidate buff)  
-    (write (buffer-to-string buff))))
+      (buffer-invalidate buff)))
 
 (define (rgb-current-refresh)
     (let ((window (window-current))) ;; Update for multi-window
