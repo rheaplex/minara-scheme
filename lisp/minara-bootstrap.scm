@@ -79,6 +79,7 @@
 
 (define $tool-files
     '("view-tools"
+      "colour-tools"
       "pen-tool"
       "shape-tools"))
 
@@ -129,7 +130,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (startup args)
-    (debug-enable 'backtrace)
+  (debug-enable 'debug) 
+  (debug-enable 'backtrace)
+  (read-enable 'positions)
   (load-and-initialise)
   ;; Handle the command line
   (cli-handle-arguments))

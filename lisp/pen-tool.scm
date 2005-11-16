@@ -37,6 +37,8 @@
 	(close-buffer (buffer-text (make-window-buffer window
 						       "pen-close"))))
     (gb-goto-char pen-buffer (gb-point-max pen-buffer))
+    (write-current-colour (window-buffer window
+					 "pen"))
     (gb-insert-string! pen-buffer 
 		       (format #f 
 			       "(path-begin)~%(move-to ~a ~a)~%" 

@@ -219,7 +219,7 @@
 ;;		   2))))
 
 (define (reload-current-window)
-    (reload-window-buffer (current-window)))
+    (reload-window-buffer (window-current)))
  
 (keymap-add-fun %global-keymap reload-current-window "x" "r")
 
@@ -304,7 +304,7 @@
 ;; Save the current frontmost window
 
 (define (save-current-window)
-  (save-window (current-window)))
+  (save-window (window-current)))
 
 ;; Register keys for saving a window
 
@@ -358,7 +358,7 @@
 ;; Edit the current frontmost window
 
 (define (external-edit-current-window)
-  (external-edit-window (current-window)))
+  (external-edit-window (window-current)))
 
 ;; Register keys for editing a window
 

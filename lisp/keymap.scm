@@ -74,7 +74,7 @@
 (define %global-keymap (keymap-make))
 
 ;; The current root keymap
-(define keymap-current-root (keymap-make))
+(define keymap-current-root #f)
 
 ;; Check that the object is a keymap
 (define (keymap? keymap)
@@ -91,6 +91,10 @@
 (define (keymap-current-root-set keymap)
   (set! keymap-current-root keymap)
   (reset-current-keymap))
+
+;; Reset the root keymap
+(define (keymap-current-root-reset)
+  (set! keymap-current-root #f))
 
 ;; Set the current keymap
 (define (keymap-current-set keymap)
@@ -152,7 +156,8 @@
 
 ;; Try to dispatch the key press in the keymap
 (define (dispatch-keymap keymap key)
-  (let ((next-candidate (hash-ref keymap key)))
+  (let ((next-candidate (hash-ref keymap 
+				  key)))
     (cond 
      ;; Keymap? Install as current keymap
      ((keymap? next-candidate)
@@ -170,12 +175,15 @@
 
 ;; Try to dispatch the current keymap
 (define (dispatch-key key)
-  (if (not (dispatch-keymap keymap-current key))
-      (if (not (dispatch-keymap %global-keymap key))
-	  (format #t 
-		  "No match for key ~a in current or global keymap.~%" 
-		  key))))
-      
+    (if (not (and keymap-current 
+		  (dispatch-keymap keymap-current 
+				   key)))
+	(if (not (dispatch-keymap %global-keymap 
+				  key))
+	    (format #t 
+		    "No match for key ~a in current or global keymap.~%" 
+		    key))))
+
 ;; Our method to interface to the event system
 ;; Note that whilst getting shift alt ans control is GLUT-dependent,
 ;; once we make the booleans it could be any windowing system

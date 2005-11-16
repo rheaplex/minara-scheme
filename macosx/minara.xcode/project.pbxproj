@@ -326,6 +326,8 @@
 				8E0690E704A24F6300105D83,
 				8F55AEAD090192A900028490,
 				8F5284170922B9FB008384AA,
+				8F752B2E092AA1A4006F51CB,
+				8F70A417092BCB2A00EEDD40,
 			);
 			isa = PBXResourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -507,7 +509,9 @@
 		8F55AE530901911500028490 = {
 			children = (
 				8F55AE540901911500028490,
+				8F70A416092BCB2A00EEDD40,
 				8F55AE550901911500028490,
+				8F752B2D092AA1A4006F51CB,
 				8F55AE560901911500028490,
 				8F55AE570901911500028490,
 				8F55AE580901911500028490,
@@ -788,6 +792,20 @@
 			settings = {
 			};
 		};
+		8F70A416092BCB2A00EEDD40 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = "colour-tools.scm";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F70A417092BCB2A00EEDD40 = {
+			fileRef = 8F70A416092BCB2A00EEDD40;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		8F70B56905A85E3300740B98 = {
 			children = (
 				8FB6742A05C983C300A308F9,
@@ -811,6 +829,20 @@
 			path = ../src;
 			refType = 2;
 			sourceTree = SOURCE_ROOT;
+		};
+		8F752B2D092AA1A4006F51CB = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text;
+			path = development.scm;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		8F752B2E092AA1A4006F51CB = {
+			fileRef = 8F752B2D092AA1A4006F51CB;
+			isa = PBXBuildFile;
+			settings = {
+			};
 		};
 		8F7B9C5905A71A190097257C = {
 			children = (

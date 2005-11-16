@@ -33,19 +33,14 @@
 ;; Calling event handlers with good error recovery and diagnostics
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define the-last-stack #f)
-
-
+(define event-stack #f)
+			  
 (define (call-with-backtrace call-me)
-(call-me))
-
-;;(define (call-with-backtrace call-me)
- ;;   (set! the-last-stack 
-;;	  (make-stack #t)) 
- ;; (catch #t
- ;;   call-me
-;;    event-error-handler)
- ;; (set! the-last-stack #f))
+    (call-me))
+ ;; (set! event-stack (make-stack #t))
+  ;;(catch #t
+    ;;call-me
+    ;;event-error-handler))
 
 (define (event-error-handler . args)
     (if (= (length args) 5)
@@ -54,7 +49,7 @@
 		#f 
 		(current-error-port) 
 		(cdr args))
-	 (display-backtrace the-last-stack
+	 (display-backtrace event-stack
 			    (current-error-port)))))
 
 

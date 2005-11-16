@@ -189,7 +189,8 @@
 	       (right (+ square-tool-mouse-down-x radius))
 	       (top (+ square-tool-mouse-down-y radius))
 	       (bottom (- square-tool-mouse-down-y radius)))
-	  (buffer-erase buff)
+	  (buffer-erase buff) 
+	  (write-current-colour buff)
 	  (buffer-insert-undoable buff 
 				  #f
 				  "(path-begin)\n")
@@ -300,6 +301,7 @@
 	       (y (window-view-y window
 				 raw-y)))
 	  (buffer-erase buff)
+	  (write-current-colour buff)
 	  (buffer-insert-undoable buff 
 				  #f
 				  "(path-begin)\n")
@@ -479,6 +481,7 @@
 	       (y (window-view-y window
 				 raw-y)))
 	  (buffer-erase buff)
+	  (write-current-colour buff)
 	  (star-draw window 
 		     x 
 		     y)
@@ -597,6 +600,7 @@
 	       (y (window-view-y window
 				 raw-y)))
 	  (buffer-erase buff)
+	  (write-current-colour buff)
 	  (polygon-draw window 
 		     x 
 		     y)
