@@ -20,6 +20,11 @@
 ;; Trivial shape tools
 ;; Something to inspire more advanced tools
 
+;; TODO - Keymap for polygon & star to increase/decrease number of sides
+;;        and increase/decrease inner radius
+
+;; TODO - Oval tool
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Circle

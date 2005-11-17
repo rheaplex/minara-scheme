@@ -372,6 +372,41 @@ render_matrix_pop ()
 }
 
 SCM
+render_matrix_set (SCM m11, SCM m12, SCM m21, SCM m22, SCM m31, SCM m32)
+{
+  // Matrix must be 4x4, column-major order
+  GLdouble matrix[4][4] = {{0.0, 0.0, 0.0, 0.0},
+			   {0.0, 0.0, 0.0, 0.0},
+			   {0.0, 0.0, 0.0, 0.0},
+			   {0.0, 0.0, 0.0, 1.0}};
+  SCM_ASSERT (SCM_NUMBERP (m11), m11, SCM_ARG1, "render-push-matrix");
+  SCM_ASSERT (SCM_NUMBERP (m12), m12, SCM_ARG2, "render-push-matrix");
+  SCM_ASSERT (SCM_NUMBERP (m21), m21, SCM_ARG3, "render-push-matrix");
+  SCM_ASSERT (SCM_NUMBERP (m22), m22, SCM_ARG4, "render-push-matrix");
+  SCM_ASSERT (SCM_NUMBERP (m31), m31, SCM_ARG5, "render-push-matrix");
+  SCM_ASSERT (SCM_NUMBERP (m32), m32, SCM_ARG6, "render-push-matrix");
+  matrix[0][0] = scm_num2dbl (m11, "render-push-matrix");
+  matrix[0][1] = scm_num2dbl (m12, "render-push-matrix");
+  matrix[1][0] = scm_num2dbl (m21, "render-push-matrix");
+  matrix[1][1] = scm_num2dbl (m22, "render-push-matrix");
+  matrix[2][0] = scm_num2dbl (m31, "render-push-matrix");
+  matrix[2][1] = scm_num2dbl (m32, "render-push-matrix");
+
+  glLoadMatrixd ((GLdouble *)matrix);
+  
+  return SCM_EOL;
+}
+
+SCM
+render_matrix_identity ()
+{
+
+  glLoadIdentity ();
+  
+  return SCM_EOL;
+}
+
+SCM
 render_matrix_concatenate (SCM m11, SCM m12, SCM m21, SCM m22, SCM m31, SCM m32)
 {
   // Matrix must be 4x4, column-major order
@@ -585,6 +620,9 @@ define_rendering_module ()
   scm_c_define_gsubr ("matrix-pop", 0, 0, 0, render_matrix_pop);
   scm_c_define_gsubr ("matrix-concatenate", 6, 0, 0, 
 		      render_matrix_concatenate);
+  scm_c_define_gsubr ("matrix-set", 6, 0, 0, 
+		      render_matrix_set);
+  scm_c_define_gsubr ("matrix-identity", 0, 0, 0, render_matrix_identity);
   scm_c_define_gsubr ("translate", 2, 0, 0, render_translate);
   scm_c_define_gsubr ("scale", 2, 0, 0, render_scale);
   scm_c_define_gsubr ("rotate", 1, 0, 0, render_rotate);
@@ -593,8 +631,8 @@ define_rendering_module ()
 		  "line-to", "curve-to", "set-colour",
 		  "mask-begin", "mask-end", "masking-begin",
 		  "masking-end", "matrix-push", "matrix-pop",
-		  "matrix-concatenate", "translate", "scale",
-		  "rotate", NULL);
+		  "matrix-concatenate", "matrix-set", "matrix-identity",
+		  "translate", "scale", "rotate", NULL);
 }
 
 void

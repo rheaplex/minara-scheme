@@ -99,7 +99,13 @@
 			      (rgb-current-string))
       (buffer-insert-undoable buff
 			      #f
-			      "(path-begin)\n(move-to 10 40)\n(line-to 10 90)\n (line-to 60 90)\n(line-to 60 40)\n(path-end)")
+			      "(push-matrix)\n(identity-matrix)\n")
+      (buffer-insert-undoable buff
+			      #f
+			      "(path-begin)\n(move-to 10 40)\n(line-to 10 90)\n (line-to 60 90)\n(line-to 60 40)\n(path-end)\n")
+      (buffer-insert-undoable buff
+			      #f
+			      "(pop-matrix)\n")
       (buffer-undo-mark buff)
       (buffer-invalidate buff)))
 
