@@ -75,6 +75,7 @@
       "picking"
       "tool"
       "undo"
+      "minibuffer"
       "development"))
 
 (define $tool-files

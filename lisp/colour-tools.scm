@@ -120,9 +120,8 @@
   (rgb-current-refresh))
 
 (define (rgb-add-current-component to)
-    (if rgb-current-component
-	(rgb-set-current-component (+ rgb-current-component
-				      to))))
+    (rgb-set-current-component (+ (variable-ref rgb-current-component)
+				  to)))
 
 ;; The tool's keymap
 
