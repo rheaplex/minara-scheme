@@ -53,6 +53,7 @@ char *guile_do_nothinevent_handlers = \
   (define %mouse-up-hook (lambda (win button x y) (write-line \"mouse-up-hook\" (current-error-port)) (force-output (current-error-port)))) \
   (define %mouse-move-hook (lambda (win x y) (write-line \"mouse-move-hook\" (current-error-port)) (force-output (current-error-port)))) \
   (define %key-press-hook (lambda (win key modifiers) (write-line \"key-press-hook\" (current-error-port)) (force-output (current-error-port)))) \
+  (define %key-release-hook (lambda (win key modifiers) (write-line \"key-release-hook\" (current-error-port)) (force-output (current-error-port)))) \
   (define %menu-select-hook (lambda (win menu-id) (write-line \"menu-select-hook\" (current-error-port)) (force-output (current-error-port))))";
 
 

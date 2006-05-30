@@ -1,3 +1,4 @@
+
 ;; view-tools.scm : tools for viewing windows for minara
 ;;
 ;; Copyright (c) 2004 Rob Myers, rob@robmyers.org

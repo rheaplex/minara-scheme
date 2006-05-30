@@ -31,8 +31,6 @@
 ;; so it makes sense to allow them to be called from code.
 ;; Graphics toolkits without them can simulate them.
 
-(define write-header #f)
-(define write-footer #f)
 (define set-colour #f)
 (define path-begin #f)
 (define path-end #f)

@@ -151,7 +151,7 @@
 
 ;; Will need fixing for multi-window operation
 ;; How should window & global event handlers interact?
-;; Tools must ensure their buffers on mouse-down rather than create on install!!
+;; Tools must ensure their buffers on mouse-down rather than create on install?
 
 (define previous-key-handlers #f)
 

@@ -119,6 +119,17 @@
 
 (define (buffer-erase buf)
     (gb-erase! (buffer-text buf)))
+	
+(define (buffer-end buf)
+    (gb-point-max (buffer-text buf)))
+	
+(define (buffer-start buf)
+    (gb-point-min (buffer-text buf)))
+
+(define (buffer-range-to-string buf from length)
+    (gb->substring (buffer-text buf)
+		   from
+		   length))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Buffer Variables
@@ -143,6 +154,13 @@
   (assoc-ref (buffer-variables buffer)
 	     name))
 
+;; Get buffer variable, creating it if it doesn't exist
+
+(define (ensure-buffer-variable buffer name)
+  (assoc-ref (buffer-variables buffer)
+	     name))
+    
+
 ;; Remove buffer variable
 
 (define (kill-buffer-variable! buffer name)
@@ -162,6 +180,13 @@
 ;; since it was last cached.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; So code located in the current buffer can get buffer variables, for example.
+
+(define %current-buffer nil)
+
+(define (current-buffer)
+    %current-buffer)
+
 ;; Redraw the buffer (just run the cache if no timestamp variation)
 
 (define (draw-buffer cb)
@@ -173,9 +198,11 @@
       ;; Otherwise, generate the cache and update the cache timestamp
       (let ((c (buffer-cache cb)))
 	(cache-record-begin c)
+	(set! %current-buffer cb)
 	(eval-string (buffer-to-string cb))
-	  (cache-record-end c)
-	  (update-timestamp! (buffer-cache cb)))))
+	(set! %current-buffer #f)
+	(cache-record-end c)
+	(update-timestamp! (buffer-cache cb)))))
 
 ;; Flag the buffer to be drawn when the window next redraws
 

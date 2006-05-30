@@ -36,11 +36,11 @@
 (define event-stack #f)
 			  
 (define (call-with-backtrace call-me)
-    (call-me))
- ;; (set! event-stack (make-stack #t))
-  ;;(catch #t
-    ;;call-me
-    ;;event-error-handler))
+;;    (call-me))
+  (set! event-stack (make-stack #t))
+  (catch #t
+    call-me
+    event-error-handler))
 
 (define (event-error-handler . args)
     (if (= (length args) 5)

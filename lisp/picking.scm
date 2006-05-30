@@ -23,8 +23,8 @@
 ;; How does this work?
 ;;
 ;; Precis:
-;; Count the shapes, hit-test the shapes, store the counts that hit, 
-;; find the s-expressions that contain those counts.
+;; Count the shapes, hit-test the shapes, store the buffer positions that hit, 
+;; find the s-expressions that contain those buffer positions.
 ;;
 ;; Details:
 ;; We install a rendering protocol that counts the number of 
@@ -51,11 +51,11 @@
 ;;
 ;; Area-based selection will also be required and can be implemented similarly.
 ;; A point and a rectangle (or other shape eg pen-drawing based selection) are
-;; just gemoetries to check for intersection or containment after all.
+;; just geometries to check for intersection or containment after all.
 ;;
-;; This is all very single threaded.
+;; This is all very single threaded. Attach the vars to the buffer being picked.
 ;;
-;; And inefficient, having no optimization for bounding boxes for example
+;; And it's inefficient, having no optimization for bounding boxes for example
 ;; It is possible to generate, cache and update bounding boxes and other
 ;; optimizations (hashed to object counts) when editing the text, but this will
 ;; be done once the basic functionality is implemented.
@@ -86,8 +86,16 @@
 (define previous-x #f)
 (define previous-y #f)
 
+;; Keep track of the matrix so we can translate the points & co-ords to check
+
 ;; Keep track of which colour we're currently using
 (define current-colour #f)
+
+;; Keep track of the current transformations
+(define current-translate #f)
+(define current-rotate #f)
+(define current-scale #f)
+;; Need to do push-matrix, pop-matrix, etc. 
 
 ;; Keep track of which polygon we're currently drawing
 (define current-polygon #f)
@@ -101,6 +109,8 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Picking "render" protocol
+;; Hang on, I thought we were meant to evaluate in a different environment,
+;; not rebind?
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (install-picking-rendering-protocol)
@@ -110,7 +120,15 @@
   (set! path-end picking-path-end)
   (set! move-to picking-move-to)
   (set! line-to picking-line-to)
-  (set! curve-to picking-curve-to))
+  (set! curve-to picking-curve-to)
+  (set! push-matrix picking-push-matrix)
+  (set! pop-matrix picking-pop-matrix)
+  (set! concatenate-matrix picking-concatenate-matrix)
+  (set! set-matrix picking-set-matrix)
+  (set! identity-matrix picking-identity-matrix)
+  (set! translate picking-translate)
+  (set! rotate picking-rotate)
+  (set! scale picking-scale))
 
 ;; Reset the picking state
 (define (reset-picking-rendering-protocol)
@@ -121,20 +139,51 @@
   (set! current-colour 0)
   (set! current-polygon 0)
   (set! intersections 0)
+  (set! current-translate 0)
+  (set! current-rotate 0)
+  (set! current-scale 0)
   (set! picked-polygons '()))
 
 ;; Keep track of the colour
-(define (picking-set-colour r g b)
+(define (picking-set-colour r g b a)
   (set! current-colour (+ current-colour 1)))
+
+;; Keep track of the transforms
+;; TODO: do it.
+
+(define (picking-push-matrix)
+    #f)
+
+(define (picking-pop-matrix)
+    #f)
+
+(define (picking-concatenate-matrix a b c d e f)
+    #f)
+
+(define (picking-set-matrix a b c d e f)
+    #f)
+
+(define (picking-identity-matrix)
+    #f)
+
+(define (picking-translate x y)
+  (set! current-translate (+ current-translate 1)))
+
+(define (picking-scale x y)
+  (set! current-scale (+ current-scale 1)))
+
+(define (picking-rotate theta)
+  (set! current-rotate (+ current-rotate 1)))
 
 ;; Start a new pick pass
 (define (picking-path-begin)
-  (set! intersections 0))
+  (set! intersections 0)
+  (set! current-polygon (+ current-polygon 1)))
 
 ;; Check the intersections. Even = inside, Odd = oustide
 ;; Store the colour and anything else in a list with the polygon number?
 (define (picking-path-end)
-  (if (and (odd intersections)
+  (if (and (odd? intersections)
            (not (= intersections
                    0)))
   (set! picked-polygons 
@@ -147,18 +196,17 @@
   (set! previous-x x)
   (set! previous-y y))
   
-;; Where to send the ray -uh- line to. Oh, the horror. Fixme!
+;; Where to send the ray -uh- line to. Oh, the horror! Fixme.
 
 (define %ray-x 65535.0)
   
 ;; Line segment hit test
 
 (define (picking-line-to x y)
-  (if
-   (lines-intersect-vertices 
-    previous-x previous-y x y pick-x pick-y %ray-x pick-y)
-   (set! intersections (+ intersections
-                          1)))
+  (if (lines-intersect-vertices previous-x previous-y x y pick-x pick-y 
+				%ray-x pick-y)
+    (set! intersections (+ intersections
+			   1)))
   (set! previous-x x)
   (set! previous-y y))
 
@@ -189,8 +237,7 @@
   (if (or (= target count)
 	  ;; Catch the error condition
 	  (not position))
-      ;; Move back one so substring gets (...
-      (- position 1)
+      position
       ;; Otherwise search forward
       (nth-occurrence-aux buffer phrase target (+ count 1)
 			  ;; +1 so we don't re-match the same string
@@ -230,8 +277,8 @@
 ;; Get the nth path in the buffer
 (define (get-nth-path buffer nth)
   (let ((buffer-string (gb->string buffer)))
-    (list (nth-occurrence buffer-string "(path-begin)" nth)
-	  ;; 10 to add length of "path-end"
+    (cons (nth-occurrence buffer-string "(path-begin)" nth)
+	  ;; 10 to move past "path-end"
 	  (+ (nth-occurrence buffer-string "(path-end)" nth) 10))))
 
 ;; Get the colour before the nth (path-end)
@@ -249,6 +296,35 @@
 	;; Or find the bounds
 	(sexp-bounds buffer colour-start))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Picking in the main window buffer.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (set-picking-point x y)
+    ;; Translate?
+    (set! pick-x x)
+  (set! pick-y y))
+
+(define (pick-paths buf x y)
+    (install-picking-rendering-protocol)
+  (set-picking-point x y) ;; Translate?
+  (eval-string (buffer-to-string buf))
+  (if (eq? picked-polygons '())
+      #f
+      picked-polygons))
+
+(define (pick-paths-window win x y)
+    (pick-paths (window-buffer-main win) x y))
+
+(define (pick-path buf x y)
+    (let ((picks (pick-paths buf x y)))
+      (if picks
+	  ;; Return the range
+	  (get-nth-path (buffer-text buf) (last picks)) 
+	  #f)))
+  
+(define (pick-path-window win x y)
+    (pick-path (window-buffer-main win) x y))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; tests

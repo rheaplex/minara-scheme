@@ -71,6 +71,7 @@
 	       (bottom (- circle-tool-mouse-down-y 
 			  radius)))
 	  (buffer-erase circle-buffer)
+	  (write-current-colour circle-buffer)
 	  (buffer-insert-undoable circle-buffer 
 				  #f
 				  "(path-begin)\n")

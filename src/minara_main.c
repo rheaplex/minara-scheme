@@ -61,7 +61,7 @@
   ---------------------------------------------------------------------------*/
 
 static const char *bootstrap_file = 
-#ifdef __APPLE__
+#if  0  //def __APPLE__
 	"../Resources/lisp/minara-bootstrap.scm";
 #else
 	"../lisp/minara-bootstrap.scm";

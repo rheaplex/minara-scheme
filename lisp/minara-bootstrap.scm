@@ -75,6 +75,8 @@
       "picking"
       "tool"
       "undo"
+      "selection"
+      "cut-and-paste"
       "minibuffer"
       "development"))
 
@@ -120,11 +122,11 @@
   (bind-event-hooks))
   
 (define $minara-lisp-dir
-    (if (string=? (utsname:machine (uname))
-		  "Power Macintosh")
-	"../Resources/lisp/"
-	"../lisp/"))
-
+  ;;  (if (string=? (utsname:machine (uname))
+	;;	  "Power Macintosh")
+	;;"../Resources/lisp/"
+	"../lisp/")
+;;)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Our main startup routine

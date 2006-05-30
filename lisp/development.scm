@@ -47,3 +47,14 @@
 (keymap-add-fun %global-keymap 
 		reload-dot-minara-file
 		"d" "d")
+
+
+
+;; Edit minara file
+
+(define (external-edit-current-window)
+  (external-edit-file "~/.minara"))
+
+;; Register keys for editing a window
+
+(keymap-add-fun %global-keymap external-edit-current-window "x" "d")

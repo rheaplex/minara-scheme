@@ -190,6 +190,11 @@
     (add-window-buffer window buffer-name buf)
     buf))
 
+(define (ensure-window-buffer window buffer-name)
+    (let ((maybe-buffer (window-buffer window buffer-name)))
+      (or maybe-buffer
+	  (make-window-buffer window buffer-name))))
+
 ;; Remove window buffer
 
 (define (remove-window-buffer window name)
@@ -213,7 +218,7 @@
 	     path-timestamp)
 	  (begin
 	   (buffer-file-reload main)
-	   (window-redraw (window-id window))))))
+	   (window-redraw window)))))
 ;;(window-status-temporary window 
 ;;			   "Buffer changed, not reloaded!" 
 ;;		   2))))
@@ -347,13 +352,16 @@
 
 (define $external-edit-command %$default-external-edit-command)
 
+(define (external-edit-file path)
+    (system (string-append $external-edit-command
+			   " "
+			   path
+			   " &")))
+
 (define (external-edit-window window)
     ;; TODO:  Warn user if unsaved!!!!!
     (save-window window)
-    (system (string-append $external-edit-command
-			   " "
-			   (window-buffer-path window)
-			   " &")))
+  (external-edit-file (window-buffer-path window)))
 
 ;; Edit the current frontmost window
 

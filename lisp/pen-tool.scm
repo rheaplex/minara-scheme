@@ -22,6 +22,8 @@
 ;; It should be renamed "scribble" and replaced with a real pen tool.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(define $path-end "(path-end)\n")
+(define $path-end-length (string-length $path-end))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Keep track of the mouse button state
@@ -32,21 +34,21 @@
 ;; When the button is pressed, make and initialise the pen drawing buffers
 
 (define (begin-drawing window x y)
-  (let ((pen-buffer (buffer-text (make-window-buffer window
-				       "pen")))
-	(close-buffer (buffer-text (make-window-buffer window
-						       "pen-close"))))
-    (gb-goto-char pen-buffer (gb-point-max pen-buffer))
-    (write-current-colour (window-buffer window
-					 "pen"))
-    (gb-insert-string! pen-buffer 
-		       (format #f 
-			       "(path-begin)~%(move-to ~a ~a)~%" 
-			       (window-view-x window x)
-			       (window-view-y window y)))
-    (gb-insert-string! close-buffer "(path-end)\n")
-    (window-undo-stack-push window
-			    pen-buffer)))
+    (let ((pen-buffer (make-window-buffer window
+					  "pen")))
+      (window-undo-stack-push window
+			      pen-buffer)
+      (write-current-colour pen-buffer)
+      (buffer-insert-undoable pen-buffer 
+			      #f
+			      (format #f 
+				      "(path-begin)~%(move-to ~a ~a)~%" 
+				      (window-view-x window x)
+				      (window-view-y window y)))
+      (buffer-insert-undoable pen-buffer 
+			      #f
+			      $path-end)
+      (buffer-undo-mark pen-buffer)))
 
 (define (pen-mouse-down win button x y) 
     (begin-drawing win x y)
@@ -57,19 +59,23 @@
 
 (define (draw-point window x y)
     (let ((pen-buffer (window-buffer window
-				     "pen"))
-	  ;;(pen-text (buffer-text pen-buffer))
-	  (pen-close-buffer (window-buffer window 
-					   "pen-close")))
+				     "pen")))
+      ;; Remove the previous path-end
+      (buffer-delete-undoable pen-buffer
+			      (- (buffer-end pen-buffer)
+				 $path-end-length)
+			      $path-end-length) 
       (buffer-insert-undoable pen-buffer 
 			      #f
 			      (format #f 
 				      "(line-to ~a ~a)~%" 
 				      (window-view-x window x)
 				      (window-view-y window y)))
+      (buffer-insert-undoable pen-buffer 
+			      #f
+			      $path-end)
       (buffer-undo-mark pen-buffer)
-      (buffer-invalidate pen-buffer)   
-      (buffer-invalidate pen-close-buffer)
+      (buffer-invalidate pen-buffer) 
       (window-redraw window)))
 
 (define (pen-mouse-move win x y) 
@@ -82,22 +88,15 @@
 (define (end-drawing window) 
     (let ((buff (window-buffer window
 			       "pen"))
-	  (close-buffer (window-buffer window
-				       "pen-close"))
 	  (main-buff (window-buffer-main window)))
       (buffer-insert-undoable main-buff
 			      #f
 			      (buffer-to-string buff))
-    (buffer-insert-undoable main-buff
-			    #f
-			    (buffer-to-string close-buffer))
     (buffer-undo-mark main-buff)
     (window-undo-stack-pop window)
     ;; Clean up and redraw
     (remove-window-buffer window 
 			  "pen")
-    (remove-window-buffer window 
-			  "pen-close")
     (buffer-invalidate (window-buffer-main window))
     (window-redraw window)))
 
