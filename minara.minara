@@ -33,6 +33,7 @@
 
 (set-colour 0.0 0.828 0.387 1.0)
 (push-matrix)
+(translate 145 125) ;; Centre on a 600 x 400 window
 (path-begin)
 (move-to 130.9441 79.3721)
 (curve-to 125.2566 77.5049 131.3196 69.6743 125.5374 63.8911)

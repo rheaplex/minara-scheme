@@ -53,6 +53,7 @@
 
 (define cli-option-spec
   '((version (single-char #\v))
+    (repl (single-char #\r))
     (help (single-char #\h))
     (file (single-char #\f) (value #t))))
 
@@ -69,6 +70,8 @@
 	(cli-help))
     (if (option-ref options 'version #f)
 	(cli-version))
+    (if (option-ref options 'repl #f)
+	((top-repl)))
     ;; Load the splash screen if no file, otherwise load file
     ;; Important, as GLUT crashes if started without a window!
     (if (equal? file-to-load #f)

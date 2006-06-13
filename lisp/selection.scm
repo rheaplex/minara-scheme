@@ -17,11 +17,22 @@
 ;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 ;; This is the selection list on the buffer
-;; Selection mathematics in picking.scm
-;; Copy & paste operations in copy-and-paste.scm
+;; Selection mathematics is in picking.scm
 
 ;; !!! Make sure these work with undo!!!
 ;; Well make adding/removing to the list undo actions
+
+
+;; Can't combine ranges if transforms clash
+;; Copy all transforms for each selection?
+;; So get all before selection but discard on push/pop? (optimise later)
+;; eg. collect-transforms-for in picking <----- !!!!!
+;;
+;; Or ignore smaller selections && replace with larger selections
+;; So save transform in pick information for each hit:
+;; (struct pick-hit index from to transform)
+
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -41,27 +52,29 @@
 ;; TODO: removing a range that matches an existing value, 
 ;;       for selective deselecting.
 
-(define (selection-ranges-var buffer)
+(define (selections-var buffer)
     (buffer-variable buffer "_selections"))
 
-(define (clear-selection-ranges-var buffer)
+(define (clear-selections-var buffer)
     (buffer-variable-set-undoable buffer 
 				  "_selections"
 				  '()))
 
-(define (sort-selection-ranges ranges)
-    (sort ranges
+(define (sort-selections selections)
+    (sort selections
 	  (lambda (a b)
-	    (< (car a)
-	       (car b)))))
+	    (< (picking-hit-from a)
+	       (picking-hit-from b)))))
 
-(define (append-selection-range ranges from to)
-    (cons (cons from to) ranges))
+(define (append-selection selections selection)
+    (cons selection selections))
 
-;; Combine any overlapping ranges into a single range
+;; Combine any overlapping selections into a single range
 ;; Assumes they're in order
 ;; So get first one, get next, if overlap discard first & combine,
 ;; otherwise 
+
+;; REDO: Overlaps need reworking in light of the way transforms work
 
 (define (selections-overlap? a b)
     (and (> (cdr a)
@@ -69,50 +82,52 @@
 	 (< (car a)
 	    (cdr b))))
 
-(define (combine-ranges a b)
+(define (combine-selections a b)
     (cons (min (car a) (car b))
 	  (max (car a) (cdr b))))
 
-(define (combine-selection-ranges-aux range ranges sorted)
-    (if (ranges)
-	(let ((next-range (car ranges))
-	      (rest (cdr ranges)))
+(define (combine-selections-aux range selections sorted)
+    (if (selections)
+	(let ((next-range (car selections))
+	      (rest (cdr selections)))
 	  (if (selections-overlap? range next-range)
-	      (combine-selection-ranges-aux (car rest)
+	      (combine-selections-aux (car rest)
 					    (cdr rest)
-					    (cons (combine-ranges range
-								  next-range)
+					    (cons (combine-selections range
+								      next-range)
 						  sorted)))
-	  (combine-selection-ranges-aux next-range
+	  (combine-selections-aux next-range
 					rest
 					(cons range sorted))))
   (cons range sorted))
   
-(define (combine-selection-ranges ranges)
-    (combine-selection-ranges-aux (car ranges) (cdr ranges)))
+(define (combine-selections selections)
+    (combine-selections-aux (car selections) (cdr selections)))
 
-(define (append-selection-ranges-var buffer range)
+(define (append-selections-var buffer range)
     (buffer-variable-set-undoable buffer
 				  "_selections"
-				  (sort-selection-renages
-				   (combine-selection-ranges
+				  (sort-selection-ranges
+				   (combine-selections
 				    (append-selection-range 
-				     (selection-ranges-var buffer)
+				     (selections-var buffer)
 				     range)))))
 
-(define (set-selection-ranges-var buffer range)
+(define (set-selections-var buffer range)
     (buffer-variable-set-undoable buffer
 				  "_selections"
 				  (list range)))
 
-;; Assumes ranges are sorted highest to lowest and do not overlap
+;; Assumes selections are sorted highest to lowest and do not overlap
 
-(define (delete-selection-ranges buffer)
+(define (delete-selections buffer)
     (for-each 
-     (lambda (range)
-       (buffer-delete-undoable buffer (car range) (cdr range)))
-     (selection-ranges-var buffer))
-  (clear-selection-ranges-var buffer))
+     (lambda (pick)
+       (buffer-delete-undoable buffer 
+			       (picking-hit-from pick) 
+			       (picking-hit-to pick)))
+     (selections-var buffer))
+  (clear-selections-var buffer))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Copy buffer (clipboard) handling
@@ -130,24 +145,30 @@
 				     (make-buffer))
 	       (buffer-variable buffer 
 				"_copy"))))
-	
-(define (copy-selection-ranges-to-buffer main-buffer to-buffer)
-    (for-each
-     (lambda (range)
-       (buffer-insert-undoable to-buffer
-			       #f
-			       (buffer-range-to-string main-buffer 
-						       (car range) 
-						       (cdr range))))
-     (selection-ranges-var main-buffer)))
 
-(define (copy-selection-ranges-to-copy-buffer-var buffer)
+(define (copy-selections-to-buffer main-buffer to-buffer)
+    (for-each
+     (lambda (selection)
+       (let ((text  
+	      (format #f "(push-matrix)~%~a~%~a~%(pop-matrix)~%"
+		      (matrix-to-set-string 
+		       (picking-hit-transform selection))
+		      (buffer-range-to-string 
+		       main-buffer 
+		       (picking-hit-from selection) 
+		       (picking-hit-to selection)))))
+	 (buffer-insert-undoable to-buffer
+				 #f
+				 text)))
+     (selections-var main-buffer)))
+
+(define (copy-selections-to-copy-buffer-var buffer)
     (let ((copy-buf (ensure-copy-buffer-var buffer)))
-      (copy-selection-ranges-to-buffer main-buffer to-buffer)))
+      (copy-selections-to-buffer main-buffer to-buffer)))
   
-(define (cut-selection-ranges-to-copy-buffer-var buffer)
-    (copy-selection-ranges-to-copy-buffer-var buffer)
-  (clear-selection-ranges-var buffer))
+(define (cut-selections-to-copy-buffer-var buffer)
+    (copy-selections-to-copy-buffer-var buffer)
+  (clear-selections-var buffer))
 
 (define (paste-copy-buffer-var buffer)
     (buffer-insert-undoable buffer
@@ -159,7 +180,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (do-copy-key)
-    (copy-selection-ranges-to-copy-buffer-var (window-buffer (window-current))))
+    (copy-selections-to-copy-buffer-var (window-buffer (window-current))))
 
 (keymap-add-fun %global-keymap 
 		do-copy-key
@@ -170,7 +191,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (do-delete-key)
-    (delete-selection-ranges (window-buffer (window-current))))
+    (delete-selections (window-buffer (window-current))))
 
 (keymap-add-fun %global-keymap 
 		do-delete-key
@@ -181,7 +202,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (do-cut-key)
-    (cut-selection-ranges-to-copy-buffer-var (window-buffer (window-current))))
+    (cut-selections-to-copy-buffer-var (window-buffer (window-current))))
 
 (keymap-add-fun %global-keymap 
 		do-cut-key
@@ -192,7 +213,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (do-paste-key)
-    (clear=selection-ranges-var (window-buffer (window-current))))
+    (clear=selections-var (window-buffer (window-current))))
 
 (keymap-add-fun %global-keymap 
 		do-paste-key
@@ -218,9 +239,9 @@
       (if selection
 	  (begin
 	   (if (= button 1)
-	       (set-selection-ranges-var (window-buffer-main win)
+	       (set-selections-var (window-buffer-main win)
 					 selection)
-	       (append-selection-ranges-var (window-buffer-main win)
+	       (append-selections-var (window-buffer-main win)
 					    selection))
 	   (highlight-selection win))
 	  (clear-highlight-selection win))))
@@ -258,7 +279,7 @@
        highlight-buffer
        #f
        "(translate (buffer-variable (current-buffer) \"x\") (buffer-variable (current-buffer) \"x\"))\n(set-colour 1.0 0.0 0.0 0.0)\n(define old-set-colour set-colour)\n(set! set-colour (lambda (a b c d) #f))\n")
-      (copy-selection-ranges-to-buffer (window-buffer-main win) 
+      (copy-selections-to-buffer (window-buffer-main win) 
 				       highlight-buffer)
       (buffer-insert-undoable 
        highlight-buffer

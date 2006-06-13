@@ -33,80 +33,102 @@
 ;; Functions to generate transformation matrices
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; a  b  0
+;; c  d  0
+;; tx ty 1
+
+;; (a b c d tx ty)
+
 ;; identity
+
+;; 1  0  0
+;; 0  1  0
+;; 0  0  1
+
+;; (1 0 0 0 1 0)
 
 (define (matrix-identity-make)
   (list 1.0 0.0 0.0 1.0 0.0 0.0))
 
 ;; scale
 
+;; sx 0  0
+;; 0  sy 0
+;; 0  0  1
+
+;; (sx 0 0 sy 0 0)
+
 (define (matrix-scale-make x y)
   (list x 0.0 0.0 y 0.0 0.0))
 
 ;; translate
+
+;; 1  0  0
+;; 0  1  0
+;; tx ty 1
+
+;; (1 0 0 1 tx ty)
 
 (define (matrix-translate-make x y)
   (list 1.0 0.0 0.0 1.0 x y))
 
 ;; rotate
 
+;; cos  sin 0
+;; -sin cos 0
+;; 0    0   1
+
+;; (cos sin -sin cos 0 0)
+
 (define (matrix-rotate-make z)
   (let ((c (cos z))
 	(s (sin z))
 	(ns (- (sin z))))
-  (list c s nc c 0.0 0.0)))
+    (list c s nc c 0.0 0.0)))
 
 ;; to string
 
-(define (matrix-to-lisp matrix)
-  (matrix-to-lisp-aux matrix "(push-matrix"))
- 
-(define (matrix-to-lisp-aux matrix string)
-  (if matrix
-      (matrix-to-lisp-aux (cdr string)
-			  (string-append string
-					 (format t " ~f" (car matrix))))
-      (string-append string ")")))
+(define (matrix-to-set-string matrix)
+    (format #f "(set-matrix ~a)" (matrix-to-string matrix)))
+
+(define (matrix-to-string matrix)
+    (format #f "~a ~a ~a ~a ~a ~a" (first matrix) (second matrix)
+	    (third matrix) (fourth matrix) (fifth matrix) (sixth matrix)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Matrix Concatenation
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; concatenate
+
+;; Multiply the rows of A by the columns of B
+;;(define a (matrix-translate-make 10 20))(define b (matrix-translate-make 200 100))(define c (matrix-concatenate a b)) c
+
 ;; This is going to be a bottleneck, so unroll it
 ;; Optimise so rather than first, second, third, we use car/cdr on each cdr
 
 (define (matrix-concatenate a b)
-  (let* ((a1 (first a))
-	 (a2 (second a))
-	 (a3 (third a))
-	 (a4 (fourth a))
-	 (a5 (fifth a))
-	 (a6 (sixth a))
-	 (b1 (first b))
-	 (b2 (second b))
-	 (b3 (third b))
-	 (b4 (fourth b))
-	 (b5 (fifth b))
-	 (b6 (sixth b))
-	 (((+ (* a1 b1) 
-	      (* a2 b2))
-	   (+ (* (first a1) (second b1)) 
-	      (* (second a1) (second b2)))
-	   (+ (* (first a1) (third b1)) 
-	      (* (second a1) (third b2)))
-	  ((+ (* (first a2) (first b1)) 
-	      (* (second a2) (first b2)))
-	   (+ (* (first a2) (second b1)) 
-	      (* (second a2) (second b2)))
-	   (+ (* (first a2) (third b1)) 
-	      (* (second a2) (third b2)))
-	  ((+ (* (first a3) (first b1)) 
-	      (* (second a3) (first b2)))
-	   (+ (* (first a3) (second b1)) 
-	      (* (second a3) (second b2)))
-	   (+ (* (first a3) (third b1)) 
-	      (* (second a3) (third b2))))))))))
+  (let* ((aa (first a))
+	 (ab (second a))
+	 (ac (third a))
+	 (ad (fourth a))
+	 (ae (fifth a))
+	 (af (sixth a))
+	 (ba (first b))
+	 (bb (second b))
+	 (bc (third b))
+	 (bd (fourth b))
+	 (be (fifth b))
+	 (bf (sixth b)))
+    (list (+ (* aa ba) (* ab bc)) ;;(* 0.0 btx)
+	  (+ (* aa bb) (* ab bd)) ;;(* 0.0 b32)	
+	  ;;(+ (* a11 b13) (* a12 b23) (* a13 b33))
+	  (+ (* ac ba) (* ad bc)) ;;(*a23 b31)	
+	  (+ (* ac bb) (* ad bd)) ;;(* a23 b32)
+	  ;;(+ (* a21 b13) (* a22 b23) (* a23 b33))
+	  (+ (* ae ba) (* af bc) be) ;;(* a33 b31)
+	  (+ (* ae bb) (* af bd) bf)))) ;;(* a33 b32)
+;;(+ (* a31 b13) (* a32 b23) (* a33 b33))
 
 ;; concatenaten
 ;; Concatenate a list of matrices
@@ -141,4 +163,30 @@
 	 (yy (+ (* x c)
 		(* y d)
 		ty)))
-    (cons xx yy))) ;; Dotted list
+    (values xx yy)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Matrix stacks, pushing, popping
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (make-matrix-stack)
+    (list (matrix-identity-make)))
+
+(define (stack-set-matrix matrix-stack matrix)
+    (cons matrix (cdr matrix-stack)))
+
+(define (stack-concatenate-matrix matrix-stack matrix)
+    (stack-set-matrix matrix-stack
+		      (matrix-concatenate matrix
+					  (stack-current-matrix matrix-stack))))
+
+(define (stack-current-matrix matrix-stack)
+    (car matrix-stack))
+
+(define (stack-push-matrix matrix-stack)
+    (cons (copy-tree (stack-current-matrix matrix-stack))
+	  matrix-stack))
+
+(define (stack-pop-matrix matrix-stack)
+    (cdr matrix-stack))
