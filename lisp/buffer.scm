@@ -131,6 +131,17 @@
 		   from
 		   length))
 
+;; Insert outside of the undo system. No, you really do not want this. See undo.
+
+(define (buffer-insert-no-undo buffer pos text)
+    (let* ((gap-buffer (buffer-text buffer))
+	   (position (or pos 
+			 (gb-point-max gap-buffer))))
+      (gb-goto-char gap-buffer 
+		    position)
+      (gb-insert-string! gap-buffer 
+			 text)))
+  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Buffer Variables
 ;; A buffer can have an arbitrary number of named variables set on it.

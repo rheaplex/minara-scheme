@@ -88,8 +88,8 @@
 
 ;; to string
 
-(define (matrix-to-set-string matrix)
-    (format #f "(set-matrix ~a)" (matrix-to-string matrix)))
+(define (matrix-to-concatenate-string matrix)
+    (format #f "(concatenate-matrix ~a)" (matrix-to-string matrix)))
 
 (define (matrix-to-string matrix)
     (format #f "~a ~a ~a ~a ~a ~a" (first matrix) (second matrix)

@@ -151,13 +151,13 @@
      (lambda (selection)
        (let ((text  
 	      (format #f "(push-matrix)~%~a~%~a~%(pop-matrix)~%"
-		      (matrix-to-set-string 
+		      (matrix-to-concatenate-string 
 		       (picking-hit-transform selection))
 		      (buffer-range-to-string 
 		       main-buffer 
 		       (picking-hit-from selection) 
 		       (picking-hit-to selection)))))
-	 (buffer-insert-undoable to-buffer
+	 (buffer-insert-no-undo to-buffer
 				 #f
 				 text)))
      (selections-var main-buffer)))
@@ -275,18 +275,19 @@
     (let ((highlight-buffer (ensure-window-buffer win "_highlight")))
       (set-buffer-variable! highlight-buffer "x" 0.0)
       (set-buffer-variable! highlight-buffer "y" 0.0)
-      (buffer-insert-undoable 
+      (buffer-undo-mark highlight-buffer)
+      (buffer-insert-no-undo 
        highlight-buffer
        #f
-       "(translate (buffer-variable (current-buffer) \"x\") (buffer-variable (current-buffer) \"x\"))\n(set-colour 1.0 0.0 0.0 0.0)\n(define old-set-colour set-colour)\n(set! set-colour (lambda (a b c d) #f))\n")
+       "(push-matrix)(translate (buffer-variable (current-buffer) \"x\") (buffer-variable (current-buffer) \"y\"))\n(set-colour 1.0 0.0 0.0 0.0)\n(set! set-colour (lambda (a b c d) #f))\n")
       (copy-selections-to-buffer (window-buffer-main win) 
 				       highlight-buffer)
-      (buffer-insert-undoable 
+      (buffer-insert-no-undo 
        highlight-buffer
        #f
-       "\n(set! set-colour old-set-colour)\n")
-      (buffer-invalidate highlight-buffer))
-  (window-redraw win))
+       "\n(set! set-colour rendering:set-colour)(pop-matrix)\n") ;; Restore col!
+      (buffer-invalidate highlight-buffer)
+      (window-redraw win)))
 
 (define (clear-highlight-selection win)
     (remove-window-buffer win "_highlight"))
@@ -308,16 +309,19 @@
 
 (define (move-mouse-move win x y) 
   (if move-tool-mouse-down
-      (let ((highlight-buffer (window-buffer window "_highlight")))
-	(set-buffer-variable highlight-buffer
+      (let ((highlight-buffer (window-buffer win "_highlight")))
+	(set-buffer-variable! highlight-buffer
 			     "x"
-			     (- x;;(window-view-x window x)
-				move-tool-mousedown-x))
-	(set-buffer-variable! move-buffer
+			     (- x ;;(window-view-x window x)
+				     move-tool-mousedown-x))
+	(set-buffer-variable! highlight-buffer
 			      "y"
-			      (- y;;(window-view-y window y)
-				 move-tool-mousedown-y))
-	(window-view-update window))))
+			      (- y ;;(window-view-y window y)
+				      move-tool-mousedown-y))
+	(format #t "~a ~a~%" (buffer-variable highlight-buffer "x")
+		(buffer-variable highlight-buffer "y"))
+	(buffer-invalidate highlight-buffer)
+	(window-redraw win))))
 
 (define (translate-selections win)
     ;; To translate the original...
