@@ -26,7 +26,8 @@
 ;; Modules
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(use-modules (srfi srfi-1))
+(use-modules (srfi srfi-1)
+	     (srfi srfi-14))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -190,3 +191,13 @@
 
 (define (stack-pop-matrix matrix-stack)
     (cdr matrix-stack))
+
+
+
+
+
+(define (get-translate-values trans)
+    (let* ((tokens (string-tokenize trans (string->char-set "0123456789.-")))
+	   (x (first tokens))
+	   (y (second tokens)))
+    (values (string->number x) (string->number y))))

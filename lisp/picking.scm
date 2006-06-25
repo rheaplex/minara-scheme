@@ -97,9 +97,11 @@
   ;; Which hit was it in the pick?
   (index picking-hit-index)
   ;; Which character in the buffer does the hit start at?
-  (from picking-hit-from)
+  (from picking-hit-from
+	set-picking-hit-from!)
   ;; Which character in the buffer does the hit go to?
-  (to picking-hit-to)
+  (to picking-hit-to
+      set-picking-hit-to!)
   ;; The transformation of the hit
   (transformation picking-hit-transform))
 		      
@@ -122,6 +124,8 @@
 (define previous-y #f)
 
 ;; Keep track of which colour we're currently using
+;; (We'll need to keep track of any other fill methods as well,
+;;  but we will never stroke, so we won't need to track that.)
 (define current-colour #f)
 
 ;; Keep track of the current transformations
@@ -318,7 +322,7 @@
 ;; Get an s-expression from the ( at the character index given to the closing )
 (define (sexp-bounds buffer start)
   (let ((end (sexp-bounds-aux buffer (+ start 1) 1)))
-    (list start end)))
+    (values start end)))
 
 ;; Recursively find the end of the s-expression
 (define (sexp-bounds-aux buffer current count)
@@ -334,7 +338,27 @@
 	   (sexp-bounds-aux buffer (+ current 1) (- count 1)))
 	  (else
 	   (sexp-bounds-aux buffer (+ current 1) count))))))
-		  
+
+;; Get an s-expression from the ) at the character index given to the opening (
+(define (reverse-sexp-bounds buffer start)
+  (let ((end (sexp-bounds-aux buffer (- start 1) 1)))
+    (values start end)))
+
+;; Recursively find the beginning of the s-expression
+(define (reverse-sexp-bounds-aux buffer current count)
+  ;; Terminal clause, return the value
+  (if (= count 0)
+      current
+      ;; Otherwise we get the current char and check it
+      (let ((current-char (substring buffer current (- current 1))))
+	(cond
+	  ((string= current-char ")")
+	   (sexp-bounds-aux buffer (- current 1) (+ count 1)))
+	  ((string= current-char "(") 
+	   (sexp-bounds-aux buffer (- current 1) (- count 1)))
+	  (else
+	   (sexp-bounds-aux buffer (- current 1) count))))))
+
 ;; Get the nth sexp starting with the given operator
 (define (nth-sexp-bounds buffer operator count)	  
   (let* ((op-with-bracket (string-append "(" operator))
@@ -347,12 +371,37 @@
 	
 ;; Get the nth path in the buffer
 (define (get-nth-path buffer nth)
-    (let ((path-from (nth-occurrence buffer
-				      "(path-begin)" nth))
+    (let ((path-from (- (nth-occurrence buffer
+				      "(path-begin)" nth)
+			1))
 	   ;; 10 to move past "path-end"
 	   (path-to (+ (nth-occurrence buffer 
 				       "(path-end)" nth) 10)))
       (values path-from path-to)))
+
+(define (sexp-before buffer-str pos)  
+    (let ((sexp-start (string-rindex buffer-str #\( 0 pos)))
+      (if sexp-start
+	  (sexp-bounds buffer-str sexp-start)
+	  #f)))
+
+(define (sexp-after buffer-str pos)
+    (let ((sexp-start (string-index buffer-str #\( pos)))
+      (if sexp-start
+	  (sexp-bounds buffer-str sexp-start)
+	  #f)))
+
+(define (sexp-symbol-string buffer-str sexp-pos)
+    (if (string= (substring buffer-str sexp-pos (+ sexp-pos 1))
+		 "(")
+	(let ((symbol-end (or (string-index buffer-str #\space sexp-pos)
+			      (string-index buffer-str #\) sexp-pos))))
+	  (if symbol-end
+	      (substring buffer-str 
+			 (+ sexp-pos 1 ) 
+			 symbol-end)
+	      #f))
+	#f))
 
 (define (get-picked-path)
     (let* ((nnth (- current-polygon previous-polygon)))
@@ -366,21 +415,6 @@
 				    path-to
 				    (copy-tree (stack-current-matrix
 						transformation-stack))))))
-  
-;; Get the colour before the nth (path-end)
-;; Incredibly slow....
-;; (define (get-nth-path-colour buffer nth)
-;;   (let* ((buffer-string (gb->string buffer))
-;; 	 ;; Get the END of the path. Colour may be set anywhere before here
-;; 	 (path-end (cadr (get-nth-path buffer nth)))
-;; 	 ;; Get the start of the colour statement
-;; 	 (colour-start (string-rindex buffer "(set-colour" 0 path-end)))
-;;     ;; Get the extent of the colour statement
-;;     (if (not colour start)
-;; 	;; Pass out the error
-;; 	#f
-;; 	;; Or find the bounds
-;; 	(sexp-bounds buffer colour-start))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Picking in the main window buffer.

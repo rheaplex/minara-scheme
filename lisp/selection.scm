@@ -113,6 +113,10 @@
 				     (selections-var buffer)
 				     range)))))
 
+(define (selections-var buffer)
+    (buffer-variable buffer
+		     "_selections"))
+
 (define (set-selections-var buffer range)
     (buffer-variable-set-undoable buffer
 				  "_selections"
@@ -145,6 +149,9 @@
 				     (make-buffer))
 	       (buffer-variable buffer 
 				"_copy"))))
+
+(define (clear-copy-buffer buffer)
+    (set-buffer-variable! buffer "_copy" #f))
 
 (define (copy-selections-to-buffer main-buffer to-buffer)
     (for-each
@@ -293,6 +300,107 @@
     (remove-window-buffer win "_highlight"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Ensuring that a selection is wrapped in a push/translate/pop block
+;; This will need improving
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (update-selection-ranges selections after by)
+    (if selections
+	(let ((selection (car selections)))
+	  (if (> after 
+		 (picking-hit-index selection))
+	      (begin
+	       (set-picking-hit-from! selection 
+				      (+ (picking-hit-from selection)
+					 by))
+	       (set-picking-hit-to! selection 
+				    (+ (picking-hit-to selection)
+				       by)))))
+	(roll-selections-down (cdr selections) after by)))
+
+;; Too long! Decompose!
+
+(define (wrap-selection-translate buffer sel x y)
+    (let ((prefix (format #f "(push-matrix)~%(translate~a ~a)~%" x y))
+	  (suffix "(pop-matrix)\n"))
+      ;; Wrap the selection in a new transform
+      (buffer-insert-undoable buffer
+			      (picking-hit-to sel)
+			      suffix)
+      (buffer-insert-undoable buffer
+			      (picking-hit-from sel)
+			      prefix)
+      ;; And roll down the rest
+      (update-selection-ranges (selections-var buffer) 
+			       (+ (picking-hit-index sel)
+				  1)
+			       (+ (string-length prefix)
+				  (string-length suffix)))))
+
+(define (update-selection-translate buffer sel x y prev-from prev-to)
+    (let-values (((old-x old-y) 
+		  (get-translate-values (gb->substring (buffer-text buffer)
+						       (+ prev-from 1)
+						       (+ prev-to 1)))))
+		(let* ((new-translate (format #f "(translate ~a ~a)"
+					      (+ x old-x)
+					      (+ y old-y))))
+		  ;; Update the existing transform very inefficiently
+		  (buffer-delete-undoable buffer
+					  (+ prev-from 1)
+					  (- prev-to prev-from))
+		  (buffer-insert-undoable buffer
+					  (+ prev-from 1)
+					  new-translate)
+		  ;; Roll down the selections that follow
+		  (update-selection-ranges 
+				   (selections-var buffer) 
+				   (picking-hit-index sel)
+				   (- (string-length new-translate)
+				      (- prev-from 
+					 prev-to))))))
+
+(define (update-selection-parameters buffer sel)
+    (let ((buffer-str (buffer-to-string buffer)))
+      (let-values (((prev-from prev-to) 
+		    (sexp-before buffer-str (picking-hit-from sel)))
+		   ((next-from next-to) 
+		    (sexp-after buffer-str (picking-hit-to sel))))
+		  (let ((prev-symbol (sexp-symbol-string buffer-str prev-from))
+			(next-symbol (sexp-symbol-string buffer-str next-from)))
+		    (values (and (string= prev-symbol "translate")
+				 (or (string= next-symbol "pop-matrix")
+				     (= next-symbol #f)))
+			    prev-from
+			    prev-to)))))
+
+(define (update-selection-transform buffer sel x y)
+    (let-values (((wrapped? prev-from prev-to) 
+		  (update-selection-parameters buffer sel)))
+		;; What if it's a rotate but preceded by a translate? Later.
+		(if wrapped?
+		    (update-selection-translate buffer 
+						sel x y prev-from prev-to)
+		    ;; else
+		    (wrap-selection-translate buffer sel x y))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Deselect
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (deselect-all)
+    (let* ((win (window-current))
+	   (buffer (window-buffer-main win)))
+      (clear-selections-var buffer)
+      (clear-copy-buffer buffer)
+      (clear-highlight-selection win)
+      (window-redraw win))) 
+
+(keymap-add-fun %global-keymap 
+		deselect-all
+		"s" " ")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Move tool
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -305,11 +413,21 @@
     (set! move-tool-mousedown-x 
 	  x)
     (set! move-tool-mousedown-y 
-	  y))
+	  y)
+    (let ((highlight-buffer (ensure-window-buffer win "_highlight")))
+      (set-buffer-variable! highlight-buffer
+			    "x"
+			    0)
+      (set-buffer-variable! highlight-buffer
+			    "y"
+			    0)))
 
 (define (move-mouse-move win x y) 
   (if move-tool-mouse-down
       (let ((highlight-buffer (window-buffer win "_highlight")))
+
+	;; Work in the existing x and y
+
 	(set-buffer-variable! highlight-buffer
 			     "x"
 			     (- x ;;(window-view-x window x)
@@ -318,22 +436,25 @@
 			      "y"
 			      (- y ;;(window-view-y window y)
 				      move-tool-mousedown-y))
-	(format #t "~a ~a~%" (buffer-variable highlight-buffer "x")
-		(buffer-variable highlight-buffer "y"))
 	(buffer-invalidate highlight-buffer)
 	(window-redraw win))))
 
 (define (translate-selections win)
-    ;; To translate the original...
-    ;; Foreach range in the selection variable
-    ;; See if the object has a translate devoted to it.
-    ;; If so, modify that.
-    ;; If not, add one.
-    #f)
+    (let* ((highlight-buffer (window-buffer win "_highlight"))
+	   (main (window-buffer-main win))
+	   (selections (selections-var main))
+	   (x (buffer-variable highlight-buffer "x"))
+	   (y (buffer-variable highlight-buffer "y")))
+      (for-each
+       (lambda (sel)
+	 (update-selection-transform main sel x y))
+	 selections)))
 
 (define (move-mouse-up win button x y)
     (translate-selections win)
-  (set! move-tool-mouse-down #f))
+  (set! move-tool-mouse-down #f)
+  (buffer-invalidate (window-buffer-main win))
+  (window-redraw win))
 
 ;; Install
 
