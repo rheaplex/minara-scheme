@@ -24,7 +24,7 @@
   Scheme
   
   Our Lisp system. We currently use Guile, so it's actually our Scheme system.
-  This should still be called minara-lisp.c, though.
+  This should still be called minara_lisp.c, though.
   The code in this file extends Guile to allow us to evaluate code buffers 
   exactly as we need to for minara to function as planned.
   ---------------------------------------------------------------------------*/
@@ -148,9 +148,18 @@ minara_strineval_with_module (SCM string, SCM module)
 void
 guile_startup ()
 {
+  // Set the guile path
+  scm_c_define ("$minara-lisp-dir", 
+		scm_makfrom0str (MINARA_LISP_DIR));
+  scm_c_define ("$minara-dotminara-dir", 
+		scm_makfrom0str (MINARA_DOTMINARA_DIR));
+
   //Register our scheme functions
-  scm_c_define_gsubr ("port-eval-with-module", 2, 0, 0, minara_port_eval_with_module);
-  scm_c_define_gsubr ("string-eval-with-module", 2, 0, 0, minara_strineval_with_module);
+  scm_c_define_gsubr ("port-eval-with-module", 2, 0, 0, 
+		      minara_port_eval_with_module);
+  scm_c_define_gsubr ("string-eval-with-module", 2, 0, 0, 
+		      minara_strineval_with_module);
+
   //Ensure we have do-nothing event handlers installed
   // Now done in the Scheme code (see lisp / events.scm)
   // scm_c_eval_string (gGuileDoNothingEventHandlers);

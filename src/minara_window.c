@@ -207,9 +207,9 @@ SCM minara_window_set_title (SCM win, SCM title)
   int old_win = glutGetWindow ();
   SCM_ASSERT (SCM_NUMBERP (win), win, SCM_ARG1, "minara-window-set-title");
   w = (GLuint) scm_num2int (win, SCM_ARG1, "minara-window-set-title");
-  SCM_ASSERT (SCM_STRINGP (title), title, SCM_ARG2, "minara-window-set-title");
-  SCM_STRING_COERCE_0TERMINATION_X (title);
-  t = SCM_STRING_CHARS (title);
+  SCM_ASSERT (scm_is_string (title), title, SCM_ARG2, 
+	      "minara-window-set-title");
+  t = scm_to_locale_string (title);
   if (w != 0)
   {
     glutSetWindow (w);
@@ -217,6 +217,7 @@ SCM minara_window_set_title (SCM win, SCM title)
   }
   if (old_win != 0)
     glutSetWindow (old_win);
+  free (t);
   return SCM_EOL;
 }
 
@@ -235,9 +236,8 @@ SCM minara_window_draw_status(SCM win, SCM text)
   int old_win = glutGetWindow ();
   SCM_ASSERT (SCM_NUMBERP (win), win, SCM_ARG1, "minara-window-set-status");
   w = (GLuint) scm_num2int (win, SCM_ARG1, "minara-window-set-status");
-  SCM_ASSERT (SCM_STRINGP (text), text, SCM_ARG2, "minara-window-set-status");
-  SCM_STRING_COERCE_0TERMINATION_X (text);
-  status = SCM_STRING_CHARS (text);
+  SCM_ASSERT (scm_is_string (text), text, SCM_ARG2, "minara-window-set-status");
+  status = scm_to_locale_string  (text);
   if (w != 0)
   {
     int i;
@@ -265,6 +265,7 @@ SCM minara_window_draw_status(SCM win, SCM text)
   }
   if (old_win != 0)
     glutSetWindow (old_win);
+  free (status);
   return SCM_EOL;
 }
 

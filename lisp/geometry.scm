@@ -25,14 +25,14 @@
 ;; Find the distance between the points x1,y1 and x2,y2
 
 (define (distance-between-points x1 y1 x2 y2)
-    (abs (sqrt (+ (expt (- x2 
-			   x1)
-			2.0)
-		  (expt (- y2
-		      y1)
-			2.0)))))
+  (sqrt (+ (expt (abs (- x2 
+		    x1))
+		 2.0)
+	   (expt (abs (- y2
+			 y1))
+		 2.0))))
 
-;; Find polar angle of point px,py around point ox,oy
+;; Find polar angle of point px,py around origin ox,oy
 
 (define (angle-around-point ox oy px py)
     (let ((x (- px

@@ -20,7 +20,7 @@
 ;; Selection mathematics is in picking.scm
 
 ;; !!! Make sure these work with undo!!!
-;; Well make adding/removing to the list undo actions
+;; Well, make adding/removing to the list undo actions
 
 
 ;; Can't combine ranges if transforms clash
@@ -53,7 +53,7 @@
 ;;       for selective deselecting.
 
 (define (selections-var buffer)
-    (buffer-variable buffer "_selections"))
+  (buffer-variable buffer "_selections"))
 
 (define (clear-selections-var buffer)
     (buffer-variable-set-undoable buffer 
@@ -235,7 +235,7 @@
 
 (keymap-add-fun %global-keymap 
 		do-clear-selection-key
-		"s")
+		"s" "c")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Select
@@ -321,7 +321,7 @@
 ;; Too long! Decompose!
 
 (define (wrap-selection-translate buffer sel x y)
-    (let ((prefix (format #f "(push-matrix)~%(translate~a ~a)~%" x y))
+    (let ((prefix (format #f "(push-matrix)~%(translate ~a ~a)~%" x y))
 	  (suffix "(pop-matrix)\n"))
       ;; Wrap the selection in a new transform
       (buffer-insert-undoable buffer
@@ -448,7 +448,8 @@
       (for-each
        (lambda (sel)
 	 (update-selection-transform main sel x y))
-	 selections)))
+	 (or selections 
+	     '()))))
 
 (define (move-mouse-up win button x y)
     (translate-selections win)

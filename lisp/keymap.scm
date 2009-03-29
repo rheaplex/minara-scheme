@@ -78,7 +78,7 @@
 
 ;; Check that the object is a keymap
 (define (keymap? keymap)
-  (vector? keymap))
+  (hash-table? keymap))
 
 ;; The current keymap
 (define keymap-current keymap-current-root)

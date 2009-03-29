@@ -61,7 +61,9 @@
 ;; This is a GLUT wart: if we started without a window open we'd quit
 
 (define (load-splash-screen)
-  (make-window-from-file "../minara.minara"))
+  (make-window-from-file (string-append $minara-dotminara-dir 
+					"/" 
+					"minara.minara")))
 
 (define (cli-handle-arguments)
   (let* ((options (getopt-long (command-line) cli-option-spec))

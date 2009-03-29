@@ -34,14 +34,10 @@
 
 ;; Load third party libraries
 
-(load "./slurp.scm")
-(load "./split-string-no-nulls.scm")
-(load "./fileutils.scm")
-(load "./expand-file-name.scm")
+(load "slurp.scm")
+(load "split-string-no-nulls.scm")
 
-(load "./gap-buffer.scm")
-(load "./find-file.scm")
-(load "./write-buffer.scm")
+(load "gap-buffer.scm")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -120,13 +116,6 @@
     (load-minara-files)
   ;; Get the event hooks back into C in case anyone forgot to
   (bind-event-hooks))
-  
-(define $minara-lisp-dir
-  ;;  (if (string=? (utsname:machine (uname))
-	;;	  "Power Macintosh")
-	;;"../Resources/lisp/"
-	"../lisp/")
-;;)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Our main startup routine
@@ -135,6 +124,7 @@
 (define (startup args)
   (debug-enable 'debug) 
   (debug-enable 'backtrace)
+  (debug-enable 'trace)
   (read-enable 'positions)
   (load-and-initialise)
   ;; Handle the command line

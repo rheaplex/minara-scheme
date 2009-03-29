@@ -84,13 +84,13 @@ minara_menu_install (SCM menu, SCM title)
 {
   int menu_num;
   char *title_str = "";
-  SCM_ASSERT (SCM_STRINGP (title), title, SCM_ARG1, "minara-menu-install");
-  SCM_STRING_COERCE_0TERMINATION_X (title);
-  title_str = SCM_STRING_CHARS (title);
+  SCM_ASSERT (scm_is_string (title), title, SCM_ARG1, "minara-menu-install");
+  title_str = scm_to_locale_string (title);
   SCM_ASSERT (SCM_NUMBERP (menu), menu, SCM_ARG1, "minara-menu-install");
   menu_num = scm_num2int (menu, SCM_ARG1, "minara-menu-install");
   glutSetMenu (main_menu);
   glutAddSubMenu (title_str, menu_num);
+  free (title_str);
   return SCM_EOL;
 }
 
@@ -108,15 +108,15 @@ minara_menu_add_entry (SCM menu, SCM entry, SCM id)
   int menu_num, id_num;
   char *entry_str;
   SCM_ASSERT (SCM_NUMBERP (menu), menu, SCM_ARG1, "minara-menu-add-entry");
-  SCM_ASSERT (SCM_STRINGP (entry), entry, SCM_ARG2, "minara-menu-add-entry");
+  SCM_ASSERT (scm_is_string (entry), entry, SCM_ARG2, "minara-menu-add-entry");
   SCM_ASSERT (SCM_NUMBERP (id), id, SCM_ARG3, "minara-menu-add-entry");
   menu_num = scm_num2int (menu, SCM_ARG1, "minara-menu-add-entry");
-  SCM_STRING_COERCE_0TERMINATION_X (entry);
-  entry_str = SCM_STRING_CHARS (entry);
+  entry_str = scm_to_locale_string (entry);
   id_num = scm_num2int (id, SCM_ARG3, "minara-menu-add-entry");
   glutSetMenu (menu_num);
   glutAddMenuEntry (entry_str, id_num);
   glutSetMenu (main_menu);
+  free (entry_str);
   return SCM_EOL;
 }
 

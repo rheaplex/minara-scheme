@@ -188,9 +188,9 @@
 	       (y (window-view-y window
 				 raw-y))
 	       (radius (distance-between-points square-tool-mouse-down-x
-						     square-tool-mouse-down-y
-						     x
-						     y))
+						square-tool-mouse-down-y
+						x
+						y))
 	       (left (- square-tool-mouse-down-x radius))
 	       (right (+ square-tool-mouse-down-x radius))
 	       (top (+ square-tool-mouse-down-y radius))
@@ -277,9 +277,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Rectangle
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(define star-number-points 6)
-(define star-inner-radius-offset 0.5)
 
 (define rectangle-tool-mouse-down #f)
 (define rectangle-tool-mouse-down-x #f)

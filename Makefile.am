@@ -1,3 +1,7 @@
 ## Process this file with automake to produce Makefile.in
-EXTRA_DIST = minara.minara COPYING README TODO
-SUBDIRS = src
+
+SUBDIRS = src lisp
+
+dotminaradir = $(datadir)/minara/$(VERSION)/dotminara
+dotminara_DATA = minara.minara
+EXTRA_DIST = $(dotminara_DATA)

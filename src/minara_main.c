@@ -60,12 +60,8 @@
   Constants
   ---------------------------------------------------------------------------*/
 
-static const char *bootstrap_file = 
-#if  0  //def __APPLE__
-	"../Resources/lisp/minara-bootstrap.scm";
-#else
-	"../lisp/minara-bootstrap.scm";
-#endif
+#define BOOTSTRAP_FILE "minara-bootstrap.scm"
+
 
 /*-----------------------------------------------------------------------------
   Globals
@@ -95,12 +91,12 @@ real_main ()
   menu_startup ();
   events_startup ();
   //Bootstrap the Guile code (libraries, tools, etc.)
-    // Here so all the C extensions are loaded first and GLUT is initialised
-    scm_primitive_load_path (scm_makfrom0str (bootstrap_file));
+  // Here so all the C extensions are loaded first and GLUT is initialised
+  scm_c_primitive_load (MINARA_LISP_DIR "/" BOOTSTRAP_FILE);
   //Main event loop
-    glutMainLoop ();
+  glutMainLoop ();
   //We quit here
-    exit (0);
+  exit (0);
 }
 
 /**
@@ -113,7 +109,7 @@ main (int argc, char **argv)
   //Init GLUT
   glutInit (&argc, argv);
   //never returns
-    scm_boot_guile (argc, argv, real_main, NULL);
+  scm_boot_guile (argc, argv, real_main, NULL);
   //Keep the compiler happy...
-    return 0;
+  return 0;
 }

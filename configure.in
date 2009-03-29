@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 
-AC_INIT(minara, 0.0.1)
+AC_INIT([minara], [0.0.1], [rob@robmyers.org])
 AC_CONFIG_SRCDIR(src/minara_main.c)
 AM_INIT_AUTOMAKE
 
@@ -31,5 +31,5 @@ dnl Checks for header files.
 AC_HEADER_STDC
 
 dnl Go!
-AC_CONFIG_FILES([Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile lisp/Makefile])
 AC_OUTPUT

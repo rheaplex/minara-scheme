@@ -23,7 +23,6 @@
 
 ;; Buffers
 (use-modules (ice-9 gap-buffer))
-(use-modules (ttn find-file))
 
 ;; Records
 (use-modules (srfi srfi-9))
@@ -31,6 +30,8 @@
 ;; Line reading
 (use-modules (ice-9 rdelim))
 
+;; Slurping
+(use-modules (scripts slurp))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Timestamps
@@ -49,10 +50,10 @@
 (define (update-timestamp! buf)
   (set-object-property! buf 'timestamp (current-time)))
 
-(define (timestamp-from-file buf file-path)
+(define (timestamp-from-file buf file-path) 
   (set-object-property! buf 
-		       'timestamp
-		       (stat:mtime (stat file-path))))
+			'timestamp
+			(stat:mtime (stat file-path))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -87,14 +88,14 @@
     (initialise-timestamp! (buffer-cache buf))
     buf))
 
-;; Public constrictor to load the buffer from file
+;; Public constructor to load the buffer from file
 
 (define (make-buffer-from-file file-path)
-  (let ((buf (really-make-buffer (find-file file-path)
-				 (cache-make)			     
-				 '())))
-    (update-timestamp! (buffer-text buf))
-    (initialise-timestamp! (buffer-cache buf))
+  (let ((buf (make-buffer)))
+    (set-object-property! (buffer-text buf) 'filename file-path)
+    (buffer-insert-no-undo buf
+			   0
+			   (slurp (buffer-file buf)))
     buf))
 
 ;; The file path for a buffer than has been loaded from file
@@ -108,9 +109,16 @@
     (buffer-delete-undoable buf #f #f)
   (buffer-insert-undoable buf
  			  0
-			  (gb->string (find-file (buffer-file buf))))
+			  (slurp (buffer-file buf)))
   (buffer-undo-mark buf)
   (buffer-invalidate buf))
+
+;; Save the buffer
+
+(define (write-buffer buf filepath)
+  (set-object-property! buffer 'filename filepath)
+  (with-output-to-file filepath
+    (lambda () (display (gb->string buf)))))
 
 ;; Convert the buffer to a string
 
@@ -193,7 +201,7 @@
 
 ;; So code located in the current buffer can get buffer variables, for example.
 
-(define %current-buffer nil)
+(define %current-buffer #f)
 
 (define (current-buffer)
     %current-buffer)

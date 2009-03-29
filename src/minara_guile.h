@@ -38,6 +38,14 @@
     }							\
   } while (0)
 
-    void guile_startup ();
+void guile_startup ();
+
+#ifdef __APPLE__
+#define MINARA_LISP_DIR "../Resources/lisp"
+#define MINARA_DOTMINARA_DIR "../Resources/dotminara"
+#else
+#define MINARA_LISP_DIR DATADIR "/minara/" VERSION "/lisp"
+#define MINARA_DOTMINARA_DIR DATADIR "/minara/" VERSION "/dotminara"
+#endif
 
 #endif

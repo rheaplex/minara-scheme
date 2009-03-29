@@ -29,7 +29,6 @@
 
 ;; Records
 (use-modules (srfi srfi-9))
-(use-modules (ttn write-buffer))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -348,7 +347,8 @@
 ;; Edit the window's main buffer in an external editor
 
 (define %$default-external-edit-command 
-    "/usr/bin/open -a /Applications/TextEdit.app")
+  ;; Set this by platform, but emacs is good....
+    "emacs")
 
 (define $external-edit-command %$default-external-edit-command)
 
