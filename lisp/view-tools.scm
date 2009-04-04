@@ -474,4 +474,3 @@
 	    (update-window-previous-height window)))))
 
 (add-resize-hook window-view-resize)
-

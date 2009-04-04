@@ -20,7 +20,7 @@
 
 (keymap-add-fun %global-keymap 
 		load-and-initialise
-		"d" "I")
+		"d" "l")
 
 ;; Reload tools
 

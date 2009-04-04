@@ -1,0 +1,164 @@
+
+
+\section{Introduction}
+
+Minara is a programmable vector graphics program editor inspired by GNU Emacs. The program, its tools, and the images that it edits are all written in the same programming language. Drawing in Minara is creating code, modifying that code is creating the images that Minara draws. 
+
+Minara stands for ``Minara is not a recursive acronym''. This is because recursive acronyms are as silly as male programmers giving programs feminine-sounding names.
+
+This document describes the design of Minara. In particular it tries to detail and justify the technologies and techniques used to implement a ``programmable vector graphics program editor''.
+
+\section{Design Decisions}
+
+\subsection{Guile Scheme}
+
+Minara is written in Scheme, apart from a few core routines written in C. Scheme is a member of the Lisp family of programmng languages. This means that its syntax is uniquely easy to manipulate programatically. Minara could be written in Javascript, a language more familiar to designers, but Javascript would not be as easy for Minara to manipulate.
+
+Guile Scheme is a mature and efficient implementation of Scheme. It is the preferred extension language of the GNU project.
+
+Minara can be implemented in any language that can support manipulation of code by code in the same language, although the graphics files may not be compatible between implementations as they can contain almost arbitrary code in each language. An experimental Common Lisp port has been completed.
+
+\subsection{Only Closed Paths}
+
+Minara only draws closed paths. This is because open line rendering is a major cause of problems for RIPs and for pre-press graphics. Minara renders lines using library routines that create closed paths to represent the line's stroke. This makes rendering lines in Minara predictable and portable between rendering devices.
+
+\subsection{Keymaps}
+
+Minara uses Emacs-style key bindings to select tools and to trigger actions. This may seem counter-intuitive for a graphics application, but design professionals use the key shortcuts in illustration programs in preference to menu selection because this is more efficient. Minara embraces this best practice.
+
+\subsection{No Anti-Aliasing}
+
+Minara does not use anti-aliasing. Computer display resolutions will increase greatly in coming decades, and this will solve the problem of smoothness that anti-aliasing is intended to address without introducing visual artefacts or reducing accuracy of drawing.
+
+\subsection{Interpreted Code}
+
+Minara draws, picks, and exports by interpreting representations of images in code. This is insanely inefficient, but also insanely powerful. Computer processing speeds will continue to improve, and Minara'a performance will continue to improve with them. Minara does cache the results of interpreting code to improve drawing speed.
+
+\subsection{PostScript Rendering Model}
+
+Minara uses a subset of the PostScript rendering model. PostScript's rendering model is widely used by rendering APIs and hardware, it is well documented and understood, and is a de facto standard for 2D graphics.
+
+\subsection{OpenGL}
+
+Minara currently uses a simple OpenGL renderer for efficiency. A Cairo version of the OpenGL port exists. Any renderer that can be made to support the subset of the PostScript rendering model that Minara uses.
+
+\subsection{GLUT}
+
+Minara handles most graphics and event handling internally, so it only requires a simple windowing API. Given Minara's current use of OpenGL, GLUT is an acceptible windowing API. A Gtk version of Minara could easily be made given Gtk's support for OpenGL.
+
+\subsection{UNIX Design Philosophy}
+
+\subsection{Interpreted Code}
+
+\subsection{Hackability}
+
+
+
+
+\section{Concerns}
+
+\subsection{Security}
+
+\subsection{Efficiency}
+
+\subsection{Picking Arbitrary Code}
+
+\subsection{Interpreted Code}
+
+\subsection{Distributing Drawings That Rely On Extensions}
+
+
+
+
+\section{Program Structure}
+
+Minara consists of one or more windows. Each window has a set of event handlers, a set of variables, and a list of buffers.
+
+A window's event handlers are usually set by the current tool. The key event handlers are usually set to dispatch key events through a keymap. The keymap may have been installed by the current tool or may be the global keymap.
+
+\subsection{Windows}
+
+A Minara window is a window system window. Currently GLUT us used for windowing, but any windowing API could be used.
+
+A window has a list (or stack) of buffers that contain the text of code to be evaluated to draw the graphics of the window, a set of named variables, a set of event handlers, and a title. These can al be modified programatically.
+
+\subsection{Event Handlers}
+
+Each window has a list of event handlers for events such as mouse movement and key presses. These can be added to or replaced by tools.
+
+\subsection{Variables}
+
+As well as local and global Scheme variables, windows and buffers can have named variables associated with them. This can be useful for tools.
+
+\subsection{Buffers}
+
+A buffer consists of text stored in a gap buffer, a set of named variables, a cache of the compiled code of the text of the buffer, and/or a cache of the drawn graphics that result from executing the text of the buffer or its compiled form.
+
+A buffer that has been loaded from a file will also have the file name associated with it.
+
+Only one buffer in a window can be the main buffer, this is the buffer that has been or can be saved to file.
+
+The stack of buffers can be and is modified by tools. In partiular the main buffer can be split, modified and rejoined by tools. Or several buffers over the main buffer can be created by a tool, with one or more being combined with the main buffer when the tool finishes.
+
+\subsection{Keymaps}
+
+A keymap is a hashtable of key codes mapped to further key maps or to functions. Pressing ``t s'', the letter t followed by the letter s, will dispatch through the global keymap to the tool (``t'') keymap, and then dispatch to a function that installs the square tool.
+
+Keymaps are created, populated and installed programatically.
+
+\subsection{Menus}
+
+\subsection{Tools}
+
+A tool is installed by the user selecting it using a key binding. The tool will install its event handlers, set up any variables it uses, set any window variables it uses, create any buffers it uses, and set any buffer variables on those.
+
+\subsection{Undo}
+
+Minara has an undo system that tools can use when modifying buffers. Series of modifications to buffers can be bundled up for robust undo and redo handling.
+
+\section{Interpreting Drawings}
+
+A Minara drawing, as a text file or as the contents of a window's main buffer, can be interpreted in a lexical environment in which the drawing functions have been bound to functions that perform various tasks. These tasks commonly include rendering, picking, or exporting the drawing.
+
+\subsection{Rendering}
+
+\subsection{Picking}
+
+\subsection{Exporting}
+
+A Minara drawing may be interpreted in an environment where the drawing functions are bound to functions that write a representation of the drawing in another vector graphics description format such as PostScript.
+
+
+\section{Coding Style}
+
+Use many short functions over fewer longer functions.
+
+Don't be anal about avoiding global state but remember that this is a multi-window, multi-buffer system.
+
+\subsection{C}
+
+Files are named minara_SOMETHING.c/h, where SOMETHING is the purpose of the file. 
+
+Braces go on a new line at the same depth as the previous line.
+
+There is a space between the function name and the brackets, and after each comma in a list.
+
+Return value declarations and function names go on separate lines.
+
+Be paranoid about wrapping expressions in brackets.
+
+Variable and function names are lowercase with words separated by underscores.
+
+Hungarian Notation and Apple-style variable naming are forbidden on pain of death.
+
+Do not use the ternary operator. Privilege readibility over terseness.
+
+\subsection{Scheme}
+
+File names are not prefixed with ``minara'' and can be all lowercase.
+
+Variable and function names are lowercase with words separated by underscores.
+
+Constants are prefixed with a dollar sign, private symbols that are not to be used outside of the file are prefixed with a pound sign.
+
+Prefer descriptive names. Explain abbreviations in comments.
