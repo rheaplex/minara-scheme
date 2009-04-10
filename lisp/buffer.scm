@@ -21,17 +21,41 @@
 ;; Modules
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Buffers
-(use-modules (ice-9 gap-buffer))
+(define-module (minara buffer)
+  :use-module (minara-internal cache)
+  :use-module (ice-9 gap-buffer)
+  :use-module (srfi srfi-9)
+  :use-module (ice-9 rdelim)
+  :use-module (scripts slurp)
+  :export (timestamp
+	   initialise-timestamp!
+	   update-timestamp!
+	   timestamp-from-file
+	   buffer
+	   buffer-text
+	   set-buffer-text!
+	   buffer-cache
+	   ;;buffer-variables
+	   ;;set-buffer-variables!
+	   make-buffer
+	   make-buffer-from-file
+	   buffer-file
+	   buffer-insert-no-undo
+	   write-buffer
+	   buffer-start
+	   buffer-end
+	   buffer-to-string
+	   buffer-range-to-string
+	   set-buffer-variable!
+	   buffer-variable
+	   ensure-buffer-variable
+	   kill-buffer-variable!
+	   current-buffer
+	   evaluate-buffer
+	   draw-buffer
+	   buffer-invalidate
+	   buffer-erase))
 
-;; Records
-(use-modules (srfi srfi-9))
-
-;; Line reading
-(use-modules (ice-9 rdelim))
-
-;; Slurping
-(use-modules (scripts slurp))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Timestamps
@@ -106,7 +130,7 @@
 ;; Reload the buffer from file.
 
 (define (buffer-file-reload buf)
-    (buffer-delete-undoable buf #f #f)
+v    (buffer-delete-undoable buf #f #f)
   (buffer-insert-undoable buf
  			  0
 			  (slurp (buffer-file buf)))
@@ -206,6 +230,11 @@
 (define (current-buffer)
     %current-buffer)
 
+(define (evaluate-buffer cb module)
+  (set! %current-buffer cb)
+  (eval-string (buffer-to-string cb) module)
+  (set! %current-buffer #f))
+
 ;; Redraw the buffer (just run the cache if no timestamp variation)
 
 (define (draw-buffer cb)
@@ -217,9 +246,7 @@
       ;; Otherwise, generate the cache and update the cache timestamp
       (let ((c (buffer-cache cb)))
 	(cache-record-begin c)
-	(set! %current-buffer cb)
-	(eval-string (buffer-to-string cb))
-	(set! %current-buffer #f)
+	(evaluate-buffer cb (resolve-module '(minara rendering-protocol)))
 	(cache-record-end c)
 	(update-timestamp! (buffer-cache cb)))))
 

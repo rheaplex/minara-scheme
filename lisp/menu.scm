@@ -25,6 +25,22 @@
 ;; Menu handlers receive the window id they're called on as their parameter.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(define-module (minara menu)
+  :use-module (minara events)
+  :use-module (minara-internal events)
+  :use-module (minara-internal menu)
+  :export (menu-id-make
+	   menu-callback-add
+	   menu-callback-remove
+	   menu-callback
+	   menu-make-toplevel title
+	   menu-make
+	   menu-name
+	   menu-id
+	   menu-install-toplevel 
+	   menu-make-entry
+	   menu-delete-entry))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; The global menu / menu item id count 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -121,7 +137,7 @@
 	(handler window-id))))
   
 (define (install-default-menu-handler)
-  (set! %menu-select-hook default-menu-handler)
+  (add-menu-select-hook default-menu-handler)
   (bind-event-hooks))
 
 ;; Just install the default menu handler to start with

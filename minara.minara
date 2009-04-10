@@ -1,6 +1,8 @@
 ;; The minara logotype as a minara file
 ;; Copyright (c) 2004 Rob Myers
 
+(use-modules (minara buffer))
+
 (set-colour 0.8 0.8 0.8 0.0)
 
 (path-begin)

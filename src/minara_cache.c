@@ -144,7 +144,7 @@ minara_cache_record_end (SCM cache)
 */
 
 void
-cache_startup ()
+define_cache_module ()
 {
   //Register our scheme functions
   scm_c_define_gsubr ("cache-make", 0, 0, 0, minara_cache_make);
@@ -153,4 +153,14 @@ cache_startup ()
   scm_c_define_gsubr ("cache-record-begin", 1, 0, 0,
 		      minara_cache_record_begin);
   scm_c_define_gsubr ("cache-record-end", 1, 0, 0, minara_cache_record_end);
+
+  scm_c_export ("cache-make", "cache-dispose", "cache-draw",
+		"cache-record-begin", "cache-record-end", NULL);
+}
+
+void
+cache_startup ()
+{
+  //Define our module
+  scm_c_define_module ("minara-internal cache", define_cache_module, NULL);
 }

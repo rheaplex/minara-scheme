@@ -28,6 +28,22 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
+(define-module (minara keymap)
+  :export (keymap-make
+	   keymap-current-root
+	   keymap?
+	   keymap-current
+	   reset-current-keymap
+	   keymap-current-root-set
+	   keymap-current-root-reset
+	   keymap-current-set
+	   keymap-add-fun-global
+	   keymap-add-fun
+	   keymap-add-fun-list
+	   dispatch-keymap
+	   dispatch-key
+	   key-dispatch-hook-method))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Window-system-specific constants
 ;; Here GLUT constants
@@ -99,6 +115,10 @@
 ;; Set the current keymap
 (define (keymap-current-set keymap)
   (set! keymap-current keymap))
+
+;; Put the key unto the global keymap
+(define (keymap-add-fun-global fun . keys)
+  (keymap-add-fun-list %global-keymap fun keys))
 
 ;; Add a possibly nested key fun to the keymap
 ;; A key is a basic key (aA1) prefixed with CA for control and/or alt
@@ -204,15 +224,8 @@
     (dispatch-key key)))
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Setting up the keymaps in the events system
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 ;; Install the cancel key into the global keymap
 (keymap-add-fun %global-keymap reset-current-keymap "Cg")
-
-;; Hook into the event system
-(add-key-release-hook key-dispatch-hook-method)
 
 
 ;; TEST

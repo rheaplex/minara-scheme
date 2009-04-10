@@ -20,9 +20,11 @@
 ;; The Rendering (and Picking!) Protocol
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; Not used nay more. remove.
+
 ;; Rendering
-(use-modules ((rendering)
-              :renamer (symbol-prefix-proc 'rendering:)))
+;;(use-modules ((rendering)
+;;              :renamer (symbol-prefix-proc 'rendering:)))
 
 ;; The top-level bindings for the protocol functions
 
@@ -31,39 +33,39 @@
 ;; so it makes sense to allow them to be called from code.
 ;; Graphics toolkits without them can simulate them.
 
-(define set-colour #f)
-(define path-begin #f)
-(define path-end #f)
-(define move-to #f)
-(define line-to #f)
-(define curve-to #f)
-(define push-matrix #f)
-(define pop-matrix #f)
-(define concatenate-matrix #f)
-(define set-matrix #f)
-(define identity-matrix #f)
-(define translate #f)
-(define rotate #f)
-(define scale #f)
+;;;;(define set-colour #f)
+;;(define path-begin #f)
+;;(define path-end #f)
+;;(define move-to #f)
+;;(define line-to #f)
+;;(define curve-to #f)
+;;(define push-matrix #f)
+;;(define pop-matrix #f)
+;;(define concatenate-matrix #f)
+;;(define set-matrix #f)
+;;(define identity-matrix #f)
+;;(define translate #f)
+;;(define rotate #f)
+;;(define scale #f)
 
 ;; Install the window rendering protocol
 ;; Now with added current transformation matrix
 
-(define (install-window-rendering-protocol)
-  (set! set-colour rendering:set-colour)
-  (set! path-begin rendering:path-begin)
-  (set! path-end rendering:path-end)
-  (set! move-to rendering:move-to )
-  (set! line-to rendering:line-to)
-  (set! curve-to rendering:curve-to)
-  (set! push-matrix rendering:push-matrix)
-  (set! pop-matrix rendering:pop-matrix)
-  (set! concatenate-matrix rendering:concatenate-matrix)
-  (set! set-matrix rendering:set-matrix)
-  (set! identity-matrix rendering:identity-matrix)
-  (set! translate rendering:translate)
-  (set! scale rendering:scale)
-  (set! rotate rendering:rotate))
+;;(define (install-window-rendering-protocol)
+;;  (set! set-colour rendering:set-colour)
+;;  (set! path-begin rendering:path-begin)
+;;  (set! path-end rendering:path-end)
+;;  (set! move-to rendering:move-to )
+;;  (set! line-to rendering:line-to)
+;;  (set! curve-to rendering:curve-to)
+;;  (set! push-matrix rendering:push-matrix)
+;;  (set! pop-matrix rendering:pop-matrix)
+;;  (set! concatenate-matrix rendering:concatenate-matrix)
+;;  (set! set-matrix rendering:set-matrix)
+;;  (set! identity-matrix rendering:identity-matrix)
+;;  (set! translate rendering:translate)
+;;  (set! scale rendering:scale)
+;;  (set! rotate rendering:rotate))
 
 
 ;; Macro to save/restore current protocol

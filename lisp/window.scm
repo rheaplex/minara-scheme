@@ -27,8 +27,42 @@
 ;; Modules
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Records
-(use-modules (srfi srfi-9))
+(define-module (minara window)
+  :use-module (minara-internal window)
+  :use-module (srfi srfi-9)
+  :use-module (minara buffer)
+  :use-module (minara keymap)
+  :export (window
+	   window-id
+	   window-buffers
+	   make-window-from-file
+	   set-window-buffers!
+	   window-width
+	   window-height
+	   window-status
+	   set-window-status
+	   window-undo-stack
+	   set-window-undo-stack!
+	   window-name-base
+	   window-current
+	   window-buffer
+	   window-buffer-main
+	   make-window-buffer
+	   ensure-window-buffer
+	   remove-window-buffer
+	   window-buffer-path
+	   window-redraw
+	   window-redraw-event
+	   $external-edit-command
+	   external-edit-current-window
+	   window-status-temporary
+	   add-window-pre-main-buffer-hook
+	   add-window-post-main-buffer-hook
+	   window-for-id
+	   set-window-variable!
+	   window-variable
+	   ensure-window-variable
+	   kill-window-variable!))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -63,6 +97,7 @@
 		      buffers
 		      width
 		      height
+		      variables
 		      status
 		      undo-stack)
   window?
@@ -77,6 +112,9 @@
   ;; The window's height
   (height window-height
 	  %set-window-height!)
+  ;; The window's variables
+  (window-variables window-variables
+		    set-window-variables!)
   ;; The window's status string
   (status window-status
 	  set-window-status!)
@@ -89,6 +127,22 @@
 (define (set-window-title! window title)
   (window-set-title (window-id window) title))
 
+;; Call before the main buffer is made
+
+(define %window-pre-main-hooks '())
+
+(define (add-window-pre-main-buffer-hook hook)
+  (set! %window-pre-main-hooks
+	(cons hook %window-pre-main-hooks)))
+
+;; Call after the main buffer is made
+
+(define %window-post-main-hooks '())
+
+(define (add-window-post-main-buffer-hook hook)
+  (set! %window-post-main-hooks
+	(cons hook %window-post-main-hooks)))
+
 ;; Utility constructor
 
 (define (%make-window)
@@ -99,16 +153,14 @@
 	  '()
 	  -1
 	  -1
+	  '()
 	  ""
 	  '())))
     (hash-create-handle! *windows* (window-id window) window)
     ;; Redraw timestamp
     (initialise-timestamp! window)
-
-    ;; Buffers *under* the main buffer, created bottom to top
-    ;; Ask before adding anything here
-    (window-view-buffer-make window)
-    
+    (set-window-variable! window '_initial-width $window-width)
+    (set-window-variable! window '_initial-height $window-height)
     ;; Return the window
     window))
 
@@ -116,12 +168,23 @@
 
 (define %untitled-window-name "Untitled")
 
+(define (make-window-main-buffer win buf)
+  ;; Buffers *under* the main buffer, created bottom to top
+  ;; Ask before adding anything here
+  (for-each (lambda (fun)
+	      (fun win))
+	    %window-pre-main-hooks)
+  ;; Main buffer
+  (add-window-buffer win "_main" buf)
+  ;; Buffers *over* the main buffer, created bottom to top
+  ;; Ask before adding anything here
+  (for-each (lambda (fun)
+	      (fun win))
+	    %window-post-main-hooks))
+
 (define (make-window)
   (let* ((win (%make-window)))
-    ;; Main buffer
-    (make-window-buffer win "_main")
-    (window-undo-stack-push win
-			    (window-buffer-main win))
+    (make-window-main-buffer win (make-buffer))
     ;; Set title
     (set-window-title! win %untitled-window-name)
     win))
@@ -129,9 +192,7 @@
 (define (make-window-from-file file-path)
   (let* ((win (%make-window)))
     ;; Main buffer from file
-    (add-window-buffer win "_main" (make-buffer-from-file file-path))
-    (window-undo-stack-push win
-			    (window-buffer-main win))
+    (make-window-main-buffer win (make-buffer-from-file file-path))
     ;; Set buffer text timestamp to file timestamp so it's unchanged for saving
     (timestamp-from-file (buffer-text (window-buffer-main win)) 
 			 (buffer-file (window-buffer-main win)))
@@ -156,6 +217,45 @@
 
 (define (window-current)
     (window-for-id (window-current-id)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Window Variables
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Set window variable
+
+(define (set-window-variable! window name value)
+  (let ((variables (window-variables window)))
+    (set-window-variables! window 
+			   (assoc-set! variables 
+				       name 
+				       value))))
+
+;; Get window variable
+
+(define (window-variable window name)
+  (assoc-ref (window-variables window)
+	     name))
+
+;; Get window variable, creating it if it doesn't exist
+
+(define (ensure-window-variable window name)
+  (assoc-ref (window-variables window)
+	     name))
+    
+
+;; Remove window variable
+
+(define (kill-window-variable! window name)
+  (set-window-variables! window 
+			 (assoc-remove! (window-variables window) 
+					name)))
+
+;; Remove all window variables
+
+(define (kill-all-window-variables window)
+  (set-window-variables! '()))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -225,7 +325,7 @@
 (define (reload-current-window)
     (reload-window-buffer (window-current)))
  
-(keymap-add-fun %global-keymap reload-current-window "x" "r")
+(keymap-add-fun-global reload-current-window "x" "r")
 
      
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -242,13 +342,12 @@
 (define (window-draw cb)
   ;; Check timestamps, short circuiting on the first earlier than the window
   ;; If the window cache is more recent than the buffer timestamps
-    (install-window-rendering-protocol)
-    (push-matrix)
+  ((@ (minara rendering-protocol) push-matrix)) ;; Should be start rendering
     (for-each
      (lambda (buf-cons)
-       (draw-buffer (cdr buf-cons)))
+       (draw-buffer (cdr buf-cons))) ;; should take pure rendering module
      (window-buffers cb))
-    (pop-matrix)
+    ((@ (minara rendering-protocol) pop-matrix)) ;; Should be stop rendering
     (update-timestamp! cb))
 
 ;; Draw or redraw a window's buffers/caches
@@ -261,12 +360,11 @@
 	   (window-draw window)
 	   ;; Should be set status, like set title. But needs faking in GLUT...
 	   (window-draw-status window-id
-			       (string-append %current-tool-name 
-					      " "
-					      (window-status window)))
+			       ;;FIXME separate status and minibuffer?
+			       ;;(string-append %current-tool-name 
+					;;      " "
+					      (window-status window));;)
 	   (window-draw-end window-id)))))
-
-(add-draw-hook window-redraw-event)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -312,7 +410,7 @@
 
 ;; Register keys for saving a window
 
-(keymap-add-fun %global-keymap save-current-window "x" "s")
+(keymap-add-fun-global save-current-window "x" "s")
 
 ;; Close a window safely, prompting user and saving if changed
 
@@ -337,7 +435,7 @@
 
 ;; Register keys for closing a window
 
-;(keymap-add-fun %global-keymap close-current-window "x" "c")
+;(keymap-add-fun-global close-current-window "x" "c")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -370,7 +468,7 @@
 
 ;; Register keys for editing a window
 
-(keymap-add-fun %global-keymap external-edit-current-window "x" "e")
+(keymap-add-fun-global external-edit-current-window "x" "e")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

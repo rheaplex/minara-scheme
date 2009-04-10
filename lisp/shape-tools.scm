@@ -16,9 +16,11 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-
 ;; Trivial shape tools
 ;; Something to inspire more advanced tools
+
+(use-modules (minara tool) (minara events) (minara keymap)
+	     (minara geometry) (minara buffer))
 
 ;; TODO - Keymap for polygon & star to increase/decrease number of sides
 ;;        and increase/decrease inner radius

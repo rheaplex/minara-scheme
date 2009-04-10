@@ -16,6 +16,8 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+(use-modules (minara tool) (minara events) (minara buffer) (minara keymap)
+	     (minara window) (minara undo) (minara view))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; This is a simple scribble tool for testing during initial development.

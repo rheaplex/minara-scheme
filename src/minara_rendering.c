@@ -597,6 +597,18 @@ tesselator_combine_callback (GLdouble coords[3], GLdouble * vertex_data[4],
 }
 
 
+SCM
+render_initialise_protocol ()
+{
+  return SCM_EOL;
+}
+
+SCM
+render_finalise_protocol ()
+{
+  return SCM_EOL;
+}
+
 //Program lifecycle
 
 /**
@@ -607,6 +619,10 @@ void
 define_rendering_module ()
 {
   //Register our functions
+  scm_c_define_gsubr ("initialise-protocol", 0, 0, 0,
+		      render_initialise_protocol);
+  scm_c_define_gsubr ("initialise-protocol", 0, 0, 0,
+		      render_finalise_protocol);
   scm_c_define_gsubr ("path-begin", 0, 0, 0,
 		      render_path_begin);
   scm_c_define_gsubr ("path-end", 0, 0, 0,
@@ -630,12 +646,13 @@ define_rendering_module ()
   scm_c_define_gsubr ("scale", 2, 0, 0, render_scale);
   scm_c_define_gsubr ("rotate", 1, 0, 0, render_rotate);
   //Export them
-    scm_c_export ("path-begin", "path-end", "move-to",
-		  "line-to", "curve-to", "set-colour",
-		  "begin-mask", "end-mask", "begin-masking",
-		  "end-masking", "push-matrix", "pop-matrix",
-		  "concatenate-matrix", "set-matrix", "identity-matrix",
-		  "translate", "scale", "rotate", NULL);
+  scm_c_export ("initialise-protocol", "finalise-protocol"
+		"path-begin", "path-end", "move-to",
+		"line-to", "curve-to", "set-colour",
+		"begin-mask", "end-mask", "begin-masking",
+		"end-masking", "push-matrix", "pop-matrix",
+		"concatenate-matrix", "set-matrix", "identity-matrix",
+		"translate", "scale", "rotate", NULL);
 }
 
 void
@@ -650,6 +667,7 @@ rendering_startup ()
 		   tesselator_error_callback);
   gluTessCallback (glu_tesselator, GLU_TESS_COMBINE, 
 		   tesselator_combine_callback);
-  //Define our module
-  scm_c_define_module ("rendering", define_rendering_module, NULL);
+  // Define our module
+  scm_c_define_module ("minara rendering-protocol", define_rendering_module, 
+		       NULL);
 }

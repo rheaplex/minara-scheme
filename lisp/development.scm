@@ -16,45 +16,44 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+(define-module (minara development)
+  :use-module (minara tool)
+  :use-module (minara keymap)
+  :export ())
+
+
+
 ;; Reload libraries, tools and .minara file
 
-(keymap-add-fun %global-keymap 
-		load-and-initialise
-		"d" "l")
+;;(keymap-add-fun-global load-and-initialise "d" "l")
 
 ;; Reload tools
 
-(define (reload-tool-files)
-    (format #t "Reloading tool files~%")
-  (remove-current-tool)
-  (load-tools)
-  (bind-event-hooks)
-  (format #t "Reloaded tool files~%"))
+;;(define (reload-tool-files)
+;;    (format #t "Reloading tool files~%")
+;;  (remove-current-tool)
+;;  (load-tools)
+;;  (bind-event-hooks)
+;;  (format #t "Reloaded tool files~%"))
 
-(keymap-add-fun %global-keymap 
-		reload-tool-files
-		"d" "t")
+;;(keymap-add-fun-global reload-tool-files "d" "t")
 
 ;; Reload .minara file
 
-(define (reload-dot-minara-file)
-    (format #t "Reloading .minara file~%")
-  (remove-current-tool)
-  (load-user-config)
-  ;;(bind-event-hooks)
-  (format #t "Reloaded .minara file~%"))
+;;(define (reload-dot-minara-file)
+;;    (format #t "Reloading .minara file~%")
+;;  (remove-current-tool)
+;;  (load-user-config)
+;;  ;;(bind-event-hooks)
+;;  (format #t "Reloaded .minara file~%"))
 
-(keymap-add-fun %global-keymap 
-		reload-dot-minara-file
-		"d" "d")
-
-
+;;(keymap-add-fun-global reload-dot-minara-file "d" "d")
 
 ;; Edit minara file
 
-(define (external-edit-current-window)
-  (external-edit-file "~/.minara"))
+;;(define (external-edit-current-window)
+;;  (external-edit-file "~/.minara"))
 
 ;; Register keys for editing a window
 
-(keymap-add-fun %global-keymap external-edit-current-window "x" "d")
+;;(keymap-add-fun-global external-edit-current-window "x" "d")

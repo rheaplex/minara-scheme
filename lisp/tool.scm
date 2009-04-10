@@ -22,6 +22,16 @@
 ;; hooked up to the main keymap and the tool menu.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(define-module (minara tool)
+  :use-module (minara window)
+  :use-module (minara menu)
+  :use-module (minara keymap)
+  :export (install-tool
+	   remove-current-tool
+	   set-current-tool-name!
+	   current-tool-name))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Install a tool
 ;; This gives access to the tool from the menu and keyboard,
@@ -37,8 +47,7 @@
 	   (set! %remove-current-tool-hook uninstall-fun)
 	   (install-fun))))
     (menu-callback-add menu-name install-fun-with-boilerplate)
-    (apply keymap-add-fun 
-	   %global-keymap 
+    (apply keymap-add-fun-global 
 	   install-fun-with-boilerplate 
 	   key-combo)))
 
@@ -50,6 +59,9 @@
 ;; Keep track of the current tool name
 
 (define %current-tool-name "")
+
+(define (current-tool-name)
+  %current-tool-name)
 
 (define (set-current-tool-name! name)
   (set! %current-tool-name name)
@@ -64,5 +76,4 @@
       (%remove-current-tool-hook))
   (set! %remove-current-tool-hook #f)
   (set! %current-tool-name "")
-  (install-window-rendering-protocol)
   (window-redraw (window-current)))

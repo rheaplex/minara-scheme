@@ -26,8 +26,25 @@
 ;; Modules
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(use-modules (srfi srfi-1)
-	     (srfi srfi-14))
+(define-module (minara transformations)
+  :use-module (srfi srfi-1)
+  :use-module (srfi srfi-14)
+  :export (matrix-identity-make
+	   matrix-scale-make
+	   matrix-translate-make
+	   matrix-rotate-make
+	   matrix-to-concatenate-string
+	   matrix-to-string
+	   matrix-concatenate
+	   matrix-concatanaten
+	   matrix-point-transform
+	   make-matrix-stack
+	   stack-set-matrix
+	   stack-concatenate-matrix
+	   stack-current-matrix
+	   stack-push-matrix
+	   stack-pop-matrix
+	   get-translate-values))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

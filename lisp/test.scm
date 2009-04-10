@@ -1,6 +1,6 @@
 ;; test.scm : minara scheme development file
 ;;
-;; Copyright (c) 2004 Rob Myers, rob@robmyers.org
+;; Copyright (c) 2004, 2009 Rob Myers, rob@robmyers.org
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -16,6 +16,20 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Modules
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define-module (minara test)
+  :export (*tests*
+	   *tests-run*
+	   *tests-failed*
+	   test-assert
+	   test
+	   test-fail
+	   test-section
+	   run-tests))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Globals

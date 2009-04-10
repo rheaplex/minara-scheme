@@ -1,7 +1,6 @@
-
-;; view-tools.scm : tools for viewing windows for minara
+;; view.scm : window views for minara
 ;;
-;; Copyright (c) 2004 Rob Myers, rob@robmyers.org
+;; Copyright (c) 2004, 2009 Rob Myers, rob@robmyers.org
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -19,11 +18,26 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; view-tools
-;; Tools for changing window views.
+;; view
+;; Window views.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(use-modules (ice-9 format))
+(define-module (minara view)
+  :use-module (ice-9 format)
+  :use-module (ice-9 gap-buffer)
+  :use-module (minara tool)
+  :use-module (minara events)
+  :use-module (minara keymap)
+  :use-module (minara window)
+  :use-module (minara buffer)
+  :export (window-view-width
+	   window-view-height
+	   window-view-left
+	   window-view-right
+	   window-view-bottom
+	   window-view-top
+	   window-view-x
+	   window-view-y))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; View buffer
@@ -70,6 +84,8 @@
     (set-buffer-variable! buffer 
 			  "angle" 
 			  0.0)))
+
+(add-window-pre-main-buffer-hook window-view-buffer-make)
 
 (define (view-buffer-update buffer)
  (let ((scale (buffer-scale buffer))
@@ -220,17 +236,11 @@
 (define (zoom-out)
     (zoom #f))
 
-(keymap-add-fun %global-keymap 
-		zoom-in
-		"i")
+(keymap-add-fun-global zoom-in "i")
 
-(keymap-add-fun %global-keymap 
-		zoom-out
-		"I")
+(keymap-add-fun-global zoom-out "I")
 
-(keymap-add-fun %global-keymap 
-		zoom-default
-		"Ai")
+(keymap-add-fun-global zoom-default "Ai")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Pan
@@ -367,9 +377,7 @@
 	      "Pan"
 	      "p")
 
-(keymap-add-fun %global-keymap 
-		pan-default
-		"Ap")
+(keymap-add-fun-global pan-default "Ap")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -380,9 +388,7 @@
     (zoom-default)
   (pan-default))
 
-(keymap-add-fun %global-keymap 
-		view-panic
-		"AP")
+(keymap-add-fun-global view-panic "AP")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Tilt
@@ -428,10 +434,13 @@
 	  (window-scale window))
        (window-view-left window)))
 
+;; This really, really needs refactoring so we aren't reliant on the 
+;;  starting height
+
 (define (window-view-y window y)
   (+ (/ (- y
 	   (* (- (window-height window)
-		 $window-height)
+		 (window-variable window '_initial-height))
 	      (window-scale window)))
 	(window-scale window))
      (window-view-bottom window)))
@@ -450,7 +459,7 @@
 (define (window-previous-height window)
    (or (buffer-variable (window-view-buffer window)
 			"old-height")
-       $window-height))
+       (window-variable window '_initial-height)))
 
 (define (update-window-previous-height window)
     (set-buffer-variable! (window-view-buffer window)

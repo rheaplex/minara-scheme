@@ -28,6 +28,30 @@
 ;; use them to add and remove event hooks within the system set up here.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(define-module (minara events)
+  :use-module (minara-internal events)
+  :use-module (minara keymap)
+  :use-module (minara window)
+  :export (call-with-backtrace
+	   add-quit-hook
+	   remove-quit-hook
+	   add-resize-hook
+	   remove-resize-hook
+	   add-draw-hook
+	   remove-draw-hook
+	   add-mouse-down-hook
+	   remove-mouse-down-hook
+	   add-mouse-up-hook
+	   remove-mouse-up-hook
+	   add-mouse-move-hook
+	   remove-mouse-move-hook
+	   add-key-press-hook
+	   remove-key-press-hook
+	   add-key-release-hook
+	   remove-key-release-hook
+	   add-menu-select-hook
+	   remove-menu-select-hook
+	   bind-event-hooks))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Calling event handlers with good error recovery and diagnostics
@@ -112,9 +136,9 @@
 ;; So we need to allow for this
 
 (define (%update-window-dimensions window width height)
-    (%set-window-width! window 
+    ((@@ (minara window) %set-window-width!) window 
 			width)
-  (%set-window-height! window 
+  ((@@ (minara window) %set-window-height!) window 
 		       height))
 
 (add-resize-hook %update-window-dimensions)
@@ -333,7 +357,32 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Events from built-in modules
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Keymaps
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Hook into the event system
+(add-key-release-hook key-dispatch-hook-method)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Windows
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(add-draw-hook window-redraw-event)
+
+;; Register keys for editing a window
+
+(keymap-add-fun-global external-edit-current-window "x" "e")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Make these event handlers accessible to the C code
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (bind-event-hooks)
+  (%bind-event-hooks))
 
 (bind-event-hooks)

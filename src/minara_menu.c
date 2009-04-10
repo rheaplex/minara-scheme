@@ -1,6 +1,6 @@
 /*
   minara - a programmable graphics program editor
-  Copyright (C) 2004  Rob Myers rob@robmyers.org
+  Copyright (C) 2004, 2009  Rob Myers rob@robmyers.org
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -143,13 +143,24 @@ minara_menu_remove_entry (SCM id)
 */
 
 void
-menu_startup ()
+define_menu_module ()
 {
   //Register our scheme functions
   scm_c_define_gsubr ("menu-make", 0, 0, 0, minara_menu_make);
   scm_c_define_gsubr ("menu-install", 2, 0, 0, minara_menu_install);
   scm_c_define_gsubr ("menu-add-entry", 3, 0, 0, minara_menu_add_entry);
   scm_c_define_gsubr ("menu-remove-entry", 1, 0, 0, minara_menu_remove_entry);
+
+  scm_c_export ("menu-make", "menu-install", "menu-add-entry", 
+		"menu-remove-entry", NULL);
+}
+
+
+void
+menu_startup ()
+{
+  //Define our module
+  scm_c_define_module ("minara-internal menu", define_menu_module, NULL);
 
   //Make a main menu to attach everything to.
     main_menu = glutCreateMenu (NULL);

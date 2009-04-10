@@ -18,6 +18,8 @@
 
 ;; Colour support
 
+(use-modules (minara tool) (minara events) (minara keymap))
+
 (define current-colour "(set-colour 0.0 0.0 0.0 0.0)")
 
 (define (write-current-colour buff)

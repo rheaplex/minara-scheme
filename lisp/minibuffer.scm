@@ -16,7 +16,25 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-(use-modules (ice-9 gap-buffer))
+(define-module (minara cut-and-paste)
+  :use-module (srfi srfi-9)
+  :use-module (ice-9 gap-buffer)
+  :use-module (minara picking)
+  :use-module (minara buffer)
+  :use-module (minara tool)
+  :use-module (minara keymap)
+  :export (minibuffer
+	   minibuffer?
+	   minibuffer-window
+	   minibuffer-return-callback
+	   minibuffer-cancel-callback
+	   minibuffer-make
+	   minibuffer-string
+	   window-minibuffer
+	   window-add-minibuffer
+	   window-remove-minibuffer))
+
+;; Add key event and idle handlers to minibuffer type
 
 (define-record-type minibuffer
     (%make-minibuffer gap-buffer
@@ -25,7 +43,7 @@
 		     cancel-callback)
   minibuffer?
   (gap-buffer
-   minibuffer-buffer)
+   minibuffer-buffer) ;; Deliberately not "text". Not public like buffer-text.
   (window
    minibuffer-window)
   (return-callback
@@ -153,11 +171,12 @@
 ;; How should window & global event handlers interact?
 ;; Tools must ensure their buffers on mouse-down rather than create on install?
 
-(define previous-key-handlers #f)
+(define %previous-key-handlers #f)
 
 (define (install-minibuffer-key-handler)
-    (set! %key-release-funs (list window-minibuffer-key-handler)))
+  (set! %previous-key-handlers %key-release-funs)
+  (set! %key-release-funs (list window-minibuffer-key-handler)))
 
 (define (uninstall-minibuffer-key-handler)
     (set! %key-release-funs previous-key-handlers)
-  (set! previous-key-handlers #f))
+  (set! %previous-key-handlers #f))

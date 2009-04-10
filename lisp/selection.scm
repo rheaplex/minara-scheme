@@ -32,14 +32,27 @@
 ;; So save transform in pick information for each hit:
 ;; (struct pick-hit index from to transform)
 
-
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Modules
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(use-modules (srfi srfi-13))
+(define-module (minara selection)
+  :use-module (ice-9 gap-buffer)
+  :use-module (srfi srfi-11)
+  :use-module (srfi srfi-13)
+  :use-module (minara events)
+  :use-module (minara transformations)
+  :use-module (minara picking)
+  :use-module (minara picking-hit)
+  :use-module (minara buffer)
+  :use-module (minara tool)
+  :use-module (minara keymap)
+  :use-module (minara undo)
+  :use-module (minara window)
+  :use-module (minara sexp)
+  :use-module (minara view)
+  :export (selections-var
+	   delete-selections))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Selection list handling
@@ -190,9 +203,7 @@
 (define (do-copy-key)
     (copy-selections-to-copy-buffer-var (window-buffer (window-current))))
 
-(keymap-add-fun %global-keymap 
-		do-copy-key
-		"Cc")
+(keymap-add-fun-global do-copy-key "Cc")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Delete
@@ -201,9 +212,7 @@
 (define (do-delete-key)
     (delete-selections (window-buffer (window-current))))
 
-(keymap-add-fun %global-keymap 
-		do-delete-key
-		"Cd")
+(keymap-add-fun-global do-delete-key "Cd")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Cut
@@ -212,9 +221,7 @@
 (define (do-cut-key)
     (cut-selections-to-copy-buffer-var (window-buffer (window-current))))
 
-(keymap-add-fun %global-keymap 
-		do-cut-key
-		"Cx")
+(keymap-add-fun-global do-cut-key "Cx")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Paste
@@ -223,9 +230,7 @@
 (define (do-paste-key)
     (clear-selections-var (window-buffer (window-current))))
 
-(keymap-add-fun %global-keymap 
-		do-paste-key
-		"Cv")
+(keymap-add-fun-global do-paste-key "Cv")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Clear Selection
@@ -234,9 +239,7 @@
 (define (do-clear-selection-key)
     (clear-copy-buffer-var (window-buffer (window-current))))
 
-(keymap-add-fun %global-keymap 
-		do-clear-selection-key
-		"s" "c")
+(keymap-add-fun-global do-clear-selection-key "s" "c")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Select
@@ -290,13 +293,13 @@
       (buffer-insert-no-undo 
        highlight-buffer
        #f
-       "(push-matrix)(translate (buffer-variable (current-buffer) \"x\") (buffer-variable (current-buffer) \"y\"))\n(set-colour 1.0 0.0 0.0 0.0)\n(set! set-colour (lambda (a b c d) #f))\n")
+       "(push-matrix)(translate (buffer-variable (current-buffer) \"x\") (buffer-variable (current-buffer) \"y\"))\n(set-colour 1.0 0.0 0.0 0.0)\n(define old-set-colour set-colour)\n(set! set-colour (lambda (a b c d) #f))\n")
       (copy-selections-to-buffer (window-buffer-main win) 
 				       highlight-buffer)
       (buffer-insert-no-undo 
        highlight-buffer
        #f
-       "\n(set! set-colour rendering:set-colour)(pop-matrix)\n") ;; Restore col!
+       "\n(set! set-colour old-set-colour)(pop-matrix)\n") ;; Restore col!
       (buffer-invalidate highlight-buffer)
       (window-redraw win)))
 
@@ -401,9 +404,7 @@
       (clear-highlight-selection win)
       (window-redraw win))) 
 
-(keymap-add-fun %global-keymap 
-		deselect-all
-		"s" " ")
+(keymap-add-fun-global deselect-all "s" " ")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Move tool

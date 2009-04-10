@@ -16,29 +16,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Bootstrapping
-;; Find and load all the Scheme code for minara in the correct order.
-;; We don't handle dependencies at the moment.
-;; Loading the libraries, then the tools seems to work well, though.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Modules
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; getopt-long...
-(use-modules (ice-9 getopt-long) (ice-9 debug))
-
-;; Load third party libraries
-
-(load "slurp.scm")
-(load "split-string-no-nulls.scm")
-
-(load "gap-buffer.scm")
-
+(use-modules (minara-internal config) (minara-internal events))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load Scheme files
@@ -54,22 +32,28 @@
 
 ;; Load the libraries in the correct order
 
+(define $third-party-files
+  '("slurp"
+    "split-string-no-nulls"
+    "gap-buffer"))
+
 (define $library-files
     '("test"
       "transformations"
       "rendering"
-      "test"
-      "transformations"
-      "rendering"
-      "events"
       "keymap"
       "buffer"
       "window"
+      "events"
       "command-line"
       "menu"
       "geometry"
-      "picking"
       "tool"
+      "view"
+      "sexp"
+      "picking-hit"
+      "picking-protocol"
+      "picking"
       "undo"
       "selection"
       "cut-and-paste"
@@ -77,8 +61,7 @@
       "development"))
 
 (define $tool-files
-    '("view-tools"
-      "colour-tools"
+    '("colour-tools"
       "pen-tool"
       "shape-tools"))
 
@@ -93,50 +76,31 @@
 		(load-file path file))
 	      files))
 
+(define (load-third-party-files)
+    (load-files $minara-lisp-dir
+		$third-party-files))
+
 (define (load-libraries)
     (load-files $minara-lisp-dir
 		$library-files))
-
-;; Load the tools
 
 (define (load-tools)
     (load-files $minara-lisp-dir
 		$tool-files))
 
-
 (define (load-minara-files)
-  ;; Load the libraries
+  (load-third-party-files)
   (load-libraries)
-  ;; Load the tools
   (load-tools)
-  ;; Load the user config file
   (load-user-config))
 
-(define (load-and-initialise)
-    (load-minara-files)
-  ;; Get the event hooks back into C in case anyone forgot to
-  (bind-event-hooks))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Our main startup routine
+;; Main startup code
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define (startup args)
-  (debug-enable 'debug) 
-  (debug-enable 'backtrace)
-  (debug-enable 'trace)
-  (read-enable 'positions)
-  (load-and-initialise)
-  ;; Handle the command line
-  (cli-handle-arguments))
+(read-enable 'positions)
+(load-minara-files)
+(bind-event-hooks)
 
-;; Call startup
-
-(startup (program-arguments))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Run the tests
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;;(run-tests)
+(use-modules (minara command-line))
+(cli-handle-arguments)

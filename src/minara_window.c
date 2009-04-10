@@ -1,6 +1,6 @@
 /*
   minara - a programmable graphics program editor
-  Copyright (C) 2004  Rob Myers rob@robmyers.org
+  Copyright (C) 2004, 2009  Rob Myers rob@robmyers.org
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -310,7 +310,7 @@ SCM minara_window_draw_end(SCM win)
 */
 
 void
-window_startup ()
+define_window_module ()
 {
   //Register our scheme functions
   scm_c_define_gsubr ("window-make", 2, 0, 0, minara_window_make);
@@ -322,4 +322,16 @@ window_startup ()
   scm_c_define_gsubr ("window-invalidate", 1, 0, 0, minara_window_invalidate);
   scm_c_define_gsubr ("window-draw-begin", 1, 0, 0, minara_window_draw_begin);
   scm_c_define_gsubr ("window-draw-end", 1, 0, 0, minara_window_draw_end);
+
+  scm_c_export ("window-make", "window-dispose", "window-current-id",
+		"window-set", "window-set-title", "window-draw-status",
+		"window-invalidate", "window-draw-begin", "window-draw-end", 
+		NULL);
+}
+
+void
+window_startup ()
+{
+  //Define our module
+  scm_c_define_module ("minara-internal window", define_window_module, NULL);
 }

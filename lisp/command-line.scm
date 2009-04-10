@@ -16,6 +16,13 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+(define-module (minara command-line)
+  :use-module (ice-9 rdelim)
+  :use-module (ice-9 getopt-long)
+  :use-module (minara window)
+  :use-module (minara-internal config)
+  :export (cli-handle-arguments))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Our help message in response to --help
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -55,6 +62,7 @@
   '((version (single-char #\v))
     (repl (single-char #\r))
     (help (single-char #\h))
+    (debug (single-char #\d))
     (file (single-char #\f) (value #t))))
 
 ;; Load the splash screen if required
@@ -73,10 +81,14 @@
     (if (option-ref options 'version #f)
 	(cli-version))
     (if (option-ref options 'repl #f)
-	((top-repl)))
+	(top-repl))
+    (if (option-ref options 'debug #f)
+	(begin
+	  (debug-enable 'debug) 
+	  (debug-enable 'backtrace)
+	  (debug-enable 'trace)))
     ;; Load the splash screen if no file, otherwise load file
     ;; Important, as GLUT crashes if started without a window!
     (if (equal? file-to-load #f)
 	(load-splash-screen)
        	(make-window-from-file file-to-load))))
-	 

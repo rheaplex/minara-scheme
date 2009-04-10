@@ -16,6 +16,21 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+(define-module (minara geometry)
+  :use-module (minara test)
+  :export (distance-between-points
+	   angle-around-point
+	   degrees-to-radians
+	   rotate-point-around-point
+	   lines-intersect-vertices
+	   point-line-side
+	   add-point
+	   divide-point
+	   point-x
+	   point-y
+	   bezier-eval
+	   split-bezier
+	   line-bezier-intersection-count-vertices))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Mathematical functions for geometric calculations.
@@ -142,10 +157,10 @@
   (list (/ h d) (/ v d)))
 
 (define (point-x p)
-  (first p))
+  (car p))
 
 (define (point-y p)
-  (second p))
+  (cadr p))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

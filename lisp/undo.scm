@@ -26,8 +26,19 @@
 ;; Modules
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Records
-(use-modules (srfi srfi-9))
+(define-module (minara undo)
+  :use-module (srfi srfi-9)
+  :use-module (ice-9 gap-buffer)
+  :use-module (minara buffer)
+  :use-module (minara keymap)
+  :use-module (minara window)
+  :export (buffer-undo-stack-mark
+	   buffer-undo-mark
+	   buffer-variable-set-undoable
+	   buffer-insert-undoable
+	   buffer-delete-undoable
+	   window-undo-stack-push
+	   window-undo-stack-pop))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -61,6 +72,13 @@
       (if current-undo-buffer
 	  (buffer-redo current-undo-buffer))))
 
+;; Make the undo stack for the window when the window is created
+
+(define (window-undo-stack-install win)  
+  (window-undo-stack-push win
+			  (window-buffer-main win)))
+
+(add-window-post-main-buffer-hook window-undo-stack-install)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Buffer-level undo handling
@@ -262,15 +280,11 @@
       (window-undo win)
       (window-redraw win)))
 
-(keymap-add-fun %global-keymap 
-		call-window-undo
-		"z")
+(keymap-add-fun-global call-window-undo "z")
 
 (define (call-window-redo)
     (let* ((win (window-current)))
       (window-redo win)
       (window-redraw win)))
 
-(keymap-add-fun %global-keymap 
-		call-window-redo
-		"Z")
+(keymap-add-fun-global call-window-redo "Z")

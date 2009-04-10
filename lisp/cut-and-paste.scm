@@ -27,7 +27,14 @@
 ;; Modules
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(use-modules (srfi srfi-13))
+(define-module (minara cut-and-paste)
+  :use-module (srfi srfi-13)
+  :use-module (minara picking)
+  :use-module (minara buffer)
+  :use-module (minara tool)
+  :use-module (minara keymap)
+  :export ())
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Copy
