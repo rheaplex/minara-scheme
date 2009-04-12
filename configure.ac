@@ -1,5 +1,3 @@
-dnl Process this file with autoconf to produce a configure script.
-
 AC_INIT([minara], [0.0.3], [rob@robmyers.org])
 AC_CONFIG_SRCDIR(src/minara_main.c)
 AM_INIT_AUTOMAKE
