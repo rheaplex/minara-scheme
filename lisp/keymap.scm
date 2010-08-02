@@ -1,6 +1,6 @@
 ;; keymap.scm : keymaps for minara
 ;;
-;; Copyright (c) 2004 Rob Myers, rob@robmyers.org
+;; Copyright (c) 2004, 2010 Rob Myers, rob@robmyers.org
 ;;
 ;; This file is part of minara.
 ;;
@@ -67,7 +67,7 @@
 (define GLUT_KEY_HOME			106)
 (define GLUT_KEY_END			107)
 (define GLUT_KEY_INSERT			108)
-
+ 
 ;; glutGetModifiers return mask.
 (define GLUT_ACTIVE_SHIFT               1)
 (define GLUT_ACTIVE_CTRL                2)
@@ -200,6 +200,19 @@
 		    "No match for key ~a in current or global keymap.~%" 
 		    key))))
 
+
+;; Control really isn't happy on Fedora 13!
+;; Limit it to a..z ONLY
+;; Work out what's going wrong here and fix, or avoid modifiers altogether
+(define (key-with-control-key key)
+  (if (> (string-length key) 0)
+      (let ((key-code (char->integer (string-ref key 0))))
+	;; If it's a letter, make it an ascii letter, otherwise ignore
+	(if (< key-code 27)
+	    (string #\C (integer->char (+ key-code 96)))
+	    #f))
+      #f))
+
 ;; Our method to interface to the event system
 ;; Note that whilst getting shift alt ans control is GLUT-dependent,
 ;; once we make the booleans it could be any windowing system
@@ -210,13 +223,14 @@
 			      GLUT_ACTIVE_CTRL)))
 	(alt (= 4 (logand modifiers 
 			  GLUT_ACTIVE_ALT))))
-    ;; Shift is just the upper-case character
-    ;(if shift
-	;(set! key (string-append "S" key)))
+    ;; Shift is just the upper-case character. Ensure it *is* upper-case.
     (if control
-	(set! key (string-append "C" key)))
-    (if alt
+	(set! key (key-with-control-key key)))
+    (if (and key alt)
 	(set! key (string-append "A" key)))
+    ;; Like this because of the control-key problems, see key-with-control-key
+    (if (and key shift)
+	(set! key (string-upcase key)))
     (dispatch-key key)))
 
 
