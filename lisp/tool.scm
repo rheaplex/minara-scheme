@@ -1,6 +1,6 @@
 ;; tool.scm : tool handling for minara
 ;;
-;; Copyright (c) 2004 Rob Myers, rob@robmyers.org
+;; Copyright (c) 2004, 2010 Rob Myers, rob@robmyers.org
 ;;
 ;; This file is part of minara.
 ;;
@@ -65,7 +65,8 @@
   %current-tool-name)
 
 (define (set-current-tool-name! name)
-  (set! %current-tool-name name)
+;;  (set! %current-tool-name name)
+  (set-window-tool-name! (window-current) name)
   (window-redraw (window-current)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -76,5 +77,6 @@
   (if %remove-current-tool-hook
       (%remove-current-tool-hook))
   (set! %remove-current-tool-hook #f)
-  (set! %current-tool-name "")
+  (set-current-tool-name! "")
+  (set-window-tool-name! (window-current) "")
   (window-redraw (window-current)))

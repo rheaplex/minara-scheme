@@ -1,6 +1,6 @@
 ;; window.scm : windows for minara
 ;;
-;; Copyright (c) 2004 Rob Myers, rob@robmyers.org
+;; Copyright (c) 2004, 2010 Rob Myers, rob@robmyers.org
 ;;
 ;; This file is part of minara.
 ;;
@@ -41,7 +41,9 @@
 	   window-width
 	   window-height
 	   window-status
-	   set-window-status
+	   set-window-status!
+	   window-tool-name
+	   set-window-tool-name!
 	   window-undo-stack
 	   set-window-undo-stack!
 	   window-name-base
@@ -100,6 +102,7 @@
 		      height
 		      variables
 		      status
+		      tool-name
 		      undo-stack)
   window?
   ;; The window
@@ -116,9 +119,12 @@
   ;; The window's variables
   (window-variables window-variables
 		    set-window-variables!)
-  ;; The window's status string
+  ;; The window's minibuffer, this should be a variable
   (status window-status
 	  set-window-status!)
+  ;; The window's tool, this should be a variable
+  (tool-name window-tool-name
+	  set-window-tool-name!)
   ;; The window's undo stack
   (undos window-undo-stack
 	 set-window-undo-stack!))
@@ -155,6 +161,7 @@
 	  -1
 	  -1
 	  '()
+	  ""
 	  ""
 	  '())))
     (hash-create-handle! *windows* (window-id window) window)
@@ -353,18 +360,20 @@
 
 ;; Draw or redraw a window's buffers/caches
 
+(define (window-draw-tool-name window)
+  (window-draw-text (window-id window) 5 20 (window-tool-name window)))
+
+(define (window-draw-minibuffer window)
+  (window-draw-text (window-id window) 5 5 (window-status window)))
+
 (define (window-redraw-event window)
     (let ((window-id (window-id window)))
       (if (not (equal? window #f))
 	  (begin
 	   (window-draw-begin window-id)
 	   (window-draw window)
-	   ;; Should be set status, like set title. But needs faking in GLUT...
-	   (window-draw-status window-id
-			       ;;FIXME separate status and minibuffer?
-			       ;;(string-append %current-tool-name 
-					;;      " "
-					      (window-status window));;)
+	   (window-draw-tool-name window)
+	   (window-draw-minibuffer window)
 	   (window-draw-end window-id)))))
 
 

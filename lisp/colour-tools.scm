@@ -1,6 +1,6 @@
 ;; colour-tools.scm : colour picking for minara
 ;;
-;; Copyright (c) 2004 Rob Myers, rob@robmyers.org
+;; Copyright (c) 2004, 2010 Rob Myers, rob@robmyers.org
 ;;
 ;; This file is part of minara.
 ;;
@@ -77,7 +77,7 @@
 (define (rgb-current-status-update window)
     (set-window-status! window
 			(format #f 
-				"- Red: ~f Green: ~f Blue: ~f Alpha: ~f"
+				"Red: ~f Green: ~f Blue: ~f Alpha: ~f"
 				(variable-ref rgb-current-r)
 				(variable-ref rgb-current-g)
 				(variable-ref rgb-current-b)
@@ -106,7 +106,7 @@
 			      "(push-matrix)\n(identity-matrix)\n")
       (buffer-insert-undoable buff
 			      #f
-			      "(path-begin)\n(move-to 10 40)\n(line-to 10 90)\n (line-to 60 90)\n(line-to 60 40)\n(path-end)\n")
+			      "(path-begin)\n(move-to 5 40)\n(line-to 5 90)\n (line-to 55 90)\n(line-to 55 40)\n(path-end)\n")
       (buffer-insert-undoable buff
 			      #f
 			      "(pop-matrix)\n")

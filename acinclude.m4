@@ -334,6 +334,7 @@ if test "X${with_apple_opengl_framework}" != "Xyes"; then
     GLU_LIBS="${ax_cv_check_glu_libglu} ${GL_LIBS}"
   fi
 fi
+
 AC_SUBST([GLU_CFLAGS])
 AC_SUBST([GLU_LIBS])
 ])
@@ -353,7 +354,6 @@ if test "X$with_apple_opengl_framework" = "Xyes"; then
   GLUT_LIBS="-lobjc ${GL_LIBS}"
 else
   GLUT_CFLAGS=${GLU_CFLAGS}
-
   #
   # If X is present, assume GLUT depends on it.
   #
@@ -378,6 +378,7 @@ else
       ax_try_lib="${ax_lib}"
     fi
     LIBS="${ax_try_lib} ${GLUT_LIBS} ${ax_save_LIBS}"
+    # This fails on Fedora 13 if you don't install libXmu-devel and libXi-devel
     AC_TRY_LINK([
 # if HAVE_WINDOWS_H && defined(_WIN32)
 #   include <windows.h>

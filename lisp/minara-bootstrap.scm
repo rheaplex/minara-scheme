@@ -20,6 +20,8 @@
 
 (use-modules (minara-internal config) (minara-internal events))
 
+(turn-on-debugging)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load Scheme files
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -42,7 +44,7 @@
 (define $library-files
     '("test"
       "transformations"
-      "rendering"
+;;      "rendering"
       "keymap"
       "buffer"
       "window"

@@ -1,6 +1,6 @@
 ;; selection.scm : selected object management for minara
 ;;
-;; Copyright (c) 2006, 2009 Rob Myers, rob@robmyers.org
+;; Copyright (c) 2006, 2009, 2010 Rob Myers, rob@robmyers.org
 ;;
 ;; This file is part of minara.
 ;;
@@ -166,7 +166,7 @@
 	       (buffer-variable buffer 
 				"_copy"))))
 
-(define (clear-copy-buffer buffer)
+(define (clear-copy-buffer-var buffer)
     (set-buffer-variable! buffer "_copy" #f))
 
 (define (copy-selections-to-buffer main-buffer to-buffer)
@@ -221,7 +221,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (do-cut-key)
-    (cut-selections-to-copy-buffer-var (window-buffer (window-current))))
+  (cut-selections-to-copy-buffer-var (window-buffer-main (window-current))))
 
 (keymap-add-fun-global do-cut-key "Cx")
 
@@ -230,7 +230,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (do-paste-key)
-    (clear-selections-var (window-buffer (window-current))))
+    (clear-selections-var (window-buffer-main (window-current))))
 
 (keymap-add-fun-global do-paste-key "Cv")
 
@@ -239,9 +239,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (do-clear-selection-key)
-    (clear-copy-buffer-var (window-buffer (window-current))))
+    (clear-copy-buffer-var (window-buffer-main (window-current))))
 
-(keymap-add-fun-global do-clear-selection-key "s" "c")
+;; Map this to n in for "none" in case we need s c for copy
+(keymap-add-fun-global do-clear-selection-key "s" " ")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Select
@@ -370,19 +371,24 @@
 
 (define (update-selection-parameters buffer sel)
     (let ((buffer-str (buffer-to-string buffer)))
+      ;; What if it's first or last?
       (let-values (((prev-from prev-to) 
 		    (sexp-before buffer-str (picking-hit-from sel)))
 		   ((next-from next-to) 
 		    (sexp-after buffer-str (picking-hit-to sel))))
-		  (let ((prev-symbol (sexp-symbol-string buffer-str prev-from))
-			(next-symbol (sexp-symbol-string buffer-str next-from)))
-		    (values (if (and (string= prev-symbol "translate")
-				     (or (string= next-symbol "pop-matrix")
-					 (= next-symbol #f)))
-				#t
-				#f)
-			    prev-from
-			    prev-to)))))
+	(let ((prev-symbol (if prev-from 
+			       (sexp-symbol-string buffer-str prev-from)
+			       ""))
+	      (next-symbol (if next-from
+			       (sexp-symbol-string buffer-str next-from)
+			       "")))
+	  (values (if (and (string= prev-symbol "translate")
+			   (or (string= next-symbol "pop-matrix")
+			       (= next-symbol #f)))
+		      #t
+		      #f)
+		  prev-from
+		  prev-to)))))
 
 (define (update-selection-transform buffer sel x y)
   (let-values (((wrapped? prev-from prev-to) 
@@ -402,11 +408,11 @@
     (let* ((win (window-current))
 	   (buffer (window-buffer-main win)))
       (clear-selections-var buffer)
-      (clear-copy-buffer buffer)
+      (clear-copy-buffer-var buffer)
       (clear-highlight-selection win)
       (window-redraw win))) 
 
-(keymap-add-fun-global deselect-all "s" " ")
+(keymap-add-fun-global deselect-all "s" "n")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Move tool
@@ -489,4 +495,4 @@
 (install-tool move-tool-install 
 	      move-tool-uninstall
 	      "Move"
-	      "t" "m")
+	      "s" "m")

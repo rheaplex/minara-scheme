@@ -1,6 +1,6 @@
 /*
     minara - a programmable graphics program editor
-    Copyright (C) 2004, 2009  Rob Myers rob@robmyers.org
+    Copyright (C) 2004, 2009, 2010  Rob Myers rob@robmyers.org
 
     This file is part of minara.
 
@@ -224,21 +224,29 @@ SCM minara_window_set_title (SCM win, SCM title)
 
 
 /**
-   Draw (or set, depending on the API) the window status information.
+   Draw some text of a given size at a given position.
    @param win The window id to draw the status string on.
-   @param title The window status string.
+   @param x The x co-ordinate of the text to draw.
+   @param y The x co-ordinate of the text to draw.
+   @param text The text to draw.
    @return '()
 */
 
-SCM minara_window_draw_status(SCM win, SCM text)
+SCM minara_window_draw_text(SCM win, SCM x, SCM y, SCM text)
 {
   GLuint w = 0;
+  GLfloat xpos = 0;
+  GLfloat ypos = 0;
   char *status = NULL;
   int old_win = glutGetWindow ();
-  SCM_ASSERT (SCM_NUMBERP (win), win, SCM_ARG1, "minara-window-set-status");
-  w = (GLuint) scm_num2int (win, SCM_ARG1, "minara-window-set-status");
-  SCM_ASSERT (scm_is_string (text), text, SCM_ARG2, "minara-window-set-status");
-  status = scm_to_locale_string  (text);
+  SCM_ASSERT (SCM_NUMBERP (win), win, SCM_ARG1, "minara-window-draw-text");
+  w = (GLuint) scm_num2int (win, SCM_ARG1, "minara-window-draw-text");
+  SCM_ASSERT (SCM_NUMBERP (x), x, SCM_ARG2, "minara-window-draw-text");
+  xpos = (GLfloat) scm_num2int (x, SCM_ARG2, "minara-window-draw-text");
+  SCM_ASSERT (SCM_NUMBERP (y), y, SCM_ARG3, "minara-window-draw-text");
+  ypos = (GLfloat) scm_num2int (y, SCM_ARG3, "minara-window-draw-text");
+  SCM_ASSERT (scm_is_string (text), text, SCM_ARG4, "minara-window-draw-text");
+  status = scm_to_locale_string (text);
   if (w != 0)
   {
     int i;
@@ -248,7 +256,7 @@ SCM minara_window_draw_status(SCM win, SCM text)
     
     // De-hardcode me!
     glColor3f(0.9, 0.8, 0.8);
-    glRasterPos2f(5.2, 4.8);
+    glRasterPos2f(xpos + 0.2, ypos - 0.2);
     for (i = 0; i < len; i++)
       {
 	// De-hardcode me!
@@ -256,7 +264,7 @@ SCM minara_window_draw_status(SCM win, SCM text)
       }
     // De-hardcode me!
     glColor3f(0.1, 0.1, 0.25);
-    glRasterPos2f(5.0, 5.0);
+    glRasterPos2f(xpos, ypos);
     for (i = 0; i < len; i++)
       {
 	// De-hardcode me!
@@ -319,13 +327,13 @@ define_window_module ()
   scm_c_define_gsubr ("window-current-id", 0, 0, 0, minara_window_current);
   scm_c_define_gsubr ("window-set", 1, 0, 0, minara_window_set);
   scm_c_define_gsubr ("window-set-title", 2, 0, 0, minara_window_set_title);
-  scm_c_define_gsubr ("window-draw-status", 2, 0, 0, minara_window_draw_status);
+  scm_c_define_gsubr ("window-draw-text", 4, 0, 0, minara_window_draw_text);
   scm_c_define_gsubr ("window-invalidate", 1, 0, 0, minara_window_invalidate);
   scm_c_define_gsubr ("window-draw-begin", 1, 0, 0, minara_window_draw_begin);
   scm_c_define_gsubr ("window-draw-end", 1, 0, 0, minara_window_draw_end);
 
   scm_c_export ("window-make", "window-dispose", "window-current-id",
-		"window-set", "window-set-title", "window-draw-status",
+		"window-set", "window-set-title", "window-draw-text",
 		"window-invalidate", "window-draw-begin", "window-draw-end", 
 		NULL);
 }

@@ -1,6 +1,6 @@
 ;; events.scm : gui event handling for minara
 ;;
-;; Copyright (c) 2004 Rob Myers, rob@robmyers.org
+;; Copyright (c) 2004, 2010 Rob Myers, rob@robmyers.org
 ;;
 ;; This file is part of minara.
 ;;
@@ -31,6 +31,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define-module (minara events)
+  :use-module (ice-9 debugger)
   :use-module (minara-internal events)
   :use-module (minara keymap)
   :use-module (minara window)
@@ -59,24 +60,32 @@
 ;; Calling event handlers with good error recovery and diagnostics
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define event-stack #f)
-			  
 (define (call-with-backtrace call-me)
-    (call-me))
-;;  (set! event-stack (make-stack #t))
-;;  (catch #t
-;;    call-me
-;;    event-error-handler))
-
-(define (event-error-handler . args)
-    (if (= (length args) 5)
+  "Call procedure call-me wrapped in a debugger catch block"
+  (let ((captured-stack #f))
+    (catch #t
+	   call-me
+	   ;; Error
+	   (lambda (key . parameters)
+	     ;; Print the error, so we know what we're debugging
+	     (format (current-error-port) "~A: ~A~%" (car parameters) 
+		     (let ((message (cadr parameters)) 
+			   (format-string (caddr parameters))) 
+		       (if format-string 
+			   (apply format #f message format-string) 
+			   message))))
+	   ;; Stack
+	   (lambda (key . parameters)
+	     (set! captured-stack (make-stack #t))
+	     (write captured-stack)))
+    (if captured-stack
 	(begin
-	 (apply display-error 
-		#f 
-		(current-error-port) 
-		(cdr args))
-	 (display-backtrace event-stack
-			    (current-error-port)))))
+	  ;; Print the stack backtrace, to get context
+	  (display-backtrace captured-stack (current-error-port))
+	  ;; Enter the debugger
+	  ;; Slightly hacky
+	  (fluid-set! the-last-stack captured-stack)
+	  (debug)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

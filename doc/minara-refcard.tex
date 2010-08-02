@@ -1,4 +1,4 @@
-% Reference Card for slime
+% Reference Card for Minara
 %**start of header
 \newcount\columnsperpage
 \newcount\letterpaper
@@ -16,7 +16,7 @@
 % Nothing else needs to be changed below this line.
 % Copyright (C) 1987, 1993, 1996, 1997, 2002, 2003, 2004,
 %   2005 Free Software Foundation, Inc.
-% Copyright (C) 2009 Rob Myers rob@robmyers.org
+% Copyright (C) 2009, 2010 Rob Myers rob@robmyers.org
 
 % GNU Emacs is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@
 % the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 % Boston, MA 02110-1301, USA.
 
+% Details from Slime refcard:
 % This file is intended to be processed by plain TeX (TeX82).
 %
 % The final reference card has six columns, three on each side.
@@ -278,7 +279,6 @@ To start Minara from the command line, type: \kbd{minara}
 \key{simple pen}{t p}
 \key{polyline tool}{t P}
 \key{rectangle}{t r}
-\key{square}{t r}
 \key{square}{t s}
 \key{star}{t S}
 
@@ -303,9 +303,6 @@ To start Minara from the command line, type: \kbd{minara}
 \key{reduce current component by 0.1}{-}
 \key{reduce current component by 0.01}{_}
 \key{set current component to 0.1 (or 0.x for other numbers)}{1}
-\key{apropos for all symbols in package}{C-c C-d p}
-\key{look up symbol at point in hyperspec}{C-c C-d h}
-\key{look up format character in hyperspec}{C-c C-d ~}
 
 \section{Undo}
 
@@ -323,15 +320,14 @@ To start Minara from the command line, type: \kbd{minara}
 
 \section{Selection}
 
-\key{select}{t s}
-\key{select none}{s SPACE}
-\key{clear selection}{s c}
+\key{select}{s s}
+\key{select none}{s n}
+\key{clear selection}{s SPACE}
 \key{copy}{C-c}
 \key{delete}{C-d}
 \key{cut}{C-x}
 \key{paste}{C-v}
-\key{list callers of function}{C-c <}
-\key{list callees of function}{C-c >}
+\key{move selection}{s m}
 
 \section{Window}
 

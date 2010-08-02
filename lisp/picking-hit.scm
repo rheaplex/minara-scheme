@@ -28,7 +28,9 @@
 	   picking-hit?
 	   picking-hit-index
 	   picking-hit-from
+	   set-picking-hit-from!
 	   picking-hit-to
+	   set-picking-hit-to!
 	   picking-hit-transform))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

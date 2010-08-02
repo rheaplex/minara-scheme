@@ -118,17 +118,17 @@
 				       "(path-end)" nth) 10)))
       (values path-from path-to)))
 
-(define (sexp-before buffer-str pos)  
+(define (sexp-before buffer-str pos) 
     (let ((sexp-start (string-rindex buffer-str #\( 0 pos)))
       (if sexp-start
 	  (sexp-bounds buffer-str sexp-start)
-	  #f)))
+	  (values #f #f))))
 
 (define (sexp-after buffer-str pos)
     (let ((sexp-start (string-index buffer-str #\( pos)))
       (if sexp-start
 	  (sexp-bounds buffer-str sexp-start)
-	  #f)))
+	  (values #f #f))))
 
 (define (sexp-symbol-string buffer-str sexp-pos)
     (if (string= (substring buffer-str sexp-pos (+ sexp-pos 1))
