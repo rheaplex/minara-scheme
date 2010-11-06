@@ -92,7 +92,8 @@
 
 ;;; Code:
 
-(define-module (ice-9 gap-buffer)
+;;(define-module (ice-9 gap-buffer)
+(define-module (minara gap-buffer)
   #:autoload (ice-9 rw) (write-string/partial)
   #:autoload (ice-9 receive) (receive)
   #:autoload (ice-9 regex) (string-match match:end)

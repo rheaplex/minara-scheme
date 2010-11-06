@@ -24,7 +24,7 @@
 
 (define-module (minara buffer)
   :use-module (minara-internal cache)
-  :use-module (ice-9 gap-buffer)
+  :use-module (minara gap-buffer)
   :use-module (srfi srfi-9)
   :use-module (ice-9 rdelim)
   :use-module (scripts slurp)
@@ -40,6 +40,7 @@
 	   ;;set-buffer-variables!
 	   make-buffer
 	   make-buffer-from-file
+	   make-buffer-from-string
 	   buffer-file
 	   buffer-insert-no-undo
 	   write-buffer
@@ -108,7 +109,7 @@
 (define (make-buffer)
   (let ((buf (really-make-buffer (make-gap-buffer)
 				 (cache-make)
-				 (list))))
+				 '())))
     (update-timestamp! (buffer-text buf))
     (initialise-timestamp! (buffer-cache buf))
     buf))
@@ -123,6 +124,13 @@
 			   (slurp (buffer-file buf)))
     buf))
 
+;; Public constructor to load the buffer from a string
+
+(define (make-buffer-from-string text)
+  (let ((buffer (make-buffer)))
+    (gb-insert-string! (buffer-text buffer) text)
+    buffer))
+
 ;; The file path for a buffer than has been loaded from file
 
 (define (buffer-file buf)
@@ -131,7 +139,7 @@
 ;; Reload the buffer from file.
 
 (define (buffer-file-reload buf)
-v    (buffer-delete-undoable buf #f #f)
+  (buffer-delete-undoable buf #f #f)
   (buffer-insert-undoable buf
  			  0
 			  (slurp (buffer-file buf)))
@@ -236,6 +244,11 @@ v    (buffer-delete-undoable buf #f #f)
   (eval-string (buffer-to-string cb) module)
   (set! %current-buffer #f))
 
+;; Flag the buffer to be drawn when the window next redraws
+
+(define (buffer-invalidate cb)
+  (update-timestamp! (buffer-text cb)))
+
 ;; Redraw the buffer (just run the cache if no timestamp variation)
 
 (define (draw-buffer cb)
@@ -250,8 +263,3 @@ v    (buffer-delete-undoable buf #f #f)
 	(evaluate-buffer cb (resolve-module '(minara rendering-protocol)))
 	(cache-record-end c)
 	(update-timestamp! (buffer-cache cb)))))
-
-;; Flag the buffer to be drawn when the window next redraws
-
-(define (buffer-invalidate cb)
-  (update-timestamp! (buffer-text cb)))

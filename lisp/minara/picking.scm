@@ -122,23 +122,3 @@
   
 (define (pick-path-window win x y)
     (pick-path (window-buffer-main win) x y))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; tests
-;; Horribly tied to first minara logo file version. Need better checks...
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;;(test-section "picking: s-expressions")
-;;(define buf (find-file "../minara.minara"))
-;;(test 105 (car (get-nth-path buf 1)))
-;;(test 5025 (cadr (get-nth-path buf 1)))
-;;(test 1063 (car (get-nth-sexp buf "move-to" 3)))
-;;(test 1088 (cadr (get-nth-sexp buf "move-to" 3)))
-
-;;(test-section "picking: picking")
-;;(define %pickbuf (make-gap-buffer))
-;;(gb-insert-string! %pickbuf
-	;;		     ";;minara file\n(set-colour 0.0 0.0 1.0)\n(path-begin)\n(move-to 10 10)\n(line-to 10 100)\n(line-to 100 10)\n(line-to 10 10)\n(path-end)\n(fill-path)\n")
-;;(test 40 (begin
-;;	   (install-picking-rendering-protocol)
-;;	   (eval-string (gb->string %pickbuf))))

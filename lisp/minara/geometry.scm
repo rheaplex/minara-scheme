@@ -19,7 +19,6 @@
 
 
 (define-module (minara geometry)
-  :use-module (minara test)
   :export (distance-between-points
 	   angle-around-point
 	   degrees-to-radians
@@ -242,30 +241,3 @@
 
   
 ;; Get the normal of the bezier at point t
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; tests
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(test-section "geometry: intersection")
-(test 0.0 (lines-intersect-vertices 0.0 0.0 0.0 100.0 
-				    0.0 0.0 100.0 0.0))
-(test 0.5 (lines-intersect-vertices 0.0 0.0 0.0 100.0 
-				    0.0 50.0 100.0 50.0))
-(test 1.0 (lines-intersect-vertices 0.0 0.0 0.0 100.0 
-				    0.0 100.0 100.0 100.0))
-(test 0.5 (lines-intersect-vertices 0.0 0.0 100.0 100.0 
-				    0.0 50.0 100.0 50.0))
-(test #f (lines-intersect-vertices 0.0 0.0 100.0 100.0 
-				   1000.0 1000.0 1000.0 1000.0))
-(test 0 (line-bezier-intersection-count-vertices 20 0 80 0
-						 0 0 0 100 100 100 100 0))
-;; Aligned with end-point of a subdivision (given t step of 0.1)
-(test 1 (line-bezier-intersection-count-vertices 50 0 50 150
-						 0 0 0 100 100 100 100 0))
-;; Not aligned with end-point of subdivision (given t step of 0.1)
-(test 1 (line-bezier-intersection-count-vertices 52 0 52 150
-						 0 0 0 100 100 100 100 0))
-(test 2 (line-bezier-intersection-count-vertices 0 50 100 50
-						 0 0 0 100 100 100 100 0))

@@ -1,4 +1,4 @@
-;; picking.scm : the picking buffer evaluation protocol for minara
+;; picking-protocol.scm : the picking buffer evaluation protocol for minara
 ;;
 ;; Copyright (c) 2004-2006 Rob Myers, rob@robmyers.org
 ;;

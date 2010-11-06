@@ -23,87 +23,13 @@
 (turn-on-debugging)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Load Scheme files
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Load the user's ~/.minara file stored in their home directory
-
-(define (load-user-config)
-    (let ((config (string-append (getenv "HOME")
-				 "/.minara")))
-      (if (access? config R_OK)
-	  (primitive-load config))))
-
-;; Load the libraries in the correct order
-
-(define $third-party-files
-  '("slurp"
-    "split-string-no-nulls"
-    "gap-buffer"))
-
-(define $library-files
-    '("test"
-      "transformations"
-;;      "rendering"
-      "keymap"
-      "buffer"
-      "window"
-      "events"
-      "command-line"
-      "menu"
-      "geometry"
-      "tool"
-      "view"
-      "sexp"
-      "picking-hit"
-      "picking-protocol"
-      "picking"
-      "undo"
-      "selection"
-      "cut-and-paste"
-      "minibuffer"
-      "development"))
-
-(define $tool-files
-    '("colour-tools"
-      "pen-tool"
-      "shape-tools"))
-
-(define (load-file path file)
-    (primitive-load (string-append path
-			 "/"
-			 file
-			 ".scm")))
-
-(define (load-files path files)
-    (for-each (lambda (file)
-		(load-file path file))
-	      files))
-
-(define (load-third-party-files)
-    (load-files $minara-lisp-dir
-		$third-party-files))
-
-(define (load-libraries)
-    (load-files $minara-lisp-dir
-		$library-files))
-
-(define (load-tools)
-    (load-files $minara-lisp-dir
-		$tool-files))
-
-(define (load-minara-files)
-  (load-third-party-files)
-  (load-libraries)
-  (load-tools)
-  (load-user-config))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Main startup code
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (read-enable 'positions)
-(load-minara-files)
+
+(load "minara-load.scm")
+
 (bind-event-hooks)
 
 (use-modules (minara command-line))
