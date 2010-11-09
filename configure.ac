@@ -20,7 +20,6 @@ GUILE_FLAGS
 ACX_PTHREAD
 AX_CHECK_GL
 AX_CHECK_GLU
-# This fails on Fedora 13 if you don't install libXmu-devel and libXi-devel
 AX_CHECK_GLUT
 #AC_CHECK_HEADERS(GL/gl.h GL/glu.h GL/glut.h)
 #AC_CHECK_HEADERS(GL/glext.h,,,
@@ -29,5 +28,6 @@ AX_CHECK_GLUT
 #                 #endif /* HAVE_GL_H */]])
 
 dnl Go!
-AC_CONFIG_FILES([Makefile src/Makefile lisp/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile lisp/Makefile lisp/minara/Makefile
+			  lisp/scripts/Makefile])
 AC_OUTPUT

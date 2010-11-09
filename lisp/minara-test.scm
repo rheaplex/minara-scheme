@@ -2,7 +2,7 @@
 (turn-on-debugging)
 (read-enable 'positions)
 
-(if (not (defined? '$minara-lisp-path)) 
+(if (not (defined? '$minara-lisp-dir)) 
     (define $minara-lisp-path "."))
 
 (set! %load-path (cons $minara-lisp-path %load-path))
@@ -29,7 +29,7 @@
 (define-module (minara-internal menu)
   :export ("menu-make" "menu-install" "menu-add-entry" "menu-remove-entry"))
 
-(define-module (minara testing)
+(define-module (minara-test)
   :use-module (minara load-libraries))
 
 (define (load-test file)

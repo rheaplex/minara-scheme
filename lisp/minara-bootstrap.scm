@@ -1,6 +1,6 @@
 ;; minara-bootstrap.scm : main setup code for minara
 ;;
-;; Copyright (c) 2004 Rob Myers, rob@robmyers.org
+;; Copyright (c) 2004, 2010 Rob Myers, rob@robmyers.org
 ;;
 ;; This file is part of minara.
 ;;
@@ -18,19 +18,24 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-(use-modules (minara-internal config) (minara-internal events))
-
-(turn-on-debugging)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Main startup code
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(turn-on-debugging)
 (read-enable 'positions)
 
-(load "minara-load.scm")
+(use-modules (minara-internal config) (minara-internal events))
+
+(set! %load-path (cons $minara-lisp-dir %load-path))
+
+(use-modules (minara load-libraries))
+
+(load-minara-files)
 
 (bind-event-hooks)
 
 (use-modules (minara command-line))
+
 (cli-handle-arguments)

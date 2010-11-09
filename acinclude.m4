@@ -358,7 +358,7 @@ else
   # If X is present, assume GLUT depends on it.
   #
   if test "X${no_x}" != "Xyes"; then
-    GLUT_LIBS="${X_PRE_LIBS} -lXmu -lXi ${X_EXTRA_LIBS} ${GLU_LIBS}"
+    GLUT_LIBS="${X_PRE_LIBS} ${X_EXTRA_LIBS} ${GLU_LIBS}"
   fi
 
   AC_LANG_PUSH(C)
@@ -370,7 +370,7 @@ else
   [ax_cv_check_glut_libglut="no"
   ax_save_LIBS="${LIBS}"
   LIBS=""
-  ax_check_libs="-lglut32 -lglut"
+  ax_check_libs="-lglut32 -lglut -lfreeglut"
   for ax_lib in ${ax_check_libs}; do
     if test "X$CC" = "Xcl"; then
       ax_try_lib=`echo $ax_lib | sed -e 's/^-l//' -e 's/$/.lib/'`
@@ -378,7 +378,6 @@ else
       ax_try_lib="${ax_lib}"
     fi
     LIBS="${ax_try_lib} ${GLUT_LIBS} ${ax_save_LIBS}"
-    # This fails on Fedora 13 if you don't install libXmu-devel and libXi-devel
     AC_TRY_LINK([
 # if HAVE_WINDOWS_H && defined(_WIN32)
 #   include <windows.h>
