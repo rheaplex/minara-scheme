@@ -29,7 +29,7 @@
 
 (define-module (minara undo)
   :use-module (srfi srfi-9)
-  :use-module (ice-9 gap-buffer)
+  :use-module (minara gap-buffer)
   :use-module (minara buffer)
   :use-module (minara keymap)
   :use-module (minara window)

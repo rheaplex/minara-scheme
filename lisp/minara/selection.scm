@@ -39,9 +39,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define-module (minara selection)
-  :use-module (ice-9 gap-buffer)
   :use-module (srfi srfi-11)
   :use-module (srfi srfi-13)
+  :use-module (minara gap-buffer)
   :use-module (minara events)
   :use-module (minara transformations)
   :use-module (minara picking)
