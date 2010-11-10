@@ -29,5 +29,5 @@ AX_CHECK_GLUT
 
 dnl Go!
 AC_CONFIG_FILES([Makefile src/Makefile lisp/Makefile lisp/minara/Makefile
-			  lisp/scripts/Makefile])
+			  lisp/scripts/Makefile lisp/tools/Makefile])
 AC_OUTPUT
