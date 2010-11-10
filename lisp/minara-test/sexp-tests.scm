@@ -12,7 +12,7 @@
 (define-method (set-up-test (self <test-sexp>))
   (set! (logo self) 
 ";; The minara logotype as a minara file
-;; Copyright (c) 2004 Rob Myers
+;; Copyright 2004 Rob Myers [a copyright symbol would upset the search!!!
 
 (use-modules (minara buffer))
 
@@ -168,11 +168,27 @@
 (path-end)
 (pop-matrix)"))
 
+; emacs coloration is broken, add this in comment to fix after here: "
+
+(define (test-sexp-info info from to)
+  ;(assert-equal from (sexp-start info))
+  ;(assert-equal to (sexp-end info))
+  (assert-equal "move-to" (sexp-symbol info))
+  (assert-equal 2 (length (sexp-args info)))
+  (assert-equal "5.0" (car (sexp-args info)))
+  (assert-equal "395" (cadr (sexp-args info))))
+
 (define-method (test-sexp-finding (self <test-sexp>))
-  (let-values (((from to) 
-		(get-nth-path (logo self) 1)))
-	      (assert-equal 134 from)
-	      (assert-equal 230 to))
-  (let-values (((from to) (get-nth-sexp (logo self) "move-to" 3)))
-	      (assert-equal 346 from)
-	      (assert-equal 364 to)))
+  (let-values (((from to) (get-nth-path (logo self) 1)))
+    (assert-equal 176 from)
+    (assert-equal 272 to))
+  (let-values (((from to) (nth-sexp-bounds (logo self) "move-to" 3)))
+    (assert-equal 388 from)
+    (assert-equal 406 to))
+  (assert-equal "(move-to 5.0 395)" (get-nth-sexp (logo self) "move-to" 2))
+  ;; 1 17 are the values get-nth-sexp would return
+  (let ((info (sexp-info-from-string "(move-to 5.0 395)" 1 17)))
+    (test-sexp-info info 1 17))
+  (let ((info (sexp-info-from-buffer 
+	       (make-buffer-from-string "(move-to 5.0 395)") 1 17)))
+    (test-sexp-info info 1 17)))

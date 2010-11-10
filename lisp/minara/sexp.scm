@@ -17,6 +17,13 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+;; WARNING/FIXME: These routines are naive and will not handle strings
+;; containing brackets or spaces even if escaped.
+
+;; NOTES: 
+;; ranges are 1..last . This is different from string-copy's 0..(last + 1) 
+;; ranges returned include the brackets: 1,5 = (cat)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Modules
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -35,7 +42,15 @@
 	   get-nth-path
 	   sexp-before
 	   sexp-after
-	   sexp-symbol-string))
+	   sexp-symbol-string
+	   sexp-info
+	   sexp-symbol
+	   sexp-start
+	   sexp-end
+	   sexp-args
+	   make-sexp-info
+	   sexp-info-from-buffer
+	   sexp-info-from-string))
   
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Buffer routines
@@ -104,9 +119,12 @@
 	 (start (nth-occurrence buffer op-with-bracket count)))
     (sexp-bounds buffer start)))
 
-;; Get the nth colour statement in the buffer
+;; Get the nth "func" sexp in the buffer
 (define (get-nth-sexp buffer-str func nth)
-    (nth-sexp-bounds buffer-str func nth))
+  ;; Note that our bounds are buffer based, from 1 to # of char
+  ;; The srfi-13 substring goes from 0 to # char + 1
+  (let-values (((sexp-start sexp-end) (nth-sexp-bounds buffer-str func nth)))
+      (string-copy buffer-str (- sexp-start 1) sexp-end)))
 	
 ;; Get the nth path in the buffer
 (define (get-nth-path buffer nth)
@@ -141,3 +159,30 @@
 			 symbol-end)
 	      #f))
 	#f))
+
+(define-record-type sexp-info
+  (really-make-sexp-info from to symbol args)
+  (from sexp-start)
+  (to sexp-end)
+  (symbol sexp-symbol)
+  (args sexp-args))
+
+(define (make-sexp-info sexp-str from to) 
+  ;; The sexp-str by this point contains just the sexp text, no ( or )
+  ;; sexp-start and sexp-end refer to positions in the original source
+  ;; Also, to convert between our 1..last and strings' 0..length conventions,
+  ;; we have to truncate the source string here
+  (let ((items (string-tokenize sexp-str)))
+    (really-make-sexp-info from to (car items) (cdr items))))
+
+(define (sexp-info-from-buffer buf from to)
+  ;; Swizzle the from and the length to chop off the ( )
+  (make-sexp-info (buffer-range-to-string buf (+ from 1) (- to from -1))
+		  from
+		  to))
+
+(define (sexp-info-from-string str from to)
+  ;; Swizzle the end to chop off the )
+  (make-sexp-info (string-copy str from (- to 1))
+		  from
+		  to))
