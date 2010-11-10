@@ -18,4 +18,4 @@ depcomp
 install-sh
 missing
 .deps
-minara
+src/minara
