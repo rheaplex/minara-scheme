@@ -17,6 +17,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+;; Buffer indices start at 1
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Modules
@@ -57,6 +59,10 @@
 	   draw-buffer
 	   buffer-invalidate
 	   buffer-erase))
+
+;; NOTES: 
+;; buffer indexes start at 1
+;; buffer "end" is 1 after # chars in buffer
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -127,9 +133,9 @@
 ;; Public constructor to load the buffer from a string
 
 (define (make-buffer-from-string text)
-  (let ((buffer (make-buffer)))
-    (gb-insert-string! (buffer-text buffer) text)
-    buffer))
+  (let ((buf (make-buffer)))
+    (buffer-insert-no-undo buf 0 text)
+    buf))
 
 ;; The file path for a buffer than has been loaded from file
 
@@ -167,10 +173,11 @@
 (define (buffer-start buf)
     (gb-point-min (buffer-text buf)))
 
-(define (buffer-range-to-string buf from length)
+(define (buffer-range-to-string buf from to)
+  ;; to is the character *after*, so this may be (# chars in buffer + 1)
     (gb->substring (buffer-text buf)
 		   from
-		   length))
+		   to))
 
 ;; Insert outside of the undo system. No, you really do not want this. See undo.
 

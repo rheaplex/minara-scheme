@@ -9,7 +9,24 @@
 (define-method (set-up-test (self <test-buffer>))
   (set! (buffer self) (make-buffer)))
 
-;; Buffer Variables
+(define-method (test-buffer-basics (self <test-buffer>))
+  (let* ((src "0123456789")
+	 (buf (make-buffer-from-string src))
+	 (buffer-length (string-length src))
+	 (empty-buf (make-buffer)))
+    ;; Empty buffer is empty, starting at first index and finishing after it
+    (assert-equal 1 (buffer-start empty-buf))
+    (assert-equal 1 (buffer-end empty-buf))
+    ;; Sanity check. Make sure the buffer contains the source string
+    (assert-equal src (buffer-to-string buf))
+    ;; Buffer indexes start at 1
+    (assert-equal 1 (buffer-start buf))
+    ;; Buffer length is (# chars in buffer + 1)
+    (assert-equal (+ buffer-length 1) (buffer-end buf))
+    ;; And we can access the first and last characters OK
+    (assert-equal "0" (buffer-range-to-string buf 1 2))
+    (assert-equal "9" (buffer-range-to-string buf buffer-length
+					      (+ buffer-length 1)))))
 
 (define-method (test-buffer-variables (self <test-buffer>))
   ;; set-buffer-variable!
