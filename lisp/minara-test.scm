@@ -3,9 +3,9 @@
 (read-enable 'positions)
 
 (if (not (defined? '$minara-lisp-dir)) 
-    (define $minara-lisp-path "."))
+    (define $minara-lisp-dir "."))
 
-(set! %load-path (cons $minara-lisp-path %load-path))
+(set! %load-path (cons $minara-lisp-dir %load-path))
 
 ;; Dummies
 
