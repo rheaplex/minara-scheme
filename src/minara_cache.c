@@ -72,7 +72,7 @@ SCM
 minara_cache_make ()
 {
   GLuint c = glGenLists (1);
-  return scm_uint2num (c);
+  return scm_from_uint32 (c);
 }
 
 /**
@@ -86,7 +86,7 @@ minara_cache_dispose (SCM cache)
 {
   GLuint c = 0;
   SCM_ASSERT (SCM_NUMBERP (cache), cache, SCM_ARG1, "minara-cache-dispose");
-  c = (GLuint) scm_num2uint (cache, SCM_ARG1, "minara-cache-dispose");
+  c = (GLuint) scm_to_uint32 (cache);
   glDeleteLists (c, 1);
   return SCM_EOL;
 }
@@ -102,7 +102,7 @@ minara_cache_draw (SCM cache)
 {
   GLuint c = 0;
   SCM_ASSERT (SCM_NUMBERP (cache), cache, SCM_ARG1, "minara-cache-draw");
-  c = (GLuint) scm_num2uint (cache, SCM_ARG1, "minara-cache-draw");
+  c = (GLuint) scm_to_uint32 (cache);
   glCallList (c);
   glFlush ();
   return SCM_EOL;
@@ -119,7 +119,7 @@ minara_cache_record_begin (SCM cache)
 {
   GLuint c = 0;
   SCM_ASSERT (SCM_NUMBERP (cache), cache, SCM_ARG1, "minara-cache-record-begin");
-  c = (GLuint) scm_num2uint (cache, SCM_ARG1, "minara-cache-record-begin");
+  c = (GLuint) scm_to_uint32 (cache);
   glNewList (c, GL_COMPILE_AND_EXECUTE);
   return SCM_EOL;
 }

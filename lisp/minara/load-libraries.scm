@@ -17,83 +17,84 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(define-module (minara load-libraries) 
+(define-module (minara load-libraries)
   :use-module (minara-internal config)
   :export ($library-files
-	   load-minara-files))
+           load-minara-files))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load Scheme files
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(if (not (defined? '$minara-lisp-dir)) 
-    (define $minara-lisp-dir "."))
+(define $minara-lisp-dir
+  (if (defined? '$minara-lisp-dir)
+      $minara-lisp-dir
+      "."))
 
 (define $libraries-path (string-append $minara-lisp-dir "/minara"))
 
 ;; Load the user's ~/.minara file stored in their home directory
 
 (define (load-user-config)
-    (let ((config (string-append (getenv "HOME")
-				 "/.minara")))
-      (if (access? config R_OK)
-	  (primitive-load config))))
+  (let ((config (string-append (getenv "HOME")
+                               "/.minara")))
+    (if (access? config R_OK)
+        (primitive-load config))))
 
 ;; Load the libraries in the correct order
 
 (define $third-party-files
-  '("split-string-no-nulls"
-    "gap-buffer"))
+  '("split-string-no-nulls"))
 
 (define $library-files
-    '("transformations"
-;;      "rendering"
-      "keymap"
-      "buffer"
-      "window"
-      "events"
-      "command-line"
-      "menu"
-      "geometry"
-      "tool"
-      "view"
-      "sexp"
-      "picking-hit"
-      "picking-protocol"
-      "picking"
-      "undo"
-      "selection"
-      "cut-and-paste"
-      "minibuffer"
-      "development"))
+  '("transformations"
+    ;;      "rendering"
+    "keymap"
+    "buffer"
+    "window"
+    "events"
+    "command-line"
+    "menu"
+    "geometry"
+    "tool"
+    "view"
+    "sexp"
+    "picking-hit"
+    "picking-protocol"
+    "picking"
+    "undo"
+    "selection"
+    "cut-and-paste"
+    "minibuffer"
+    "development"))
 
 (define $tool-files
   '("colour-tools"
-    "pen-tool"
-    "shape tools"))
+    "pen-tools"
+    "shape-tools"))
 
 (define (load-file path file)
-    (primitive-load (string-append path
-			 "/"
-			 file
-			 ".scm")))
+  (primitive-load (string-append path
+                                 "/"
+                                 file
+                                 ".scm")))
 
 (define (load-files path files)
-    (for-each (lambda (file)
-		(load-file path file))
-	      files))
+  (for-each (lambda (file)
+              (load-file path file))
+            files))
 
 (define (load-third-party-files)
-    (load-files $libraries-path
-		$third-party-files))
+  (load-files $libraries-path
+              $third-party-files))
 
 (define (load-libraries)
-    (load-files $libraries-path
-		$library-files))
+  (load-files $libraries-path
+              $library-files))
 
 (define (load-tools)
-    (load-files $libraries-path
-		$tool-files))
+  (load-files $libraries-path
+              $tool-files))
 
 (define (load-minara-files)
   (load-third-party-files)

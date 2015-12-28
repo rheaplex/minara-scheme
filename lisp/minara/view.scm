@@ -58,11 +58,11 @@
   (make-window-buffer window "_view")
   (let ((buffer (window-buffer window
 			       "_view")))
-    (set-buffer-variable! buffer 
-			  "resize-ty" 
+    (set-buffer-variable! buffer
+			  "resize-ty"
 			  0.0)
-    (set-buffer-variable! buffer 
-			  "scale" 
+    (set-buffer-variable! buffer
+			  "scale"
 			  $zoom-normal)
     (set-buffer-variable! buffer
 			  "scale-tx"
@@ -70,20 +70,20 @@
     (set-buffer-variable! buffer
 			  "scale-ty"
 			  0.0)
-    (set-buffer-variable! buffer 
-			  "tx" 
+    (set-buffer-variable! buffer
+			  "tx"
 			  0.0)
-    (set-buffer-variable! buffer 
-			  "ty" 
+    (set-buffer-variable! buffer
+			  "ty"
 			  0.0)
-    (set-buffer-variable! buffer 
-			  "pan-tx" 
+    (set-buffer-variable! buffer
+			  "pan-tx"
 			  0.0)
-    (set-buffer-variable! buffer 
-			  "pan-ty" 
+    (set-buffer-variable! buffer
+			  "pan-ty"
 			  0.0)
-    (set-buffer-variable! buffer 
-			  "angle" 
+    (set-buffer-variable! buffer
+			  "angle"
 			  0.0)))
 
 (add-window-pre-main-buffer-hook window-view-buffer-make)
@@ -173,14 +173,14 @@
 			       "_view")))
 
 (define (next-zoom-out-level current)
-  (if (= current 
+  (if (= current
 	 $zoom-max-out)
       #f
       (/ current
 	 2.0)))
 
 (define (next-zoom-in-level current)
-  (if (= current 
+  (if (= current
 	 $zoom-max-in)
       #f
       (* current
@@ -195,10 +195,10 @@
   (set-buffer-variable! buffer
 			"scale"
 			zoom))
-  
+
 (define (window-zoom-update window zoom)
   (buffer-zoom-update (window-buffer window
-				     "_view") 
+				     "_view")
 		      zoom)
   (let* ((buffer (window-view-buffer window))
 	 (scale (buffer-scale buffer)))
@@ -221,7 +221,7 @@
   (let* ((window (window-current))
 	 (buffer (window-view-buffer window))
 	 (current-zoom (buffer-scale buffer))
-	 (zoom (next-zoom-level current-zoom 
+	 (zoom (next-zoom-level current-zoom
 				in)))
     (if zoom
 	  (window-zoom-update window
@@ -230,7 +230,7 @@
 (define (zoom-default)
     (window-zoom-update (window-current)
 			$zoom-normal))
-    
+
 (define (zoom-in)
     (zoom #t))
 
@@ -257,43 +257,43 @@
   (buffer-pan-zoom-factor (window-view-buffer window)))
 
 (define (buffer-tx buffer)
-  (buffer-variable buffer 
-		   "tx")) 
+  (buffer-variable buffer
+		   "tx"))
 
 (define (buffer-ty buffer)
-  (buffer-variable buffer 
-		   "ty")) 
+  (buffer-variable buffer
+		   "ty"))
 
 (define (set-buffer-tx! buffer tx)
-  (set-buffer-variable! buffer 
+  (set-buffer-variable! buffer
 			"tx"
-			tx)) 
+			tx))
 
 (define (set-buffer-ty! buffer ty)
-  (set-buffer-variable! buffer 
+  (set-buffer-variable! buffer
 			"ty"
-			ty)) 
+			ty))
 
 ;; The temporary translate used by the pan tool.
 ;; Rename
 
 (define (buffer-pan-tx buffer)
-  (buffer-variable buffer 
-		   "pan-tx")) 
+  (buffer-variable buffer
+		   "pan-tx"))
 
 (define (buffer-pan-ty buffer)
-  (buffer-variable buffer 
-		   "pan-ty")) 
+  (buffer-variable buffer
+		   "pan-ty"))
 
 (define (set-buffer-pan-tx! buffer tx)
-  (set-buffer-variable! buffer 
+  (set-buffer-variable! buffer
 		   "pan-tx"
-		   tx)) 
+		   tx))
 
 (define (set-buffer-pan-ty! buffer ty)
-  (set-buffer-variable! buffer 
+  (set-buffer-variable! buffer
 		   "pan-ty"
-		   ty)) 
+		   ty))
 
 (define (window-tx window)
   (buffer-tx (window-view-buffer window)))
@@ -311,7 +311,7 @@
 
 (define (set-window-transform window)
   (let ((buffer (window-view-buffer window)))
-    (set-buffer-tx! buffer 
+    (set-buffer-tx! buffer
 		    (+ (/ (buffer-pan-tx buffer)
 			  (buffer-scale buffer))
 		       (buffer-tx buffer)))
@@ -326,14 +326,14 @@
 (define pan-tool-mousedown-x #f)
 (define pan-tool-mousedown-y #f)
 
-(define (pan-mouse-down window button x y) 
+(define (pan-mouse-down window button x y)
   (set! pan-tool-mouse-down #t)
-    (set! pan-tool-mousedown-x 
+    (set! pan-tool-mousedown-x
 	  x)
-    (set! pan-tool-mousedown-y 
+    (set! pan-tool-mousedown-y
 	  y))
 
-(define (pan-mouse-move window x y) 
+(define (pan-mouse-move window x y)
   (if pan-tool-mouse-down
       (let ((buffer (window-view-buffer window)))
 	(set-buffer-pan-tx! buffer(- x;;(window-view-x window x)
@@ -343,16 +343,16 @@
 				  pan-tool-mousedown-y))
 	(window-view-update window))))
 
-(define (pan-mouse-up window button x y) 
+(define (pan-mouse-up window button x y)
     (set! pan-tool-mouse-down #f)
     (set-window-transform window)
     (window-view-update window))
 
 (define (pan-default)
     (let ((window (window-current)))
-      (set-window-tx! window 
+      (set-window-tx! window
 		      0.0)
-      (set-window-ty! window 
+      (set-window-ty! window
 		      0.0)
       (set-window-transform window)
       (window-view-update window)))
@@ -373,7 +373,7 @@
 
 ;; Register
 
-(install-tool pan-tool-install 
+(install-tool pan-tool-install
 	      pan-tool-uninstall
 	      "Pan"
 	      "p")
@@ -397,7 +397,7 @@
 
 (define (buffer-rotation buffer)
   (buffer-variable buffer
-		   "angle")) 
+		   "angle"))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -435,7 +435,7 @@
 	  (window-scale window))
        (window-view-left window)))
 
-;; This really, really needs refactoring so we aren't reliant on the 
+;; This really, really needs refactoring so we aren't reliant on the
 ;;  starting height
 
 (define (window-view-y window y)

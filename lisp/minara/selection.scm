@@ -41,7 +41,7 @@
 (define-module (minara selection)
   :use-module (srfi srfi-11)
   :use-module (srfi srfi-13)
-  :use-module (minara gap-buffer)
+  :use-module (ice-9 gap-buffer)
   :use-module (minara events)
   :use-module (minara transformations)
   :use-module (minara picking)
@@ -54,7 +54,7 @@
   :use-module (minara sexp)
   :use-module (minara view)
   :export (selections-var
-	   delete-selections))
+           delete-selections))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Selection list handling
@@ -64,146 +64,150 @@
 ;; Consumed by a copy/paste delete, restored if they undo
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; TODO: removing a range that matches an existing value, 
+;; TODO: removing a range that matches an existing value,
 ;;       for selective deselecting.
 
 (define (selections-var buffer)
   (buffer-variable buffer "_selections"))
 
 (define (clear-selections-var buffer)
-    (buffer-variable-set-undoable buffer 
-				  "_selections"
-				  '()))
+  (buffer-variable-set-undoable buffer
+                                "_selections"
+                                '()))
 
 (define (sort-selections selections)
-    (sort selections
-	  (lambda (a b)
-	    (< (picking-hit-from a)
-	       (picking-hit-from b)))))
+  (sort selections
+        (lambda (a b)
+          (< (picking-hit-from a)
+             (picking-hit-from b)))))
 
 (define (append-selection selections selection)
-    (cons selection selections))
+  (cons selection selections))
 
 ;; Combine any overlapping selections into a single range
 ;; Assumes they're in order
 ;; So get first one, get next, if overlap discard first & combine,
-;; otherwise 
+;; otherwise
 
 ;; REDO: Overlaps need reworking in light of the way transforms work
 
 (define (selections-overlap? a b)
-    (and (> (cdr a)
-	    (car b))
-	 (< (car a)
-	    (cdr b))))
+  (and (> (cdr a)
+          (car b))
+       (< (car a)
+          (cdr b))))
 
 (define (combine-selections a b)
-    (cons (min (car a) (car b))
-	  (max (car a) (cdr b))))
+  (cons (min (car a) (car b))
+        (max (car a) (cdr b))))
 
 (define (combine-selections-aux range selections sorted)
-    (if (selections)
-	(let ((next-range (car selections))
-	      (rest (cdr selections)))
-	  (if (selections-overlap? range next-range)
-	      (combine-selections-aux (car rest)
-					    (cdr rest)
-					    (cons (combine-selections range
-								      next-range)
-						  sorted)))
-	  (combine-selections-aux next-range
-					rest
-					(cons range sorted))))
+  (if (selections)
+      (let ((next-range (car selections))
+            (rest (cdr selections)))
+        (if (selections-overlap? range next-range)
+            (combine-selections-aux (car rest)
+                                    (cdr rest)
+                                    (cons (combine-selections range
+                                                              next-range)
+                                          sorted)))
+        (combine-selections-aux next-range
+                                rest
+                                (cons range sorted))))
   (cons range sorted))
-  
+
 (define (combine-selections selections)
-    (combine-selections-aux (car selections) (cdr selections)))
+  (combine-selections-aux (car selections) (cdr selections)))
 
 (define (append-selections-var buffer range)
-    (buffer-variable-set-undoable buffer
-				  "_selections"
-				  (sort-selection-ranges
-				   (combine-selections
-				    (append-selection-range 
-				     (selections-var buffer)
-				     range)))))
+  (buffer-variable-set-undoable buffer
+                                "_selections"
+                                (sort-selection-ranges
+                                 (combine-selections
+                                  (append-selection-range
+                                   (selections-var buffer)
+                                   range)))))
 
 (define (selections-var buffer)
-    (buffer-variable buffer
-		     "_selections"))
+  (buffer-variable buffer
+                   "_selections"))
 
 (define (set-selections-var buffer range)
-    (buffer-variable-set-undoable buffer
-				  "_selections"
-				  (list range)))
+  (buffer-variable-set-undoable buffer
+                                "_selections"
+                                (list range)))
 
 ;; Assumes selections are sorted highest to lowest and do not overlap
 
 (define (delete-selections buffer)
-    (for-each 
-     (lambda (pick)
-       (buffer-delete-undoable buffer 
-			       (picking-hit-from pick) 
-			       (picking-hit-to pick)))
-     (selections-var buffer))
+  (for-each
+   (lambda (pick)
+     (buffer-delete-undoable buffer
+                             (picking-hit-from pick)
+                             (picking-hit-to pick)))
+   (selections-var buffer))
   (clear-selections-var buffer))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Copy buffer (clipboard) handling
-;; This is a buffer, but it is not on the buffer stack, 
+;; This is a buffer, but it is not on the buffer stack,
 ;; it's in a buffer variable on the main buffer.
 ;; QUERY - How do we copy from one window to another?
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; TODO: Write a general (ensure-buffer-variable buff name value) MACRO
 
+(define (buffer-copy-buffer buffer)
+  (buffer-variable buffer "_copy"))
+
 (define (ensure-copy-buffer-var buffer)
-    (or (buffer-variable buffer 
-			 "_copy")
-        (progn (set-buffer-variable! buffer
-				     "_copy"
-				     (make-buffer))
-	       (buffer-variable buffer 
-				"_copy"))))
+  (or (buffer-copy-buffer buffer)
+      (begin (set-buffer-variable! buffer
+                                   "_copy"
+                                   (make-buffer))
+             (buffer-copy-buffer buffer))))
 
 (define (clear-copy-buffer-var buffer)
-    (set-buffer-variable! buffer "_copy" #f))
+  (set-buffer-variable! buffer "_copy" #f))
 
 (define (copy-selections-to-buffer main-buffer to-buffer)
-  (for-each
-   (lambda (selection)
-     (let ((text  
-	    (format #f "(push-matrix)~%~a~%~a~%(pop-matrix)~%"
-		    (matrix-to-concatenate-string 
-		     (picking-hit-transform selection))
-		    (buffer-range-to-string 
-		     main-buffer 
-		     (picking-hit-from selection) 
-		     (picking-hit-to selection)))))
-       (buffer-insert-no-undo to-buffer
-			      #f
-			      text)))
-   (selections-var main-buffer)))
+  (let ((selections (selections-var main-buffer)))
+    ;; If selections is #f, for-each will fail.
+    (if selections
+        (for-each
+         (lambda (selection)
+           (let ((text
+                  (format #f "(push-matrix)~%~a~%~a~%(pop-matrix)~%"
+                          (matrix-to-concatenate-string
+                           (picking-hit-transform selection))
+                          (buffer-range-to-string
+                           main-buffer
+                           (picking-hit-from selection)
+                           (picking-hit-to selection)))))
+             (buffer-insert-no-undo to-buffer
+                                    #f
+                                    text)))
+         selections))))
 
 (define (copy-selections-to-copy-buffer-var buffer)
-    (let ((copy-buf (ensure-copy-buffer-var buffer)))
-      (copy-selections-to-buffer main-buffer to-buffer)))
-  
+  (let ((copy-buf (ensure-copy-buffer-var buffer)))
+    (copy-selections-to-buffer buffer copy-buf)))
+
 (define (cut-selections-to-copy-buffer-var buffer)
-    (copy-selections-to-copy-buffer-var buffer)
+  (copy-selections-to-copy-buffer-var buffer)
   (clear-selections-var buffer))
 
 (define (paste-copy-buffer-var buffer)
-    (buffer-insert-undoable buffer
-			    #f
-			    (buffer-to-string (ensure-copy-buffer-var buffer))))
+  (buffer-insert-undoable buffer
+                          #f
+                          (buffer-to-string (ensure-copy-buffer-var buffer))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Copy
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (do-copy-key)
-    (copy-selections-to-copy-buffer-var (window-buffer (window-current))))
+  (copy-selections-to-copy-buffer-var (window-buffer-main (window-current))))
 
 (keymap-add-fun-global do-copy-key "Cc")
 
@@ -212,7 +216,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (do-delete-key)
-    (delete-selections (window-buffer (window-current))))
+  (delete-selections (window-buffer-main (window-current)))
+  (window-redraw (window-current)))
 
 (keymap-add-fun-global do-delete-key "Cd")
 
@@ -230,7 +235,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (do-paste-key)
-    (clear-selections-var (window-buffer-main (window-current))))
+  (clear-selections-var (window-buffer-main (window-current))))
 
 (keymap-add-fun-global do-paste-key "Cv")
 
@@ -239,7 +244,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (do-clear-selection-key)
-    (clear-copy-buffer-var (window-buffer-main (window-current))))
+  (clear-copy-buffer-var (window-buffer-main (window-current))))
 
 ;; Map this to n in for "none" in case we need s c for copy
 (keymap-add-fun-global do-clear-selection-key "s" " ")
@@ -249,18 +254,18 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (select-mouse-up win button x y)
-  (let ((selection (pick-path-window win 
-				     (window-view-x win x) 
-				     (window-view-y win y))))
+  (let ((selection (pick-path-window win
+                                     (window-view-x win x)
+                                     (window-view-y win y))))
     (if selection
-	(begin
-	  (if (= button 1)
-	      (set-selections-var (window-buffer-main win)
-				  selection)
-	      (append-selections-var (window-buffer-main win)
-				     selection))
-	  (highlight-selection win))
-	(clear-highlight-selection win))))
+        (begin
+          (if (= button 1)
+              (set-selections-var (window-buffer-main win)
+                                  selection)
+              (append-selections-var (window-buffer-main win)
+                                     selection))
+          (highlight-selection win))
+        (clear-highlight-selection win))))
 
 ;; Install
 
@@ -274,10 +279,10 @@
 
 ;; Register
 
-(install-tool select-tool-install 
-	      select-tool-uninstall
-	      "Select"
-	      "s" "s")
+(install-tool select-tool-install
+              select-tool-uninstall
+              "Select"
+              "s" "s")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Selection highlighting
@@ -288,26 +293,26 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (highlight-selection win)
-    (let ((highlight-buffer (ensure-window-buffer win "_highlight")))
-      ;; The current position of the selection as it is dragged around
-      (set-buffer-variable! highlight-buffer "x" 0.0)
-      (set-buffer-variable! highlight-buffer "y" 0.0)
-      (buffer-undo-mark highlight-buffer)
-      (buffer-insert-no-undo 
-       highlight-buffer
-       #f
-       "(push-matrix)(translate (buffer-variable (current-buffer) \"x\") (buffer-variable (current-buffer) \"y\"))\n(set-colour 1.0 0.0 0.0 0.0)\n(define old-set-colour set-colour)\n(set! set-colour (lambda (a b c d) #f))\n")
-      (copy-selections-to-buffer (window-buffer-main win) 
-				       highlight-buffer)
-      (buffer-insert-no-undo 
-       highlight-buffer
-       #f
-       "\n(set! set-colour old-set-colour)(pop-matrix)\n") ;; Restore col!
-      (buffer-invalidate highlight-buffer)
-      (window-redraw win)))
+  (let ((highlight-buffer (ensure-window-buffer win "_highlight")))
+    ;; The current position of the selection as it is dragged around
+    (set-buffer-variable! highlight-buffer "x" 0.0)
+    (set-buffer-variable! highlight-buffer "y" 0.0)
+    (buffer-undo-mark highlight-buffer)
+    (buffer-insert-no-undo
+     highlight-buffer
+     #f
+     "(push-matrix)(translate (buffer-variable (current-buffer) \"x\") (buffer-variable (current-buffer) \"y\"))\n(set-colour 1.0 0.0 0.0 0.0)\n(define old-set-colour set-colour)\n(set! set-colour (lambda (a b c d) #f))\n")
+    (copy-selections-to-buffer (window-buffer-main win)
+                               highlight-buffer)
+    (buffer-insert-no-undo
+     highlight-buffer
+     #f
+     "\n(set! set-colour old-set-colour)(pop-matrix)\n") ;; Restore col!
+    (buffer-invalidate highlight-buffer)
+    (window-redraw win)))
 
 (define (clear-highlight-selection win)
-    (remove-window-buffer win "_highlight"))
+  (remove-window-buffer win "_highlight"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Ensuring that a selection is wrapped in a push/translate/pop block
@@ -315,102 +320,102 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (update-selection-ranges selections after by)
-    (if selections
-	(let ((selection (car selections)))
-	  (if (> after 
-		 (picking-hit-index selection))
-	      (begin
-	       (set-picking-hit-from! selection 
-				      (+ (picking-hit-from selection)
-					 by))
-	       (set-picking-hit-to! selection 
-				    (+ (picking-hit-to selection)
-				       by)))))
-	(roll-selections-down (cdr selections) after by)))
+  (if selections
+      (let ((selection (car selections)))
+        (if (> after
+               (picking-hit-index selection))
+            (begin
+              (set-picking-hit-from! selection
+                                     (+ (picking-hit-from selection)
+                                        by))
+              (set-picking-hit-to! selection
+                                   (+ (picking-hit-to selection)
+                                      by)))))
+      (roll-selections-down (cdr selections) after by)))
 
 (define (wrap-selection-translate buffer sel x y)
-    (let ((prefix (format #f "(push-matrix)~%(translate ~a ~a)~%" x y))
-	  (suffix "(pop-matrix)\n"))
-      ;; Wrap the selection in a new transform
-      (buffer-insert-undoable buffer
-			      (picking-hit-to sel)
-			      suffix)
-      (buffer-insert-undoable buffer
-			      (picking-hit-from sel)
-			      prefix)
-      ;; And roll down the rest
-      (update-selection-ranges (selections-var buffer) 
-			       (+ (picking-hit-index sel)
-				  1)
-			       (+ (string-length prefix)
-				  (string-length suffix)))))
+  (let ((prefix (format #f "(push-matrix)~%(translate ~a ~a)~%" x y))
+        (suffix "(pop-matrix)\n"))
+    ;; Wrap the selection in a new transform
+    (buffer-insert-undoable buffer
+                            (picking-hit-to sel)
+                            suffix)
+    (buffer-insert-undoable buffer
+                            (picking-hit-from sel)
+                            prefix)
+    ;; And roll down the rest
+    (update-selection-ranges (selections-var buffer)
+                             (+ (picking-hit-index sel)
+                                1)
+                             (+ (string-length prefix)
+                                (string-length suffix)))))
 
 (define (update-selection-translate buffer sel x y prev-from prev-to)
-  (let-values (((old-x old-y) 
-		(get-translate-values (gb->substring (buffer-text buffer)
-						     (+ prev-from 1)
-						     (+ prev-to 1)))))
-	      (let* ((new-x (+ old-x x))
-		     (new-y (+ old-y y))
-		     (new-translate (format #f "(translate ~a ~a)"
-					    new-x new-y)))
-		;; Update the existing transform very inefficiently
-		(buffer-delete-undoable buffer
-					(+ prev-from 1)
-					(- prev-to prev-from))
-		(buffer-insert-undoable buffer
-					(+ prev-from 1)
-					new-translate)
-		;; Roll down the selections that follow
-		(update-selection-ranges 
-		 (selections-var buffer) 
-		 (picking-hit-index sel)
-		 (- (string-length new-translate)
-		    (- prev-from 
-		       prev-to))))))
+  (let-values (((old-x old-y)
+                (get-translate-values (buffer-range-to-string buffer
+                                                              (+ prev-from 1)
+                                                              (+ prev-to 1)))))
+    (let* ((new-x (+ old-x x))
+           (new-y (+ old-y y))
+           (new-translate (format #f "(translate ~a ~a)"
+                                  new-x new-y)))
+      ;; Update the existing transform very inefficiently
+      (buffer-delete-undoable buffer
+                              (+ prev-from 1)
+                              (- prev-to prev-from))
+      (buffer-insert-undoable buffer
+                              (+ prev-from 1)
+                              new-translate)
+      ;; Roll down the selections that follow
+      (update-selection-ranges
+       (selections-var buffer)
+       (picking-hit-index sel)
+       (- (string-length new-translate)
+          (- prev-from
+             prev-to))))))
 
 (define (update-selection-parameters buffer sel)
-    (let ((buffer-str (buffer-to-string buffer)))
-      ;; What if it's first or last?
-      (let-values (((prev-from prev-to) 
-		    (sexp-before buffer-str (picking-hit-from sel)))
-		   ((next-from next-to) 
-		    (sexp-after buffer-str (picking-hit-to sel))))
-	(let ((prev-symbol (if prev-from 
-			       (sexp-symbol-string buffer-str prev-from)
-			       ""))
-	      (next-symbol (if next-from
-			       (sexp-symbol-string buffer-str next-from)
-			       "")))
-	  (values (if (and (string= prev-symbol "translate")
-			   (or (string= next-symbol "pop-matrix")
-			       (= next-symbol #f)))
-		      #t
-		      #f)
-		  prev-from
-		  prev-to)))))
+  (let ((buffer-str (buffer-to-string buffer)))
+    ;; What if it's first or last?
+    (let-values (((prev-from prev-to)
+                  (sexp-before buffer-str (picking-hit-from sel)))
+                 ((next-from next-to)
+                  (sexp-after buffer-str (picking-hit-to sel))))
+      (let ((prev-symbol (if prev-from
+                             (sexp-symbol-string buffer-str prev-from)
+                             ""))
+            (next-symbol (if next-from
+                             (sexp-symbol-string buffer-str next-from)
+                             "")))
+        (values (if (and (string= prev-symbol "translate")
+                         (or (string= next-symbol "pop-matrix")
+                             (= next-symbol #f)))
+                    #t
+                    #f)
+                prev-from
+                prev-to)))))
 
 (define (update-selection-transform buffer sel x y)
-  (let-values (((wrapped? prev-from prev-to) 
-		(update-selection-parameters buffer sel)))
-	      ;; What if it's a rotate but preceded by a translate? Later.
-	      (if wrapped?
-		  (update-selection-translate buffer 
-					      sel x y prev-from prev-to)
-		  ;; else
-		  (wrap-selection-translate buffer sel x y))))
+  (let-values (((wrapped? prev-from prev-to)
+                (update-selection-parameters buffer sel)))
+    ;; What if it's a rotate but preceded by a translate? Later.
+    (if wrapped?
+        (update-selection-translate buffer
+                                    sel x y prev-from prev-to)
+        ;; else
+        (wrap-selection-translate buffer sel x y))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Deselect
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (deselect-all)
-    (let* ((win (window-current))
-	   (buffer (window-buffer-main win)))
-      (clear-selections-var buffer)
-      (clear-copy-buffer-var buffer)
-      (clear-highlight-selection win)
-      (window-redraw win))) 
+  (let* ((win (window-current))
+         (buffer (window-buffer-main win)))
+    (clear-selections-var buffer)
+    (clear-copy-buffer-var buffer)
+    (clear-highlight-selection win)
+    (window-redraw win)))
 
 (keymap-add-fun-global deselect-all "s" "n")
 
@@ -424,55 +429,56 @@
 (define move-tool-initial-mouse-down-x #f)
 (define move-tool-initial-mouse-down-y #f)
 
-(define (move-mouse-down win button x y) 
+(define (move-mouse-down win button x y)
   (set! move-tool-mouse-down-x (window-view-x win x))
   (set! move-tool-mouse-down-y (window-view-y win y))
   (if (eq? move-tool-initial-mouse-down-x #f)
       (begin
-	(set! move-tool-initial-mouse-down-x move-tool-mouse-down-x)
-	(set! move-tool-initial-mouse-down-y move-tool-mouse-down-y)))
+        (set! move-tool-initial-mouse-down-x move-tool-mouse-down-x)
+        (set! move-tool-initial-mouse-down-y move-tool-mouse-down-y)))
   (let ((highlight-buffer (ensure-window-buffer win "_highlight")))
     (set-buffer-variable! highlight-buffer
-			  "x"
-			  move-tool-mouse-down-x)
+                          "x"
+                          move-tool-mouse-down-x)
     (set-buffer-variable! highlight-buffer
-			  "y"
-			  move-tool-mouse-down-y))
+                          "y"
+                          move-tool-mouse-down-y))
   (set! move-tool-mouse-down #t))
 
-(define (move-mouse-move win x y) 
+(define (move-mouse-move win x y)
   (if move-tool-mouse-down
       (let ((highlight-buffer (window-buffer win "_highlight")))
-	(set-buffer-variable! highlight-buffer
-			     "x"
-			      (- (window-view-x win x)
-				move-tool-initial-mouse-down-x))
-	(set-buffer-variable! highlight-buffer
-			      "y"
-			      (- (window-view-y win y)
-				 move-tool-initial-mouse-down-y))
-	(buffer-invalidate highlight-buffer)
-	(window-redraw win))))
+        (set-buffer-variable! highlight-buffer
+                              "x"
+                              (- (window-view-x win x)
+                                 move-tool-initial-mouse-down-x))
+        (set-buffer-variable! highlight-buffer
+                              "y"
+                              (- (window-view-y win y)
+                                 move-tool-initial-mouse-down-y))
+        (buffer-invalidate highlight-buffer)
+        (window-redraw win))))
 
 (define (translate-selections win x y)
   (let* ((highlight-buffer (window-buffer win "_highlight"))
-	 (main (window-buffer-main win))
-	 (selections (selections-var main))
-	 (new-x (- (window-view-x win x)
-		   move-tool-mouse-down-x))
-	 (new-y (- (window-view-y win y)
-		   move-tool-mouse-down-y)))
+         (main (window-buffer-main win))
+         (selections (selections-var main))
+         (new-x (- (window-view-x win x)
+                   move-tool-mouse-down-x))
+         (new-y (- (window-view-y win y)
+                   move-tool-mouse-down-y)))
     (for-each
      (lambda (sel)
        (update-selection-transform main sel new-x new-y))
      (or selections
-	 '()))))
+         '()))))
 
 (define (move-mouse-up win button x y)
   (set! move-tool-mouse-down '#f)
   (translate-selections win x y)
   (buffer-invalidate (window-buffer-main win))
-  (window-redraw win))
+  (window-redraw win)
+  )
 
 ;; Install
 
@@ -492,7 +498,7 @@
 
 ;; Register
 
-(install-tool move-tool-install 
-	      move-tool-uninstall
-	      "Move"
-	      "s" "m")
+(install-tool move-tool-install
+              move-tool-uninstall
+              "Move"
+              "s" "m")

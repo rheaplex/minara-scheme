@@ -20,11 +20,11 @@
 
 /*-----------------------------------------------------------------------------
   Events
-  
+
   These are our application framework event handler hooks.
   Our event handlers receive events from the window system, does some setup
   for the rendering system and then feed them into the scheme code.
-  Currently these are GLUT event handlers, which should probably be the 
+  Currently these are GLUT event handlers, which should probably be the
   conceptual model for them. We could have an event polling system or a class
   with overriden event handlers and it wouldn't make any difference, though.
   ---------------------------------------------------------------------------*/
@@ -160,8 +160,8 @@ glut_resize (int width, int height)
   glLoadIdentity ();
   //Tell guile
     scm_call_3 (resize_hook, minara_window_current (),
-		scm_long2num (width),
-		scm_long2num (height));
+		scm_from_int32 (width),
+		scm_from_int32 (height));
 
 }
 
@@ -178,7 +178,7 @@ glut_key_press (unsigned char key, int x, int y)
   int modifiers = glutGetModifiers ();
   char keyString[] = {key, '\0'};
   scm_call_3 (key_press_hook, minara_window_current (),
-	      scm_makfrom0str (keyString), scm_long2num (modifiers));
+	      scm_from_locale_string (keyString), scm_from_int32 (modifiers));
 }
 
 /**
@@ -194,7 +194,7 @@ glut_key_release (unsigned char key, int x, int y)
   int modifiers = glutGetModifiers ();
   char keyString[] = {key, '\0'};
   scm_call_3 (key_release_hook, minara_window_current (),
-	      scm_makfrom0str (keyString), scm_long2num (modifiers));
+              scm_from_locale_string (keyString), scm_from_int32 (modifiers));
 }
 
 /**
@@ -224,14 +224,14 @@ glut_mouse_button (int button, int state, int x, int y)
   if (state == GLUT_UP)
   {
     scm_call_4 (mouse_button_up_hook, minara_window_current (),
-		scm_long2num (buttonNum),
-		scm_long2num (x), scm_long2num (y));
+		scm_from_int32 (buttonNum),
+		scm_from_int32 (x), scm_from_int32 (y));
   }
   else
   {
     scm_call_4 (mouse_button_down_hook, minara_window_current (),
-		scm_long2num (buttonNum),
-		scm_long2num (x), scm_long2num (y));
+		scm_from_int32 (buttonNum),
+		scm_from_int32 (x), scm_from_int32 (y));
   }
 }
 
@@ -245,7 +245,7 @@ void
 glut_mouse_drag (int x, int y)
 {
   scm_call_3 (mouse_move_hook, minara_window_current (),
-	      scm_long2num (x), scm_long2num (y));
+	      scm_from_int32 (x), scm_from_int32 (y));
 }
 
 /**
@@ -258,7 +258,7 @@ void
 glut_mouse_move (int x, int y)
 {
   scm_call_3 (mouse_move_hook, minara_window_current (),
-	      scm_long2num (x), scm_long2num (y));
+	      scm_from_int32 (x), scm_from_int32 (y));
 }
 
 /**
@@ -270,7 +270,7 @@ void
 glut_menu_select (int id)
 {
   scm_call_2 (menu_select_hook, minara_window_current (),
-	      scm_long2num (id));
+	      scm_from_int32 (id));
 }
 
 /**

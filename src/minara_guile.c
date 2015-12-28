@@ -24,10 +24,10 @@
 
 /*-----------------------------------------------------------------------------
   Scheme
-  
+
   Our Lisp system. We currently use Guile, so it's actually our Scheme system.
   This should still be called minara_lisp.c, though.
-  The code in this file extends Guile to allow us to evaluate code buffers 
+  The code in this file extends Guile to allow us to evaluate code buffers
   exactly as we need to for minara to function as planned.
   ---------------------------------------------------------------------------*/
 
@@ -76,12 +76,13 @@ char *guile_do_nothinevent_handlers = \
 
 void
 define_config_module ()
-{  
+{
   // Set the guile path
-  scm_c_define ("$minara-lisp-dir", 
-		scm_makfrom0str (MINARA_LISP_DIR));
-  scm_c_define ("$minara-dotminara-dir", 
-		scm_makfrom0str (MINARA_DOTMINARA_DIR));
+  // We should check for null with scm_from_locale_str, but these are constants
+  scm_c_define ("$minara-lisp-dir",
+                scm_from_locale_string (MINARA_LISP_DIR));
+  scm_c_define ("$minara-dotminara-dir",
+                scm_from_locale_string (MINARA_DOTMINARA_DIR));
   //Export them
   scm_c_export ("$minara-lisp-dir", "$minara-dotminara-dir", NULL);
 }

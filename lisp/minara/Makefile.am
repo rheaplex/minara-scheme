@@ -3,7 +3,7 @@ minaradir = $(datadir)/minara/$(VERSION)/lisp/minara
 minara_DATA = buffer.scm command-line.scm \
 cut-and-paste.scm \
 development.scm events.scm fill.scm \
-gap-buffer.scm geometry.scm keymap.scm load-libraries.scm menu.scm \
+geometry.scm keymap.scm load-libraries.scm menu.scm \
 minibuffer.scm picking-protocol.scm picking.scm \
 picking-hit.scm \
 selection.scm sexp.scm \

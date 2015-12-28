@@ -1,4 +1,4 @@
-;; fill.scm : handling the current fil colour for minara
+;; fill.scm : handling the current fill colour for minara
 ;;
 ;; Copyright (c) 2004 Rob Myers, rob@robmyers.org
 ;;
@@ -20,7 +20,6 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Fill colour handling
-;; Poorly named, should be colour.scm . Can you guess why it isn't?
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
@@ -37,21 +36,21 @@
 (hsv (h s v) (hsv->xyz h s v))
 (lab (l a b) (lab->xyz h s v))
 
-;; Iterate over the components, calling each to convert to RGBA 
+;; Iterate over the components, calling each to convert to RGBA
 ;; and sum the results
 ;; What happens if the result goes off the end of the scale or out of gamut?
 (fill (&rest all)
       (let ((r 0.0)
-	    (g 0.0)
-	    (b 0.0)
-	    (a 0.0))
-	(maplist (f the-fill)
-		 (let ((rr gg bb aa) (f))
-		  (setf r (+ (rr * aa) r))
-		  (setf g (+ (* gg aa) g))
-		  (setf b (+ (* bb aa) b))
-		  (setf a (+ aa a)))
-	(list r g b))))
+            (g 0.0)
+            (b 0.0)
+            (a 0.0))
+        (maplist (f the-fill)
+                 (let ((rr gg bb aa) (f))
+                   (setf r (+ (rr * aa) r))
+                   (setf g (+ (* gg aa) g))
+                   (setf b (+ (* bb aa) b))
+                   (setf a (+ aa a)))
+                 (list r g b))))
 
 ;; Components are ink/phosphor/whatever gamut limits
 ;; For example sRGB R will be R:0.76 or whatever

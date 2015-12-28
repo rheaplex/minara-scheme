@@ -1,5 +1,7 @@
+0.4 - Guile 2.0 comptibility. Code cleanup.
+
 0.3 - Initial autotools-based release.
 
 0.2 - Colour editing and tools.
 
-0.1 - Initial version. 
+0.1 - Initial version.

@@ -28,9 +28,9 @@
   :use-module (minara menu)
   :use-module (minara keymap)
   :export (install-tool
-	   remove-current-tool
-	   set-current-tool-name!
-	   current-tool-name))
+           remove-current-tool
+           set-current-tool-name!
+           current-tool-name))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -42,20 +42,20 @@
 
 (define (install-tool install-fun uninstall-fun menu-name . key-combo)
   (let ((install-fun-with-boilerplate
-	 (lambda () 
-	   (remove-current-tool)
-	   (set-current-tool-name! menu-name)
-	   (set! %remove-current-tool-hook uninstall-fun)
-	   (install-fun))))
+         (lambda ()
+           (remove-current-tool)
+           (set-current-tool-name! menu-name)
+           (set! %remove-current-tool-hook uninstall-fun)
+           (install-fun))))
     (menu-callback-add menu-name install-fun-with-boilerplate)
-    (apply keymap-add-fun-global 
-	   install-fun-with-boilerplate 
-	   key-combo)))
+    (apply keymap-add-fun-global
+           install-fun-with-boilerplate
+           key-combo)))
 
 ;; Handle a tool stopping being the current tool
 
 (define (%remove-current-tool-hook)
-    #f)
+  #f)
 
 ;; Keep track of the current tool name
 
@@ -65,7 +65,7 @@
   %current-tool-name)
 
 (define (set-current-tool-name! name)
-;;  (set! %current-tool-name name)
+  ;;  (set! %current-tool-name name)
   (set-window-tool-name! (window-current) name)
   (window-redraw (window-current)))
 

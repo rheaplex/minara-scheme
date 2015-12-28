@@ -52,7 +52,7 @@
 #include "minara_window.h"
 
 /** The main (contextual) menu. */
-static int main_menu;
+static int32_t main_menu;
 
 /*-----------------------------------------------------------------------------
   Functions
@@ -68,10 +68,10 @@ static int main_menu;
 
 SCM minara_menu_make ()
 {
-  int id_num = -1;
+  int32_t id_num = -1;
   id_num = glutCreateMenu (glut_menu_select);
   glutSetMenu (main_menu);
-  return SCM_MAKINUM (id_num);
+  return scm_from_int (id_num);
 }
 
 /**
@@ -83,12 +83,12 @@ SCM minara_menu_make ()
 SCM
 minara_menu_install (SCM menu, SCM title)
 {
-  int menu_num;
+  int32_t menu_num;
   char *title_str = "";
   SCM_ASSERT (scm_is_string (title), title, SCM_ARG1, "minara-menu-install");
   title_str = scm_to_locale_string (title);
   SCM_ASSERT (SCM_NUMBERP (menu), menu, SCM_ARG1, "minara-menu-install");
-  menu_num = scm_num2int (menu, SCM_ARG1, "minara-menu-install");
+  menu_num = scm_to_int32 (menu);
   glutSetMenu (main_menu);
   glutAddSubMenu (title_str, menu_num);
   free (title_str);
@@ -106,14 +106,14 @@ minara_menu_install (SCM menu, SCM title)
 SCM
 minara_menu_add_entry (SCM menu, SCM entry, SCM id)
 {
-  int menu_num, id_num;
+  int32_t menu_num, id_num;
   char *entry_str;
   SCM_ASSERT (SCM_NUMBERP (menu), menu, SCM_ARG1, "minara-menu-add-entry");
   SCM_ASSERT (scm_is_string (entry), entry, SCM_ARG2, "minara-menu-add-entry");
   SCM_ASSERT (SCM_NUMBERP (id), id, SCM_ARG3, "minara-menu-add-entry");
-  menu_num = scm_num2int (menu, SCM_ARG1, "minara-menu-add-entry");
+  menu_num = scm_to_int32 (menu);
   entry_str = scm_to_locale_string (entry);
-  id_num = scm_num2int (id, SCM_ARG3, "minara-menu-add-entry");
+  id_num = scm_to_int32 (id);
   glutSetMenu (menu_num);
   glutAddMenuEntry (entry_str, id_num);
   glutSetMenu (main_menu);
@@ -130,9 +130,9 @@ minara_menu_add_entry (SCM menu, SCM entry, SCM id)
 SCM
 minara_menu_remove_entry (SCM id)
 {
-  int id_num;
+  int32_t id_num;
   SCM_ASSERT (SCM_NUMBERP (id), id, SCM_ARG1, "minara-menu-remove-entry");
-  id_num = scm_num2int (id, SCM_ARG1, "minara-menu-remove-entry");
+  id_num = scm_to_int32 (id);
   glutRemoveMenuItem (id_num);
   return SCM_EOL;
 }
@@ -152,8 +152,8 @@ define_menu_module ()
   scm_c_define_gsubr ("menu-add-entry", 3, 0, 0, minara_menu_add_entry);
   scm_c_define_gsubr ("menu-remove-entry", 1, 0, 0, minara_menu_remove_entry);
 
-  scm_c_export ("menu-make", "menu-install", "menu-add-entry", 
-		"menu-remove-entry", NULL);
+  scm_c_export ("menu-make", "menu-install", "menu-add-entry",
+                "menu-remove-entry", NULL);
 }
 
 
@@ -164,6 +164,6 @@ menu_startup ()
   scm_c_define_module ("minara-internal menu", define_menu_module, NULL);
 
   //Make a main menu to attach everything to.
-    main_menu = glutCreateMenu (NULL);
+  //main_menu = glutCreateMenu (NULL);
   //glutAttachMenu (GLUT_RIGHT_BUTTON);
 }

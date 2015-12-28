@@ -1,5 +1,3 @@
-
-(turn-on-debugging)
 (read-enable 'positions)
 
 (if (not (defined? '$minara-lisp-dir)) 

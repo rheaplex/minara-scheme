@@ -23,7 +23,6 @@
 ;; Main startup code
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(turn-on-debugging)
 (read-enable 'positions)
 
 (use-modules (minara-internal config) (minara-internal events))

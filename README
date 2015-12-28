@@ -1,1 +1,8 @@
- 
+# Dependencies
+
+autotools, gcc, guile, guile development libraries, guile-libs, glut development libraries
+
+# The First Build
+
+autoreconf --install
+./configure

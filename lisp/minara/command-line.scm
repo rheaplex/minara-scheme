@@ -47,11 +47,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (cli-version)
-  (write-line "minara 0.1")
-  (write-line "Copyright (C) 2004 Rob Myers")
+  (write-line "minara 0.4.0")
+  (write-line "Copyright (C) 2004, 2010 Rob Myers")
   (write-line "You may redistribute copies of Emacs")
   (write-line "under the terms of the GNU General Public License.")
-  (write-line 
+  (write-line
    "For more information about these matters, see the file named COPYING.")
   (exit 0))
 
@@ -71,26 +71,26 @@
 ;; This is a GLUT wart: if we started without a window open we'd quit
 
 (define (load-splash-screen)
-  (make-window-from-file (string-append $minara-dotminara-dir 
-					"/" 
-					"minara.minara")))
+  (make-window-from-file (string-append $minara-dotminara-dir
+                                        "/"
+                                        "minara.minara")))
 
 (define (cli-handle-arguments)
   (let* ((options (getopt-long (command-line) cli-option-spec))
-	 (file-to-load (option-ref options 'file #f)))
+         (file-to-load (option-ref options 'file #f)))
     (if (option-ref options 'help #f)
-	(cli-help))
+        (cli-help))
     (if (option-ref options 'version #f)
-	(cli-version))
+        (cli-version))
     (if (option-ref options 'repl #f)
-	(top-repl))
+        (top-repl))
     (if (option-ref options 'debug #f)
-	(begin
-	  (debug-enable 'debug) 
-	  (debug-enable 'backtrace)
-	  (debug-enable 'trace)))
+        (begin
+          (debug-enable 'debug)
+          (debug-enable 'backtrace)
+          (debug-enable 'trace)))
     ;; Load the splash screen if no file, otherwise load file
     ;; Important, as GLUT crashes if started without a window!
     (if (equal? file-to-load #f)
-	(load-splash-screen)
+        (load-splash-screen)
        	(make-window-from-file file-to-load))))

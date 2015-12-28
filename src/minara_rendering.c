@@ -263,8 +263,8 @@ render_move_to (SCM horizontal, SCM vertical)
   GLdouble *coords;
   SCM_ASSERT (SCM_NUMBERP (horizontal), horizontal, SCM_ARG1, "render-start-path");
   SCM_ASSERT (SCM_NUMBERP (vertical), vertical, SCM_ARG2, "render-start-path");
-  h = scm_num2dbl (horizontal, "render-start-path");
-  v = scm_num2dbl (vertical, "render-start-path");
+  h = scm_to_double (horizontal);
+  v = scm_to_double (vertical);
   if (path_started == 1)
   {
     gluTessEndContour (glu_tesselator);
@@ -293,8 +293,8 @@ render_line_to (SCM horizontal, SCM vertical)
   GLdouble *coords;
   SCM_ASSERT (SCM_NUMBERP (horizontal), horizontal, SCM_ARG1, "render-line-to");
   SCM_ASSERT (SCM_NUMBERP (vertical), vertical, SCM_ARG2, "render-line-to");
-  h = scm_num2dbl (horizontal, "render-line-to");
-  v = scm_num2dbl (vertical, "render-line-to");
+  h = scm_to_double (horizontal);
+  v = scm_to_double (vertical);
   point_cache_insert_point (&current_points, &coords, h, v, 0.0);
   gluTessVertex (glu_tesselator, coords, coords);
   previous_point[0] = h;
@@ -332,12 +332,12 @@ render_curve_to (SCM x1, SCM y1, SCM x2, SCM y2, SCM x3, SCM y3)
   SCM_ASSERT (SCM_NUMBERP (y2), y2, SCM_ARG4, "render-curve-to");
   SCM_ASSERT (SCM_NUMBERP (x3), x3, SCM_ARG5, "render-curve-to");
   SCM_ASSERT (SCM_NUMBERP (y3), y3, SCM_ARG6, "render-curve-to");
-  h1 = scm_num2dbl (x1, "render-curve-to");
-  v1 = scm_num2dbl (y1, "render-curve-to");
-  h2 = scm_num2dbl (x2, "render-curve-to");
-  v2 = scm_num2dbl (y2, "render-curve-to");
-  h3 = scm_num2dbl (x3, "render-curve-to");
-  v3 = scm_num2dbl (y3, "render-curve-to");
+  h1 = scm_to_double (x1);
+  v1 = scm_to_double (y1);
+  h2 = scm_to_double (x2);
+  v2 = scm_to_double (y2);
+  h3 = scm_to_double (x3);
+  v3 = scm_to_double (y3);
   while (t <= 1.0)
   {
     q1 = t * t * t * -1.0 + t * t * 3 + t * -3.0 + 1.0;
@@ -388,12 +388,12 @@ render_matrix_set (SCM m11, SCM m12, SCM m21, SCM m22, SCM m31, SCM m32)
   SCM_ASSERT (SCM_NUMBERP (m22), m22, SCM_ARG4, "render-push-matrix");
   SCM_ASSERT (SCM_NUMBERP (m31), m31, SCM_ARG5, "render-push-matrix");
   SCM_ASSERT (SCM_NUMBERP (m32), m32, SCM_ARG6, "render-push-matrix");
-  matrix[0][0] = scm_num2dbl (m11, "render-push-matrix");
-  matrix[1][0] = scm_num2dbl (m21, "render-push-matrix");
-  matrix[3][0] = scm_num2dbl (m31, "render-push-matrix");
-  matrix[0][1] = scm_num2dbl (m12, "render-push-matrix");
-  matrix[1][1] = scm_num2dbl (m22, "render-push-matrix");
-  matrix[3][1] = scm_num2dbl (m32, "render-push-matrix");
+  matrix[0][0] = scm_to_double (m11);
+  matrix[1][0] = scm_to_double (m21);
+  matrix[3][0] = scm_to_double (m31);
+  matrix[0][1] = scm_to_double (m12);
+  matrix[1][1] = scm_to_double (m22);
+  matrix[3][1] = scm_to_double (m32);
 
   glLoadMatrixd ((GLdouble *)matrix);
   
@@ -424,12 +424,12 @@ render_matrix_concatenate (SCM m11, SCM m12, SCM m21, SCM m22, SCM m31, SCM m32)
   SCM_ASSERT (SCM_NUMBERP (m22), m22, SCM_ARG4, "render-concatenate-matrix");
   SCM_ASSERT (SCM_NUMBERP (m31), m31, SCM_ARG5, "render-concatenate-matrix");
   SCM_ASSERT (SCM_NUMBERP (m32), m32, SCM_ARG6, "render-concatenate-matrix");
-  matrix[0][0] = scm_num2dbl (m11, "render-concatenate-matrix");
-  matrix[1][0] = scm_num2dbl (m21, "render-concatenate-matrix");
-  matrix[3][0] = scm_num2dbl (m31, "render-concatenate-matrix");
-  matrix[0][1] = scm_num2dbl (m12, "render-concatenate-matrix");
-  matrix[1][1] = scm_num2dbl (m22, "render-concatenate-matrix");
-  matrix[3][1] = scm_num2dbl (m32, "render-concatenate-matrix");
+  matrix[0][0] = scm_to_double (m11);
+  matrix[1][0] = scm_to_double (m21);
+  matrix[3][0] = scm_to_double (m31);
+  matrix[0][1] = scm_to_double (m12);
+  matrix[1][1] = scm_to_double (m22);
+  matrix[3][1] = scm_to_double (m32);
 
   glMultMatrixd ((GLdouble *)matrix);
   
@@ -443,8 +443,8 @@ render_translate (SCM sx, SCM sy)
   double y;
   SCM_ASSERT (SCM_NUMBERP (sx), sx, SCM_ARG1, "render-translate");
   SCM_ASSERT (SCM_NUMBERP (sy), sy, SCM_ARG2, "render-translate");
-  x = scm_num2dbl (sx, "render-translate");
-  y = scm_num2dbl (sy, "render-translate");
+  x = scm_to_double (sx);
+  y = scm_to_double (sy);
 
   glTranslated (x, y, 0.0);
   
@@ -457,8 +457,8 @@ render_scale (SCM sx, SCM sy)
   double y;
   SCM_ASSERT (SCM_NUMBERP (sx), sx, SCM_ARG1, "render-scale");
   SCM_ASSERT (SCM_NUMBERP (sy), sy, SCM_ARG2, "render-scale");
-  x = scm_num2dbl (sx, "render-scale");
-  y = scm_num2dbl (sy, "render-scale");
+  x = scm_to_double (sx);
+  y = scm_to_double (sy);
 
   glScaled (x, y, 0.0);
   
@@ -470,7 +470,7 @@ render_rotate (SCM sr)
 {
   double r;
   SCM_ASSERT (SCM_NUMBERP (sr), sr, SCM_ARG1, "render-rotate");
-  r = scm_num2dbl (sr, "render-rotate");
+  r = scm_to_double (sr);
 
   glRotated (r, 0.0, 0.0, 1.0);
   
@@ -495,10 +495,10 @@ SCM render_set_colour (SCM r, SCM g, SCM b, SCM a)
   SCM_ASSERT (SCM_NUMBERP (g), g, SCM_ARG2, "render-fill");
   SCM_ASSERT (SCM_NUMBERP (b), b, SCM_ARG3, "render-fill");
   SCM_ASSERT (SCM_NUMBERP (a), a, SCM_ARG4, "render-fill");
-  rf = scm_num2dbl (r, "render-fill");
-  gf = scm_num2dbl (g, "render-fill");
-  bf = scm_num2dbl (b, "render-fill");
-  af = scm_num2dbl (a, "render-fill");
+  rf = scm_to_double (r);
+  gf = scm_to_double (g);
+  bf = scm_to_double (b);
+  af = scm_to_double (a);
   glColor4f (rf, gf, bf, af);
   //fprintf (stderr, "render-set-color %f %f %f %f\n", rf, gf, bf, af);
   return SCM_EOL;
@@ -661,14 +661,14 @@ rendering_startup ()
 {
   //Make our tesselator
   glu_tesselator = gluNewTess ();
-  gluTessCallback (glu_tesselator, GLU_TESS_VERTEX, glVertex3dv);
-  gluTessCallback (glu_tesselator, GLU_TESS_BEGIN, glBegin);
+  gluTessCallback (glu_tesselator, GLU_TESS_VERTEX, (_GLUfuncptr)glVertex3dv);
+  gluTessCallback (glu_tesselator, GLU_TESS_BEGIN, (_GLUfuncptr)glBegin);
   gluTessCallback (glu_tesselator, GLU_TESS_END, glEnd);
-  gluTessCallback (glu_tesselator, GLU_TESS_ERROR, 
-		   tesselator_error_callback);
-  gluTessCallback (glu_tesselator, GLU_TESS_COMBINE, 
-		   tesselator_combine_callback);
+  gluTessCallback (glu_tesselator, GLU_TESS_ERROR,
+                   (_GLUfuncptr)tesselator_error_callback);
+  gluTessCallback (glu_tesselator, GLU_TESS_COMBINE,
+                   (_GLUfuncptr)tesselator_combine_callback);
   // Define our module
-  scm_c_define_module ("minara rendering-protocol", define_rendering_module, 
+  scm_c_define_module ("minara rendering-protocol", define_rendering_module,
 		       NULL);
 }

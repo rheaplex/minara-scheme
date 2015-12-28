@@ -26,19 +26,19 @@
 
 (define-module (minara keymap)
   :export (keymap-make
-	   keymap-current-root
-	   keymap?
-	   keymap-current
-	   reset-current-keymap
-	   keymap-current-root-set
-	   keymap-current-root-reset
-	   keymap-current-set
-	   keymap-add-fun-global
-	   keymap-add-fun
-	   keymap-add-fun-list
-	   dispatch-keymap
-	   dispatch-key
-	   key-dispatch-hook-method))
+           keymap-current-root
+           keymap?
+           keymap-current
+           reset-current-keymap
+           keymap-current-root-set
+           keymap-current-root-reset
+           keymap-current-set
+           keymap-add-fun-global
+           keymap-add-fun
+           keymap-add-fun-list
+           dispatch-keymap
+           dispatch-key
+           key-dispatch-hook-method))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Window-system-specific constants
@@ -67,7 +67,7 @@
 (define GLUT_KEY_HOME			106)
 (define GLUT_KEY_END			107)
 (define GLUT_KEY_INSERT			108)
- 
+
 ;; glutGetModifiers return mask.
 (define GLUT_ACTIVE_SHIFT               1)
 (define GLUT_ACTIVE_CTRL                2)
@@ -142,7 +142,7 @@
                  fun))
      ;; No keymap for key?
      ((equal? keymap-entry-for-key
-             #f)
+              #f)
       ;; Create it
       (hash-set! keymap
                  key
@@ -172,9 +172,9 @@
 
 ;; Try to dispatch the key press in the keymap
 (define (dispatch-keymap keymap key)
-  (let ((next-candidate (hash-ref keymap 
-				  key)))
-    (cond 
+  (let ((next-candidate (hash-ref keymap
+                                  key)))
+    (cond
      ;; Keymap? Install as current keymap
      ((keymap? next-candidate)
       (keymap-current-set next-candidate)
@@ -191,14 +191,14 @@
 
 ;; Try to dispatch the current keymap
 (define (dispatch-key key)
-    (if (not (and keymap-current 
-		  (dispatch-keymap keymap-current 
-				   key)))
-	(if (not (dispatch-keymap %global-keymap 
-				  key))
-	    (format #t 
-		    "No match for key ~a in current or global keymap.~%" 
-		    key))))
+  (if (not (and keymap-current
+                (dispatch-keymap keymap-current
+                                 key)))
+      (if (not (dispatch-keymap %global-keymap
+                                key))
+          (format #t
+                  "No match for key ~a in current or global keymap.~%"
+                  key))))
 
 
 ;; Control really isn't happy on Fedora 13!
@@ -207,30 +207,30 @@
 (define (key-with-control-key key)
   (if (> (string-length key) 0)
       (let ((key-code (char->integer (string-ref key 0))))
-	;; If it's a letter, make it an ascii letter, otherwise ignore
-	(if (< key-code 27)
-	    (string #\C (integer->char (+ key-code 96)))
-	    #f))
+        ;; If it's a letter, make it an ascii letter, otherwise ignore
+        (if (< key-code 27)
+            (string #\C (integer->char (+ key-code 96)))
+            #f))
       #f))
 
 ;; Our method to interface to the event system
 ;; Note that whilst getting shift alt ans control is GLUT-dependent,
 ;; once we make the booleans it could be any windowing system
 (define (key-dispatch-hook-method win key modifiers)
-  (let ((shift (= 1 (logand modifiers 
-			    GLUT_ACTIVE_SHIFT)))
-	(control (= 2 (logand modifiers 
-			      GLUT_ACTIVE_CTRL)))
-	(alt (= 4 (logand modifiers 
-			  GLUT_ACTIVE_ALT))))
+  (let ((shift (= 1 (logand modifiers
+                            GLUT_ACTIVE_SHIFT)))
+        (control (= 2 (logand modifiers
+                              GLUT_ACTIVE_CTRL)))
+        (alt (= 4 (logand modifiers
+                          GLUT_ACTIVE_ALT))))
     ;; Shift is just the upper-case character. Ensure it *is* upper-case.
     (if control
-	(set! key (key-with-control-key key)))
+        (set! key (key-with-control-key key)))
     (if (and key alt)
-	(set! key (string-append "A" key)))
+        (set! key (string-append "A" key)))
     ;; Like this because of the control-key problems, see key-with-control-key
     (if (and key shift)
-	(set! key (string-upcase key)))
+        (set! key (string-upcase key)))
     (dispatch-key key)))
 
 
@@ -240,14 +240,14 @@
 
 ;; TEST
 
-; (define (dummy)
-;   (write "hello"))
+                                        ; (define (dummy)
+                                        ;   (write "hello"))
 
-; (define (dummy2)
-;   (write "hello 2"))
+                                        ; (define (dummy2)
+                                        ;   (write "hello 2"))
 
-; (define km (keymap-make))
+                                        ; (define km (keymap-make))
 
-; (keymap-add-fun km dummy "a")
-; (keymap-add-fun km dummy2 "b" "c")
-; (keymap-current-root-set km)
+                                        ; (keymap-add-fun km dummy "a")
+                                        ; (keymap-add-fun km dummy2 "b" "c")
+                                        ; (keymap-current-root-set km)

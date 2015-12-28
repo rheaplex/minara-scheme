@@ -24,29 +24,29 @@
 ;; How does this work?
 ;;
 ;; Precis:
-;; Count the shapes, hit-test the shapes, store the buffer positions that hit, 
+;; Count the shapes, hit-test the shapes, store the buffer positions that hit,
 ;; find the s-expressions that contain those buffer positions.
 ;;
 ;; Details:
-;; We install a rendering protocol that counts the number of 
-;; occurrences of the (begin-path) operator. 
+;; We install a rendering protocol that counts the number of
+;; occurrences of the (begin-path) operator.
 ;; This allows us to identify which shape is being drawn.
 ;;
 ;; We then count the number of intersections between a ray
 ;; from the target point and the result of evaluating each drawing command.
 ;; When we get to the end of a path, if the number of intersections
-;; are odd the point is inside the shape so we push the current path number 
+;; are odd the point is inside the shape so we push the current path number
 ;; onto a list.
 ;; This count indicates the number of the hit path. There may be more than one,
 ;; stored in Z-order.
 ;;
 ;; We then use the count to search the text for the relevent path description.
 ;;
-;; This is slow, but we can cache a lot of the information and improve 
+;; This is slow, but we can cache a lot of the information and improve
 ;; performance.
 ;;
 ;; Note that picking returns a list of every item under the picking point
-;; from back to front rather than just the frontmost object. 
+;; from back to front rather than just the frontmost object.
 ;; A normal "selection" tool can then disard everything apart from the topmost
 ;; object.
 ;;
@@ -61,7 +61,7 @@
 ;; optimizations (hashed to object counts) when editing the text, but this will
 ;; be done once the basic functionality is implemented.
 ;; Ideally we'd evaluate the buffer front-to-back. :-)
-;; Nothing should be done or assumed to prevent the model of rebinding the 
+;; Nothing should be done or assumed to prevent the model of rebinding the
 ;; drawing routines to the picking routines then evaluating the drawing buffer
 ;; from working.
 ;;
@@ -91,10 +91,10 @@
   :use-module (minara buffer)
   :use-module (minara window)
   :export (get-picked-path
-	   pick-paths
-	   pick-paths-window
-	   pick-path
-	   pick-path-window))
+           pick-paths
+           pick-paths-window
+           pick-path
+           pick-path-window))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Picking in the main window buffer.
@@ -102,23 +102,23 @@
 
 (define (pick-paths buf x y)
   (let ((buffer-string (buffer-to-string buf))
-	(picking-module (resolve-module '(minara picking-protocol))))
+        (picking-module (resolve-module '(minara picking-protocol))))
     ((@ (minara picking-protocol) initialise-protocol) x y buffer-string) ;; Translate?
     (eval-string buffer-string picking-module)
     (let ((picked-polygons ((@ (minara picking-protocol) finalise-protocol))))
       (if (eq? picked-polygons '())
-	  #f
-	  picked-polygons))))
+          #f
+          picked-polygons))))
 
 (define (pick-paths-window win x y)
-    (pick-paths (window-buffer-main win) x y))
+  (pick-paths (window-buffer-main win) x y))
 
 (define (pick-path buf x y)
-    (let ((picks (pick-paths buf x y)))
-      (if picks
-	  ;; Return the range and transform
-	  (last picks)
-	  #f)))
-  
+  (let ((picks (pick-paths buf x y)))
+    (if picks
+        ;; Return the range and transform
+        (last picks)
+        #f)))
+
 (define (pick-path-window win x y)
-    (pick-path (window-buffer-main win) x y))
+  (pick-path (window-buffer-main win) x y))

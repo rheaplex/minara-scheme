@@ -31,21 +31,21 @@
   :use-module (srfi srfi-1)
   :use-module (srfi srfi-14)
   :export (matrix-identity-make
-	   matrix-scale-make
-	   matrix-translate-make
-	   matrix-rotate-make
-	   matrix-to-concatenate-string
-	   matrix-to-string
-	   matrix-concatenate
-	   matrix-concatanaten
-	   matrix-point-transform
-	   make-matrix-stack
-	   stack-set-matrix
-	   stack-concatenate-matrix
-	   stack-current-matrix
-	   stack-push-matrix
-	   stack-pop-matrix
-	   get-translate-values))
+           matrix-scale-make
+           matrix-translate-make
+           matrix-rotate-make
+           matrix-to-concatenate-string
+           matrix-to-string
+           matrix-concatenate
+           matrix-concatanaten
+           matrix-point-transform
+           make-matrix-stack
+           stack-set-matrix
+           stack-concatenate-matrix
+           stack-current-matrix
+           stack-push-matrix
+           stack-pop-matrix
+           get-translate-values))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -101,18 +101,18 @@
 
 (define (matrix-rotate-make z)
   (let ((c (cos z))
-	(s (sin z))
-	(ns (- (sin z))))
+        (s (sin z))
+        (ns (- (sin z))))
     (list c s nc c 0.0 0.0)))
 
 ;; to string
 
 (define (matrix-to-concatenate-string matrix)
-    (format #f "(concatenate-matrix ~a)" (matrix-to-string matrix)))
+  (format #f "(concatenate-matrix ~a)" (matrix-to-string matrix)))
 
 (define (matrix-to-string matrix)
-    (format #f "~a ~a ~a ~a ~a ~a" (first matrix) (second matrix)
-	    (third matrix) (fourth matrix) (fifth matrix) (sixth matrix)))
+  (format #f "~a ~a ~a ~a ~a ~a" (first matrix) (second matrix)
+          (third matrix) (fourth matrix) (fifth matrix) (sixth matrix)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Matrix Concatenation
@@ -128,25 +128,25 @@
 
 (define (matrix-concatenate a b)
   (let* ((aa (first a))
-	 (ab (second a))
-	 (ac (third a))
-	 (ad (fourth a))
-	 (ae (fifth a))
-	 (af (sixth a))
-	 (ba (first b))
-	 (bb (second b))
-	 (bc (third b))
-	 (bd (fourth b))
-	 (be (fifth b))
-	 (bf (sixth b)))
+         (ab (second a))
+         (ac (third a))
+         (ad (fourth a))
+         (ae (fifth a))
+         (af (sixth a))
+         (ba (first b))
+         (bb (second b))
+         (bc (third b))
+         (bd (fourth b))
+         (be (fifth b))
+         (bf (sixth b)))
     (list (+ (* aa ba) (* ab bc)) ;;(* 0.0 btx)
-	  (+ (* aa bb) (* ab bd)) ;;(* 0.0 b32)	
-	  ;;(+ (* a11 b13) (* a12 b23) (* a13 b33))
-	  (+ (* ac ba) (* ad bc)) ;;(*a23 b31)	
-	  (+ (* ac bb) (* ad bd)) ;;(* a23 b32)
-	  ;;(+ (* a21 b13) (* a22 b23) (* a23 b33))
-	  (+ (* ae ba) (* af bc) be) ;;(* a33 b31)
-	  (+ (* ae bb) (* af bd) bf)))) ;;(* a33 b32)
+          (+ (* aa bb) (* ab bd)) ;;(* 0.0 b32)
+          ;;(+ (* a11 b13) (* a12 b23) (* a13 b33))
+          (+ (* ac ba) (* ad bc)) ;;(*a23 b31)
+          (+ (* ac bb) (* ad bd)) ;;(* a23 b32)
+          ;;(+ (* a21 b13) (* a22 b23) (* a23 b33))
+          (+ (* ae ba) (* af bc) be) ;;(* a33 b31)
+          (+ (* ae bb) (* af bd) bf)))) ;;(* a33 b32)
 ;;(+ (* a31 b13) (* a32 b23) (* a33 b33))
 
 ;; concatenaten
@@ -154,10 +154,10 @@
 
 (define (matrix-concatenaten a . ms)
   (let ((product (concatenate a (car ms)))
-	(rest (cdr ms)))
+        (rest (cdr ms)))
     (if (nilp rest)
-	product
-	(concatenaten product (cdr ms)))))
+        product
+        (concatenaten product (cdr ms)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -171,17 +171,17 @@
 
 (define (matrix-point-transform x y m)
   (let* ((a (first m))
-	 (b (second m))
-	 (c (third m))
-	 (d (fourth m))
-	 (tx (fifth m))
-	 (ty (sixth m))
-	 (xx (+ (* x a) 
-		(* y b)
-		tx))
-	 (yy (+ (* x c)
-		(* y d)
-		ty)))
+         (b (second m))
+         (c (third m))
+         (d (fourth m))
+         (tx (fifth m))
+         (ty (sixth m))
+         (xx (+ (* x a)
+                (* y b)
+                tx))
+         (yy (+ (* x c)
+                (* y d)
+                ty)))
     (values xx yy)))
 
 
@@ -190,32 +190,28 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (make-matrix-stack)
-    (list (matrix-identity-make)))
+  (list (matrix-identity-make)))
 
 (define (stack-set-matrix matrix-stack matrix)
-    (cons matrix (cdr matrix-stack)))
+  (cons matrix (cdr matrix-stack)))
 
 (define (stack-concatenate-matrix matrix-stack matrix)
-    (stack-set-matrix matrix-stack
-		      (matrix-concatenate matrix
-					  (stack-current-matrix matrix-stack))))
+  (stack-set-matrix matrix-stack
+                    (matrix-concatenate matrix
+                                        (stack-current-matrix matrix-stack))))
 
 (define (stack-current-matrix matrix-stack)
-    (car matrix-stack))
+  (car matrix-stack))
 
 (define (stack-push-matrix matrix-stack)
-    (cons (copy-tree (stack-current-matrix matrix-stack))
-	  matrix-stack))
+  (cons (copy-tree (stack-current-matrix matrix-stack))
+        matrix-stack))
 
 (define (stack-pop-matrix matrix-stack)
-    (cdr matrix-stack))
-
-
-
-
+  (cdr matrix-stack))
 
 (define (get-translate-values trans)
-    (let* ((tokens (string-tokenize trans (string->char-set "0123456789.-")))
-	   (x (first tokens))
-	   (y (second tokens)))
+  (let* ((tokens (string-tokenize trans (string->char-set "0123456789.-")))
+         (x (first tokens))
+         (y (second tokens)))
     (values (string->number x) (string->number y))))

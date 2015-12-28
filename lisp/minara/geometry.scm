@@ -20,18 +20,18 @@
 
 (define-module (minara geometry)
   :export (distance-between-points
-	   angle-around-point
-	   degrees-to-radians
-	   rotate-point-around-point
-	   lines-intersect-vertices
-	   point-line-side
-	   add-point
-	   divide-point
-	   point-x
-	   point-y
-	   bezier-eval
-	   split-bezier
-	   line-bezier-intersection-count-vertices))
+           angle-around-point
+           degrees-to-radians
+           rotate-point-around-point
+           lines-intersect-vertices
+           point-line-side
+           add-point
+           divide-point
+           point-x
+           point-y
+           bezier-eval
+           split-bezier
+           line-bezier-intersection-count-vertices))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Mathematical functions for geometric calculations.
@@ -41,67 +41,67 @@
 ;; Find the distance between the points x1,y1 and x2,y2
 
 (define (distance-between-points x1 y1 x2 y2)
-  (sqrt (+ (expt (abs (- x2 
-		    x1))
-		 2.0)
-	   (expt (abs (- y2
-			 y1))
-		 2.0))))
+  (sqrt (+ (expt (abs (- x2
+                         x1))
+                 2.0)
+           (expt (abs (- y2
+                         y1))
+                 2.0))))
 
 ;; Find polar angle of point px,py around origin ox,oy
 
 (define (angle-around-point ox oy px py)
-    (let ((x (- px
-		ox))
-	  (y (- py
-		oy)))
-      (case x
-	((0.0)
-	 (cond 
-	   ((< y 0.0) 
-	    270.0)
-	   ((> v 0.0)
-	    90.0)
-	   ((= v 0.0)
-	    0.0)))
-	(else
-	 (let ((r (* (atan (/ y
-			      x)) 
-		     (/ 180.0
-			3.14159))))
-	   (if (< x 0.0)
-	       (+ r
-		  180.0)
-	       r))))))
+  (let ((x (- px
+              ox))
+        (y (- py
+              oy)))
+    (case x
+      ((0.0)
+       (cond
+        ((< y 0.0)
+         270.0)
+        ((> v 0.0)
+         90.0)
+        ((= v 0.0)
+         0.0)))
+      (else
+       (let ((r (* (atan (/ y
+                            x))
+                   (/ 180.0
+                      3.14159))))
+         (if (< x 0.0)
+             (+ r
+                180.0)
+             r))))))
 
-(define $pi 
-    3.1415926535897932384626433832795029)
+(define $pi
+  3.1415926535897932384626433832795029)
 
 (define $degrees-to-radians
-    (/ $pi
-       180.0))
+  (/ $pi
+     180.0))
 
 (define (degrees-to-radians degrees)
-    (* degrees
-       $degrees-to-radians))
+  (* degrees
+     $degrees-to-radians))
 
 (define (rotate-point-around-point x1 y1 x2 y2 theta)
-    (let ((st (sin (degrees-to-radians theta)))
-	  (ct (cos (degrees-to-radians theta)))
-	  (x (- x2
-		x1))
-	  (y (- y2
-		y1)))
-      (cons (+ x1 
-	       (- (* x
-		     ct)
-		  (* y
-		   st)))
-	    (+ y1 
-	       (+ (* y
-		     ct)
-		  (* x
-		     st))))))
+  (let ((st (sin (degrees-to-radians theta)))
+        (ct (cos (degrees-to-radians theta)))
+        (x (- x2
+              x1))
+        (y (- y2
+              y1)))
+    (cons (+ x1
+             (- (* x
+                   ct)
+                (* y
+                   st)))
+          (+ y1
+             (+ (* y
+                   ct)
+                (* x
+                   st))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -110,30 +110,30 @@
 ;; Returns the t where the second line intersects the first line
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define (lines-intersect-vertices p1x p1y p2x p2y ;; First line 
-				  p3x p3y p4x p4y);; Second line 
-    (let ((denominator (- (* (- p4y p3y)
-			     (- p2x p1x)) 
-			  (* (- p4x p3x)
-			     (- p2y p1y)))))
-      (if (= denominator 0.0)
-	  #f ;; Parallel lines
-	  (let ((ua (/ (- (* (- p4x p3x) 
-			     (- p1y p3y))
-			  (* (- p4y p3y) 
-			     (- p1x p3x)))
-		       denominator))
-		(ub (/ (- (* (- p2x p1x) 
-			     (- p1y p3y)) 
-			  (* (- p2y p1y) 
-			     (- p1x p3x))) 
-		       denominator)))
-	    (if (and (>= ua 0.0)
-		     (<= ua 1.0)
-		     (>= ub 0.0)
-		     (<= ub 1.0)) ;; Intersection (or not)
-		ua
-		#f)))))
+(define (lines-intersect-vertices p1x p1y p2x p2y ;; First line
+                                  p3x p3y p4x p4y);; Second line
+  (let ((denominator (- (* (- p4y p3y)
+                           (- p2x p1x))
+                        (* (- p4x p3x)
+                           (- p2y p1y)))))
+    (if (= denominator 0.0)
+        #f ;; Parallel lines
+        (let ((ua (/ (- (* (- p4x p3x)
+                           (- p1y p3y))
+                        (* (- p4y p3y)
+                           (- p1x p3x)))
+                     denominator))
+              (ub (/ (- (* (- p2x p1x)
+                           (- p1y p3y))
+                        (* (- p2y p1y)
+                           (- p1x p3x)))
+                     denominator)))
+          (if (and (>= ua 0.0)
+                   (<= ua 1.0)
+                   (>= ub 0.0)
+                   (<= ub 1.0)) ;; Intersection (or not)
+              ua
+              #f)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -143,8 +143,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (point-line-side p0 p2 p1)
-    (- (* (- (x p1) (x p0)) (- (y p2) (y p0)))
-       (* (- (x p2) (x p0)) (- (y p1) (y p0)))))
+  (- (* (- (x p1) (x p0)) (- (y p2) (y p0)))
+     (* (- (x p2) (x p0)) (- (y p1) (y p0)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -173,11 +173,11 @@
 
 (define (bezier-eval h0 v0 h1 v1 h2 v2 h3 v3 t)
   (let ((q1 (+ (* t t t -1.0) (* t t 3) (* t -3.0) 1.0))
-	(q2 (+ (* t t t 3.0) (* t t -6.0) (* t 3.0)))
-	(q3 (+ (* t t t -3.0) (* t t 3.0)))
-	(q4 (* t t t)))
+        (q2 (+ (* t t t 3.0) (* t t -6.0) (* t 3.0)))
+        (q3 (+ (* t t t -3.0) (* t t 3.0)))
+        (q4 (* t t t)))
     (let ((qx (+ (* q1 h0) (* q2 h1) (* q3 h2) (* q4 h3)))
-	  (qy (+ (* q1 v0) (* q2 v1) (* q3 v2) (* q4 v3))))
+          (qy (+ (* q1 v0) (* q2 v1) (* q3 v2) (* q4 v3))))
       (list qx qy))))
 
 ;; Divide the bezier into two equal halves
@@ -185,59 +185,59 @@
 
 (define (split-bezier h0 v0 h1 v1 h2 v2 h3 v3)
   (let* ((p01 (/ (add-point h0 v0 h1 v1) 2.0))
-	 (p12 (/ (add-point h1 v1 h2 v2) 2.0))
-	 (p23 (/ (add-point h2 v2 h3 v2) 2.0))?
-	 (p012 (/ (add-point (point-x p01) (point-y p01)
-			     (point-x p12) (point-y p12)) 2.0))
-	 (p123 (/ (add-point (point-x p12) (point-y p12)
-			     (point-x p23) (point-y p23)) 2.0))
-	 (p0123 (/ (add-point (point-x p012) (point-y p012)
-			      (point-x p123) (point-y p123)) 2.0)))
-    (list (list h0 v0 h01 v01 (point-x 012) (point-y 012) 
-		(point-x 0123) (point-y 0123))
-	  (list (point-x 0123) (point-y 0123) (point-x 123) (point-y 123)
-		h23 v23 h3 v3))))
+         (p12 (/ (add-point h1 v1 h2 v2) 2.0))
+         (p23 (/ (add-point h2 v2 h3 v2) 2.0))
+         (p012 (/ (add-point (point-x p01) (point-y p01)
+                             (point-x p12) (point-y p12)) 2.0))
+         (p123 (/ (add-point (point-x p12) (point-y p12)
+                             (point-x p23) (point-y p23)) 2.0))
+         (p0123 (/ (add-point (point-x p012) (point-y p012)
+                              (point-x p123) (point-y p123)) 2.0)))
+    (list (list h0 v0 h01 v01 (point-x 012) (point-y 012)
+                (point-x 0123) (point-y 0123))
+          (list (point-x 0123) (point-y 0123) (point-x 123) (point-y 123)
+                h23 v23 h3 v3))))
 
 ;; Decide the flatness of the bezier
 
 ;; Line-bezier intersection
 ;; Terrible. Almost as good as our bezier drawing
-;; Replace with something less embarrasingly awful, 
+;; Replace with something less embarrasingly awful,
 ;; recursive subdivision at least
 ;; And the name is bad, too
 
 (define %bez-eval-steps 10)
-(define %bez-eval-step (/ 1.0 
+(define %bez-eval-step (/ 1.0
                           %bez-eval-steps))
 
-(define (line-bezier-intersection-count-vertices 
-	 ax ay bx by h0 v0 h1 v1 h2 v2 h3 v3)
+(define (line-bezier-intersection-count-vertices
+         ax ay bx by h0 v0 h1 v1 h2 v2 h3 v3)
   (let ((crossings '())
         (ph h0)
         (pv v0))
     ;; Step through the bezier at a very coarse resolution
     (do ((t %bez-eval-step (+ t %bez-eval-step)))
-	;; Return the count of intersections
-	((> t 1.0) (length crossings))
+        ;; Return the count of intersections
+        ((> t 1.0) (length crossings))
       (let* ((p (bezier-eval h0 v0 h1 v1 h2 v2 h3 v3 t))
-	     (h (point-x p))
-	     (v (point-y p))
-	     (ti (lines-intersect-vertices ph pv h v
-					   ax ay bx by)))
-	;; Counting the number of intersections
-	;; Ignoring intersections at 0.0 because 
-	;; they are the same as the previous 1.0 intersection...
-	(if (and ti
-		 (> ti 
-		    0.0))
-	    (let ((intersection (cons h v)))
-	      ;; Much siliness to avoid duplicate points from adjacent sections
-	      ;; when the ray passes exactly through the point
-	      (set! crossings (assoc-set! crossings 
-					  intersection 
-					  #t))))
-	(set! ph h)
-	(set! pv v)))))
+             (h (point-x p))
+             (v (point-y p))
+             (ti (lines-intersect-vertices ph pv h v
+                                           ax ay bx by)))
+        ;; Counting the number of intersections
+        ;; Ignoring intersections at 0.0 because
+        ;; they are the same as the previous 1.0 intersection...
+        (if (and ti
+                 (> ti
+                    0.0))
+            (let ((intersection (cons h v)))
+              ;; Much siliness to avoid duplicate points from adjacent sections
+              ;; when the ray passes exactly through the point
+              (set! crossings (assoc-set! crossings
+                                          intersection
+                                          #t))))
+        (set! ph h)
+        (set! pv v)))))
 
-  
+
 ;; Get the normal of the bezier at point t

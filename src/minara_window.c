@@ -102,8 +102,8 @@ SCM minara_window_make (SCM width, SCM height)
   int h;
   SCM_ASSERT (SCM_NUMBERP (width), width, SCM_ARG1, "minara_window_make");
   SCM_ASSERT (SCM_NUMBERP (height), height, SCM_ARG2, "minara_window_make");
-  w = scm_num2dbl (width, "minara_window_make");
-  h = scm_num2dbl (height, "minara_window_make");
+  w = scm_to_double (width);
+  h = scm_to_double (height);
 
   glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB);
   glutInitWindowSize (w, h);
@@ -123,7 +123,7 @@ SCM minara_window_make (SCM width, SCM height)
   glutPassiveMotionFunc (glut_mouse_move);
   glutAttachMenu (GLUT_RIGHT_BUTTON);
   //Return the new window ID
-    return scm_int2num (win);
+    return scm_from_int32 (win);
 }
 
 
@@ -139,7 +139,7 @@ minara_window_dispose (SCM window)
   GLuint win = 0;
   GLuint old_win = glutGetWindow ();
   SCM_ASSERT (SCM_NUMBERP (window), window, SCM_ARG1, "minara-window-dispose");
-  win = (GLuint) scm_num2int (window, SCM_ARG1, "minara-window-dispose");
+  win = (GLuint) scm_to_int32 (window);
   glut_window_set (win);
   glutHideWindow ();
   glut_window_set (old_win);
@@ -155,7 +155,7 @@ minara_window_dispose (SCM window)
 SCM
 minara_window_current ()
 {
-  return scm_uint2num (glutGetWindow ());
+  return scm_from_uint32 (glutGetWindow ());
 }
 
 /**
@@ -169,7 +169,7 @@ minara_window_set (SCM win)
 {
   GLuint w = 0;
   SCM_ASSERT (SCM_NUMBERP (win), win, SCM_ARG1, "minara-window-set");
-  w = (GLuint) scm_num2int (win, SCM_ARG1, "minara-window-set");
+  w = (GLuint) scm_to_int32 (win);
   glut_window_set (w);
   return SCM_EOL;
 }
@@ -185,7 +185,7 @@ minara_window_invalidate (SCM win)
 {
   GLuint w = 0;
   SCM_ASSERT (SCM_NUMBERP (win), win, SCM_ARG1, "minara-window-invalidate");
-  w = (GLuint) scm_num2int (win, SCM_ARG1, "minara-window-invalidate");
+  w = (GLuint) scm_to_int32 (win);
   glutPostWindowRedisplay (w);
   return SCM_EOL;
 }
@@ -207,7 +207,7 @@ SCM minara_window_set_title (SCM win, SCM title)
   char *t = NULL;
   int old_win = glutGetWindow ();
   SCM_ASSERT (SCM_NUMBERP (win), win, SCM_ARG1, "minara-window-set-title");
-  w = (GLuint) scm_num2int (win, SCM_ARG1, "minara-window-set-title");
+  w = (GLuint) scm_to_int32 (win);
   SCM_ASSERT (scm_is_string (title), title, SCM_ARG2, 
 	      "minara-window-set-title");
   t = scm_to_locale_string (title);
@@ -240,11 +240,11 @@ SCM minara_window_draw_text(SCM win, SCM x, SCM y, SCM text)
   char *status = NULL;
   int old_win = glutGetWindow ();
   SCM_ASSERT (SCM_NUMBERP (win), win, SCM_ARG1, "minara-window-draw-text");
-  w = (GLuint) scm_num2int (win, SCM_ARG1, "minara-window-draw-text");
+  w = (GLuint) scm_to_int32 (win);
   SCM_ASSERT (SCM_NUMBERP (x), x, SCM_ARG2, "minara-window-draw-text");
-  xpos = (GLfloat) scm_num2int (x, SCM_ARG2, "minara-window-draw-text");
+  xpos = (GLfloat) scm_to_int32 (x);
   SCM_ASSERT (SCM_NUMBERP (y), y, SCM_ARG3, "minara-window-draw-text");
-  ypos = (GLfloat) scm_num2int (y, SCM_ARG3, "minara-window-draw-text");
+  ypos = (GLfloat) scm_to_int32 (y);
   SCM_ASSERT (scm_is_string (text), text, SCM_ARG4, "minara-window-draw-text");
   status = scm_to_locale_string (text);
   if (w != 0)

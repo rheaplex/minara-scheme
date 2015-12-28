@@ -24,29 +24,29 @@
 ;; How does this work?
 ;;
 ;; Precis:
-;; Count the shapes, hit-test the shapes, store the buffer positions that hit, 
+;; Count the shapes, hit-test the shapes, store the buffer positions that hit,
 ;; find the s-expressions that contain those buffer positions.
 ;;
 ;; Details:
-;; We install a rendering protocol that counts the number of 
-;; occurrences of the (begin-path) operator. 
+;; We install a rendering protocol that counts the number of
+;; occurrences of the (begin-path) operator.
 ;; This allows us to identify which shape is being drawn.
 ;;
 ;; We then count the number of intersections between a ray
 ;; from the target point and the result of evaluating each drawing command.
 ;; When we get to the end of a path, if the number of intersections
-;; are odd the point is inside the shape so we push the current path number 
+;; are odd the point is inside the shape so we push the current path number
 ;; onto a list.
 ;; This count indicates the number of the hit path. There may be more than one,
 ;; stored in Z-order.
 ;;
 ;; We then use the count to search the text for the relevent path description.
 ;;
-;; This is slow, but we can cache a lot of the information and improve 
+;; This is slow, but we can cache a lot of the information and improve
 ;; performance.
 ;;
 ;; Note that picking returns a list of every item under the picking point
-;; from back to front rather than just the frontmost object. 
+;; from back to front rather than just the frontmost object.
 ;; A normal "selection" tool can then disard everything apart from the topmost
 ;; object.
 ;;
@@ -61,7 +61,7 @@
 ;; optimizations (hashed to object counts) when editing the text, but this will
 ;; be done once the basic functionality is implemented.
 ;; Ideally we'd evaluate the buffer front-to-back. :-)
-;; Nothing should be done or assumed to prevent the model of rebinding the 
+;; Nothing should be done or assumed to prevent the model of rebinding the
 ;; drawing routines to the picking routines then evaluating the drawing buffer
 ;; from working.
 ;;
@@ -92,25 +92,25 @@
   :use-module (minara buffer)
   :use-module (minara picking-hit)
   :export (initialise-protocol
-	   path-begin
-	   path-end 
-	   move-to
-	   line-to 
-	   curve-to 
-	   set-colour
-	   begin-mask 
-	   end-mask 
-	   begin-masking
-	   end-masking 
-	   push-matrix 
-	   pop-matrix
-	   concatenate-matrix 
-	   set-matrix 
-	   identity-matrix
-	   translate 
-	   scale 
-	   rotate
-	   finalise-protocol))
+           path-begin
+           path-end
+           move-to
+           line-to
+           curve-to
+           set-colour
+           begin-mask
+           end-mask
+           begin-masking
+           end-masking
+           push-matrix
+           pop-matrix
+           concatenate-matrix
+           set-matrix
+           identity-matrix
+           translate
+           scale
+           rotate
+           finalise-protocol))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Globals
@@ -121,7 +121,7 @@
 ;; The buffer string chopped to the end of the last matched sexp
 ;; RENAME
 (define previous-buffer-string "")
-		      
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Globals
 ;; Used within a single pass through the picking routines
@@ -195,48 +195,48 @@
 ;; TODO: do it.
 
 (define (push-matrix)
-    (set! transformation-stack 
-	  (stack-push-matrix transformation-stack)))
+  (set! transformation-stack
+        (stack-push-matrix transformation-stack)))
 
 (define (pop-matrix)
-    (set! transformation-stack 
-	  (stack-pop-matrix transformation-stack)))
+  (set! transformation-stack
+        (stack-pop-matrix transformation-stack)))
 
 (define (concatenate-matrix a b c d e f)
-    (set! transformation-stack 
-	  (stack-concatenate-matrix transformation-stack
-				    (list a b c d e f))))
+  (set! transformation-stack
+        (stack-concatenate-matrix transformation-stack
+                                  (list a b c d e f))))
 
 (define (set-matrix a b c d e f)
-    (set! transformation-stack 
-	  (stack-set-matrix transformation-stack 
-			    (list a b c d e f))))
+  (set! transformation-stack
+        (stack-set-matrix transformation-stack
+                          (list a b c d e f))))
 
 (define (identity-matrix)
-    (set! transformation-stack 
-	  (stack-set-matrix transformation-stack 
-			    (identity-matrix))))
+  (set! transformation-stack
+        (stack-set-matrix transformation-stack
+                          (identity-matrix))))
 
 (define (translate x y)
-    (set! transformation-stack 
-	  (stack-concatenate-matrix transformation-stack 
-				    (matrix-translate-make x y)))
+  (set! transformation-stack
+        (stack-concatenate-matrix transformation-stack
+                                  (matrix-translate-make x y)))
   (set! current-translate (+ current-translate 1)))
 
 (define (scale x y)
-    (set! transformation-stack 
-	  (stack-concatenate-matrix transformation-stack 
-				    (matrix-scale-make x y)))
+  (set! transformation-stack
+        (stack-concatenate-matrix transformation-stack
+                                  (matrix-scale-make x y)))
   (set! current-scale (+ current-scale 1)))
 
 (define (rotate theta)
-    (set! transformation-stack 
-	  (stack-concatenate-matrix transformation-stack 
-				    (matrix-rotate-make theta)))
+  (set! transformation-stack
+        (stack-concatenate-matrix transformation-stack
+                                  (matrix-rotate-make theta)))
   (set! current-rotate (+ current-rotate 1)))
 
 (define (transform x y)
-    (matrix-point-transform x y (stack-current-matrix transformation-stack)))
+  (matrix-point-transform x y (stack-current-matrix transformation-stack)))
 
 ;; Start a new pick pass
 (define (path-begin)
@@ -244,17 +244,17 @@
   (set! current-polygon (+ current-polygon 1)))
 
 (define (get-picked-path)
-    (let* ((nnth (- current-polygon previous-polygon)))
-      (let-values (((path-from path-to)
-		    (get-nth-path previous-buffer-string nnth)))
-		  (set! previous-buffer-string (substring previous-buffer-string
-							  path-to))
-		  (set! previous-polygon current-polygon)
-		  (make-picking-hit current-polygon
-				    path-from
-				    path-to
-				    (copy-tree (stack-current-matrix
-						transformation-stack))))))
+  (let* ((nnth (- current-polygon previous-polygon)))
+    (let-values (((path-from path-to)
+                  (get-nth-path previous-buffer-string nnth)))
+      (set! previous-buffer-string (substring previous-buffer-string
+                                              path-to))
+      (set! previous-polygon current-polygon)
+      (make-picking-hit current-polygon
+                        path-from
+                        path-to
+                        (copy-tree (stack-current-matrix
+                                    transformation-stack))))))
 
 ;; Check the intersections. Even = inside, Odd = oustide
 ;; Store the colour and anything else in a list with the polygon number?
@@ -262,50 +262,49 @@
   (if (and (odd? intersections)
            (not (= intersections
                    0)))
-     (set! picked-polygons 
-	   (cons 
-	    (get-picked-path)
-	    picked-polygons)))
+      (set! picked-polygons
+            (cons
+             (get-picked-path)
+             picked-polygons)))
   (set! intersections 0))
 
 ;; Keep track of the "previous" position
 (define (move-to xx yy)
-    (let-values (((x y) (transform xx yy)))
-		(set! previous-x x)
-		(set! previous-y y)))
+  (let-values (((x y) (transform xx yy)))
+    (set! previous-x x)
+    (set! previous-y y)))
 
 ;; Where to send the ray -uh- line to. Oh, the horror! Fixme.
 
 (define %ray-x 65535.0)
-  
+
 ;; Line segment hit test
 
 (define (line-to xx yy)
-    (let-values (((x y) (transform xx yy)))
-		(if (lines-intersect-vertices previous-x 
-					      previous-y 
-					      x 
-					      y 
-					      pick-x 
-					      pick-y 
-					      %ray-x 
-					      pick-y)
-		    (set! intersections (+ intersections
-					   1)))
-		(set! previous-x x)
-		(set! previous-y y)))
+  (let-values (((x y) (transform xx yy)))
+    (if (lines-intersect-vertices previous-x
+                                  previous-y
+                                  x
+                                  y
+                                  pick-x
+                                  pick-y
+                                  %ray-x
+                                  pick-y)
+        (set! intersections (+ intersections
+                               1)))
+    (set! previous-x x)
+    (set! previous-y y)))
 
 ;; Curve hit test
 
 (define (curve-to xx1 yy1 xx2 yy2 xx3 yy3)
-    (let-values (((x1 y1) (transform xx1 yy1))
-		 ((x2 y2) (transform xx2 yy2))
-		 ((x3 y3) (transform xx3 yy3)))
-		(let ((count (line-bezier-intersection-count-vertices 
+  (let-values (((x1 y1) (transform xx1 yy1))
+               ((x2 y2) (transform xx2 yy2))
+               ((x3 y3) (transform xx3 yy3)))
+    (let ((count (line-bezier-intersection-count-vertices
 			      pick-x pick-y %ray-x pick-y
 			      previous-x previous-y x1 y1 x2 y2 x3 y3)))
-		  (set! previous-x x3)
-		  (set! previous-y y3)
-		  (set! intersections (+ intersections
-					 count)))))
-  
+      (set! previous-x x3)
+      (set! previous-y y3)
+      (set! intersections (+ intersections
+                             count)))))

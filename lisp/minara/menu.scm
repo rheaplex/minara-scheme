@@ -32,19 +32,19 @@
   :use-module (minara-internal events)
   :use-module (minara-internal menu)
   :export (menu-id-make
-	   menu-callback-add
-	   menu-callback-remove
-	   menu-callback
-	   menu-make-toplevel title
-	   menu-make
-	   menu-name
-	   menu-id
-	   menu-install-toplevel 
-	   menu-make-entry
-	   menu-delete-entry))
+           menu-callback-add
+           menu-callback-remove
+           menu-callback
+           menu-make-toplevel title
+           menu-make
+           menu-name
+           menu-id
+           menu-install-toplevel
+           menu-make-entry
+           menu-delete-entry))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; The global menu / menu item id count 
+;; The global menu / menu item id count
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define menu-item-id 1024)
@@ -64,11 +64,11 @@
 
 (define (menu-callback-add id callback)
   (set! menu-callbacks
-	(acons id callback menu-callbacks)))
+        (acons id callback menu-callbacks)))
 
 (define (menu-callback-remove id)
   (set! menu-callbacks
-	(assq-remove! menu-callbacks id)))
+        (assq-remove! menu-callbacks id)))
 
 (define (menu-callback id)
   (assoc id menu-callbacks))
@@ -136,8 +136,8 @@
 (define (default-menu-handler window-id menu-id)
   (let ((handler (cdr (menu-callback menu-id))))
     (if handler
-	(handler window-id))))
-  
+        (handler window-id))))
+
 (define (install-default-menu-handler)
   (add-menu-select-hook default-menu-handler)
   (bind-event-hooks))
@@ -150,17 +150,17 @@
 ;; testing
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; (define (pen-dummy window-id)
-;   (write "called pen dummy"))
+                                        ; (define (pen-dummy window-id)
+                                        ;   (write "called pen dummy"))
 
-; (define (colour-dummy window-id)
-;   (write "called colour dummy"))
+                                        ; (define (colour-dummy window-id)
+                                        ;   (write "called colour dummy"))
 
-; (define (select-dummy window-id)
-;   (write "called select dummy"))
+                                        ; (define (select-dummy window-id)
+                                        ;   (write "called select dummy"))
 
-; (define menoo (menu-make-toplevel "tools"))
-; (menu-make-entry menoo "pen" pen-dummy)
-; (menu-make-entry menoo "colour" colour-dummy)
-; (menu-make-entry menoo "select" select-dummy)
-; (menu-install-toplevel menoo)
+                                        ; (define menoo (menu-make-toplevel "tools"))
+                                        ; (menu-make-entry menoo "pen" pen-dummy)
+                                        ; (menu-make-entry menoo "colour" colour-dummy)
+                                        ; (menu-make-entry menoo "select" select-dummy)
+                                        ; (menu-install-toplevel menoo)

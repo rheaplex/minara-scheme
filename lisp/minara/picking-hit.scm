@@ -25,32 +25,31 @@
 (define-module (minara picking-hit)
   :use-module (srfi srfi-9)
   :export (make-picking-hit
-	   picking-hit?
-	   picking-hit-index
-	   picking-hit-from
-	   set-picking-hit-from!
-	   picking-hit-to
-	   set-picking-hit-to!
-	   picking-hit-transform))
+           picking-hit?
+           picking-hit-index
+           picking-hit-from
+           set-picking-hit-from!
+           picking-hit-to
+           set-picking-hit-to!
+           picking-hit-transform))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; A picking hit
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define-record-type picking-hit
-    (make-picking-hit index
-		      from
-		      to
-		      transformation)
+  (make-picking-hit index
+                    from
+                    to
+                    transformation)
   picking-hit?
   ;; Which hit was it in the pick?
   (index picking-hit-index)
   ;; Which character in the buffer does the hit start at?
   (from picking-hit-from
-	set-picking-hit-from!)
+        set-picking-hit-from!)
   ;; Which character in the buffer does the hit go to?
   (to picking-hit-to
       set-picking-hit-to!)
   ;; The transformation of the hit
   (transformation picking-hit-transform))
-		      
