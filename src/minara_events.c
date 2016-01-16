@@ -1,6 +1,6 @@
 /*
     minara - a programmable graphics program editor
-    Copyright (C) 2004, 2009  Rob Myers rob@robmyers.org
+    Copyright (C) 2004, 2009, 2016 Rob Myers rob@robmyers.org
 
     This file is part of minara.
 
@@ -77,8 +77,6 @@ SCM mouse_move_hook;
 SCM key_press_hook;
 /** The current key releaseded event scheme hook */
 SCM key_release_hook;
-/** The current menu selected event scheme hook */
-SCM menu_select_hook;
 
 /*-----------------------------------------------------------------------------
   Functions
@@ -96,24 +94,22 @@ SCM menu_select_hook;
 void
 bind_event_hooks ()
 {
-  quit_hook = 
+  quit_hook =
     scm_c_eval_string ("(@@ (minara events) %quit-hook)");
-  resize_hook = 
+  resize_hook =
     scm_c_eval_string ("(@@ (minara events) %resize-hook)");
-  draw_hook = 
+  draw_hook =
     scm_c_eval_string ("(@@ (minara events) %draw-hook)");
-  mouse_button_down_hook = 
+  mouse_button_down_hook =
     scm_c_eval_string ("(@@ (minara events) %mouse-down-hook)");
-  mouse_button_up_hook = 
+  mouse_button_up_hook =
     scm_c_eval_string ("(@@ (minara events) %mouse-up-hook)");
-  mouse_move_hook = 
+  mouse_move_hook =
     scm_c_eval_string ("(@@ (minara events) %mouse-move-hook)");
-  key_press_hook = 
+  key_press_hook =
     scm_c_eval_string ("(@@ (minara events) %key-press-hook)");
-  key_release_hook = 
+  key_release_hook =
     scm_c_eval_string ("(@@ (minara events) %key-release-hook)");
-  menu_select_hook = 
-    scm_c_eval_string ("(@@ (minara events) %menu-select-hook)");
 }
 
 /**
@@ -259,18 +255,6 @@ glut_mouse_move (int x, int y)
 {
   scm_call_3 (mouse_move_hook, minara_window_current (),
 	      scm_from_int32 (x), scm_from_int32 (y));
-}
-
-/**
-   The menu select callback for GLUT.
-   @param id The menu id number.
-*/
-
-void
-glut_menu_select (int id)
-{
-  scm_call_2 (menu_select_hook, minara_window_current (),
-	      scm_from_int32 (id));
 }
 
 /**

@@ -47,11 +47,10 @@
 #include "minara_rendering.h"
 #include "minara_cache.h"
 #include "minara_window.h"
-#include "minara_menu.h"
 
 /*-----------------------------------------------------------------------------
   Main Program Entry Point
-  
+
   Starts the window system, starts the Lisp system, and loads the Lisp
   bootstrap code.
   So we start GLUT and Guile, then load minara-bootstrap.scm .
@@ -89,7 +88,6 @@ real_main ()
   rendering_startup ();
   cache_startup ();
   window_startup ();
-  menu_startup ();
   events_startup ();
   //Bootstrap the Guile code (libraries, tools, etc.)
   // Here so all the C extensions are loaded first and GLUT is initialised
