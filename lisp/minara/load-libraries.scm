@@ -54,7 +54,6 @@
     "window"
     "events"
     "command-line"
-    "menu"
     "geometry"
     "tool"
     "view"

@@ -60,9 +60,9 @@
        (cond
         ((< y 0.0)
          270.0)
-        ((> v 0.0)
+        ((> y 0.0)
          90.0)
-        ((= v 0.0)
+        ((= y 0.0)
          0.0)))
       (else
        (let ((r (* (atan (/ y
@@ -143,8 +143,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (point-line-side p0 p2 p1)
-  (- (* (- (x p1) (x p0)) (- (y p2) (y p0)))
-     (* (- (x p2) (x p0)) (- (y p1) (y p0)))))
+  (- (* (- (point-x p1) (point-x p0)) (- (point-y p2) (point-y p0)))
+     (* (- (point-x p2) (point-x p0)) (- (point-y p1) (point-y p0)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -182,6 +182,7 @@
 
 ;; Divide the bezier into two equal halves
 ;; Left first, then right. Two lists of vertex co-ordinates
+;;FIXME: fix me.
 
 (define (split-bezier h0 v0 h1 v1 h2 v2 h3 v3)
   (let* ((p01 (/ (add-point h0 v0 h1 v1) 2.0))
@@ -193,7 +194,7 @@
                              (point-x p23) (point-y p23)) 2.0))
          (p0123 (/ (add-point (point-x p012) (point-y p012)
                               (point-x p123) (point-y p123)) 2.0)))
-    (list (list h0 v0 h01 v01 (point-x 012) (point-y 012)
+    (list (list h0 v0 h1 v1 (point-x 012) (point-y 012)
                 (point-x 0123) (point-y 0123))
           (list (point-x 0123) (point-y 0123) (point-x 123) (point-y 123)
                 h23 v23 h3 v3))))

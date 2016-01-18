@@ -1,0 +1,39 @@
+;; config.scm : some basic configuration values for minara
+;;
+;; Copyright (c) 2016 Rob Myers, rob@robmyers.org
+;;
+;; This file is part of minara.
+;;
+;; minara is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3 of the License, or
+;; (at your option) any later version.
+;;
+;; minara is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+(define-module (minara config)
+  :use-module (ice-9 i18n)
+  :use-module (srfi srfi-98)
+  :export ($minara-name
+           $minara-version
+           $minara-lisp-dir
+           $minara-dotminara-dir))
+
+(define $minara-name "@PACKAGE@")
+(define $minara-version "@VERSION@")
+
+;; Allow the user to specify a data dir, particularly for testing
+(define $minara-data-dir-env (string-append (string-locale-upcase $minara-name)
+                                            "_DATADIR"))
+;; datarootdir doesn't seem to expand properly as of automake 2..69
+(define $minara-data-dir (or (get-environment-variable $minara-data-dir-env)
+                             "@prefix@/share/@PACKAGE@/@VERSION@"))
+
+(define $minara-lisp-dir (string-append $minara-data-dir "/lisp"))
+(define $minara-dotminara-dir (string-append $minara-data-dir "/dotminara"))

@@ -1,6 +1,6 @@
 ;; events.scm : gui event handling for minara
 ;;
-;; Copyright (c) 2004, 2010 Rob Myers, rob@robmyers.org
+;; Copyright (c) 2004, 2010, 2016 Rob Myers, rob@robmyers.org
 ;;
 ;; This file is part of minara.
 ;;
@@ -32,28 +32,32 @@
 
 (define-module (minara events)
   :use-module (system vm trace)
-  :use-module (minara-internal events)
   :use-module (minara keymap)
   :use-module (minara window)
-  :export (add-quit-hook
+  :export (call-quit-hooks
+           add-quit-hook
            remove-quit-hook
+           call-resize-hooks
            add-resize-hook
            remove-resize-hook
+           call-draw-hooks
            add-draw-hook
            remove-draw-hook
+           call-mouse-down-hooks
            add-mouse-down-hook
            remove-mouse-down-hook
+           call-mouse-up-hooks
            add-mouse-up-hook
            remove-mouse-up-hook
+           call-mouse-move-hooks
            add-mouse-move-hook
            remove-mouse-move-hook
+           call-key-press-hooks
            add-key-press-hook
-           remove-key-press-hook
+           remove-key-press-hooks
+           call-key-release-hooks
            add-key-release-hook
-           remove-key-release-hook
-           add-menu-select-hook
-           remove-menu-select-hook
-           bind-event-hooks))
+           remove-key-release-hook))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Quitting
@@ -61,13 +65,10 @@
 
 (define %quit-funs '())
 
-(define (%quit-hook)
-  (call-with-trace
-   (lambda ()
-     (for-each (lambda (fun)
-                 (fun))
-               %quit-funs))
-   event-error-handler))
+(define (call-quit-hooks)
+  (for-each (lambda (fun)
+              (fun))
+            %quit-funs))
 
 (define (add-quit-hook fun)
   (if (not (memq fun
@@ -88,15 +89,13 @@
 
 (define %resize-funs '())
 
-(define (%resize-hook win width height)
-  (let ((window (window-for-id win)))
-    (call-with-trace
-     (lambda ()
-       (for-each (lambda (fun)
-                   (fun window
-                        width
-                        height))
-                 %resize-funs)))))
+(define (call-resize-hooks win-id width height)
+  (let ((win (window-for-id win-id)))
+    (for-each (lambda (fun)
+                (fun win
+                     width
+                     height))
+              %resize-funs)))
 
 (define (add-resize-hook fun)
   (if (not (memq fun
@@ -113,11 +112,9 @@
 ;; GLUT's window co-ords go down, OGL's go up.
 ;; So we need to allow for this
 
-(define (%update-window-dimensions window width height)
-  ((@@ (minara window) %set-window-width!) window
-   width)
-  ((@@ (minara window) %set-window-height!) window
-   height))
+(define (%update-window-dimensions win width height)
+  (set-window-width! win width)
+  (set-window-height! win height))
 
 (add-resize-hook %update-window-dimensions)
 
@@ -132,13 +129,11 @@
 
 (define %draw-funs '())
 
-(define (%draw-hook win)
-  (let ((window (window-for-id win)))
-    (call-with-trace
-     (lambda ()
-       (for-each (lambda (fun)
-                   (fun window))
-                 %draw-funs)))))
+(define (call-draw-hooks win-id)
+  (let ((win (window-for-id win-id)))
+    (for-each (lambda (fun)
+                (fun win))
+              %draw-funs)))
 
 (define (add-draw-hook fun)
   (if (not (memq fun
@@ -159,18 +154,16 @@
 
 (define %mouse-down-funs '())
 
-(define (%mouse-down-hook win button x y)
-  (let ((window (window-for-id win)))
-    (call-with-trace
-     (lambda ()
-       (let ((yy (%swizzle-y window
-                             y)))
-         (for-each (lambda (fun)
-                     (fun window
-                          button
-                          x
-                          yy))
-                   %mouse-down-funs))))))
+(define (call-mouse-down-hooks win-id button x y)
+  (let ((win (window-for-id win-id)))
+    (let ((yy (%swizzle-y win
+                          y)))
+      (for-each (lambda (fun)
+                  (fun win
+                       button
+                       x
+                       yy))
+                %mouse-down-funs))))
 
 (define (add-mouse-down-hook fun)
   (if (not (memq fun
@@ -191,18 +184,16 @@
 
 (define %mouse-up-funs '())
 
-(define (%mouse-up-hook win button x y)
-  (let ((window (window-for-id win)))
-    (call-with-trace
-     (lambda ()
-       (let ((yy (%swizzle-y window
-                             y)))
-         (for-each (lambda (fun)
-                     (fun window
-                          button
-                          x
-                          yy))
-                   %mouse-up-funs))))))
+(define (call-mouse-up-hooks win-id button x y)
+  (let ((win (window-for-id win-id)))
+    (let ((yy (%swizzle-y win
+                          y)))
+      (for-each (lambda (fun)
+                  (fun win
+                       button
+                       x
+                       yy))
+                %mouse-up-funs))))
 
 (define (add-mouse-up-hook fun)
   (if (not (memq fun
@@ -223,17 +214,15 @@
 
 (define %mouse-move-funs '())
 
-(define (%mouse-move-hook win x y)
-  (let ((window (window-for-id win)))
-    (call-with-trace
-     (lambda ()
-       (let ((yy (%swizzle-y window
-                             y)))
-         (for-each (lambda (fun)
-                     (fun window
-                          x
-                          yy))
-                   %mouse-move-funs))))))
+(define (call-mouse-move-hooks win-id x y)
+  (let ((win (window-for-id win-id)))
+    (let ((yy (%swizzle-y win
+                          y)))
+      (for-each (lambda (fun)
+                  (fun win
+                       x
+                       yy))
+                %mouse-move-funs))))
 
 (define (add-mouse-move-hook fun)
   (if (not (memq fun
@@ -254,15 +243,13 @@
 
 (define %key-press-funs '())
 
-(define (%key-press-hook win key modifiers)
-  (let ((window (window-for-id win)))
-    (call-with-trace
-     (lambda ()
-       (for-each (lambda (fun)
-                   (fun window
-                        key
-                        modifiers))
-                 %key-press-funs)))))
+(define (call-key-press-hooks win-id key modifiers)
+  (let ((win (window-for-id win-id)))
+    (for-each (lambda (fun)
+                (fun win
+                     key
+                     modifiers))
+              %key-press-funs)))
 
 (define (add-key-press-hook fun)
   (if (not (memq fun
@@ -283,15 +270,13 @@
 
 (define %key-release-funs '())
 
-(define (%key-release-hook win key modifiers)
-  (let ((window (window-for-id win)))
-    (call-with-trace
-     (lambda ()
-       (for-each (lambda (fun)
-                   (fun window
-                        key
-                        modifiers))
-                 %key-release-funs)))))
+(define (call-key-release-hooks win-id key modifiers)
+  (let ((win (window-for-id win-id)))
+    (for-each (lambda (fun)
+                (fun win
+                     key
+                     modifiers))
+              %key-release-funs)))
 
 (define (add-key-release-hook fun)
   (if (not (memq fun
@@ -304,34 +289,6 @@
   (set! %key-release-funs
         (delq fun
               %key-release-funs)))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Menu Selection
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(define %menu-select-funs '())
-
-(define (%menu-select-hook win menu-id)
-  (let ((window (window-for-id win)))
-    (call-with-trace
-     (lambda ()
-       (for-each (lambda (fun)
-                   (fun window
-                        menu-id))
-                 %menu-select-funs)))))
-
-(define (add-menu-select-hook fun)
-  (if (not (memq fun
-                 %menu-select-funs))
-      (set! %menu-select-funs
-            (cons fun
-                  %menu-select-funs))))
-
-(define (remove-menu-select-hook fun)
-  (set! %menu-select-funs
-        (delq fun
-              %menu-select-funs)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -355,12 +312,3 @@
 ;; Register keys for editing a window
 
 (keymap-add-fun-global external-edit-current-window "x" "e")
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Make these event handlers accessible to the C code
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(define (bind-event-hooks)
-  (%bind-event-hooks))
-
-(bind-event-hooks)

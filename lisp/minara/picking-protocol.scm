@@ -1,6 +1,6 @@
 ;; picking-protocol.scm : the picking buffer evaluation protocol for minara
 ;;
-;; Copyright (c) 2004-2006 Rob Myers, rob@robmyers.org
+;; Copyright (c) 2004-2006, 2016 Rob Myers, rob@robmyers.org
 ;;
 ;; This file is part of minara.
 ;;
@@ -97,7 +97,7 @@
            move-to
            line-to
            curve-to
-           set-colour
+           set-rgba
            begin-mask
            end-mask
            begin-masking
@@ -136,10 +136,10 @@
 (define previous-x #f)
 (define previous-y #f)
 
-;; Keep track of which colour we're currently using
+;; Keep track of which rgba we're currently using
 ;; (We'll need to keep track of any other fill methods as well,
 ;;  but we will never stroke, so we won't need to track that.)
-(define current-colour #f)
+(define current-rgba #f)
 
 ;; Keep track of the current transformations
 (define current-translate #f)
@@ -174,7 +174,7 @@
   (set! previous-buffer-string buffstr)
   (set! previous-x #f)
   (set! previous-y #f)
-  (set! current-colour 0)
+  (set! current-rgba 0)
   (set! current-polygon 0)
   (set! previous-polygon 0)
   (set! intersections 0)
@@ -187,9 +187,9 @@
 (define (finalise-protocol)
   picked-polygons)
 
-;; Keep track of the colour
-(define (set-colour r g b a)
-  (set! current-colour (+ current-colour 1)))
+;; Keep track of the rgba
+(define (set-rgba r g b a)
+  (set! current-rgba (+ current-rgba 1)))
 
 ;; Keep track of the transforms
 ;; TODO: do it.
@@ -257,7 +257,7 @@
                                     transformation-stack))))))
 
 ;; Check the intersections. Even = inside, Odd = oustide
-;; Store the colour and anything else in a list with the polygon number?
+;; Store the rgba and anything else in a list with the polygon number?
 (define (path-end)
   (if (and (odd? intersections)
            (not (= intersections

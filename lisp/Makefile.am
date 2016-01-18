@@ -1,4 +1,4 @@
-SUBDIRS = minara scripts tools
+SUBDIRS = minara minara-internal scripts tools
 
 lispdir = $(datadir)/minara/$(VERSION)/lisp
 

@@ -22,7 +22,7 @@
   :use-module (ice-9 rdelim)
   :use-module (ice-9 getopt-long)
   :use-module (minara window)
-  :use-module (minara-internal config)
+  :use-module (minara config)
   :export (cli-handle-arguments))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -47,9 +47,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (cli-version)
-  (write-line "minara 0.4.0")
-  (write-line "Copyright (C) 2004, 2010 Rob Myers")
-  (write-line "You may redistribute copies of Emacs")
+  (write-line (string-append $minara-name " " $minara-version))
+  (write-line "Copyright (C) 2004, 2010, 2016 Rob Myers")
+  (write-line (string-append "You may redistribute copies of " $minara-name))
   (write-line "under the terms of the GNU General Public License.")
   (write-line
    "For more information about these matters, see the file named COPYING.")

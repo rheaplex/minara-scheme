@@ -1,6 +1,6 @@
 ;; keymap.scm : keymaps for minara
 ;;
-;; Copyright (c) 2004, 2010 Rob Myers, rob@robmyers.org
+;; Copyright (c) 2004, 2010, 2016 Rob Myers, rob@robmyers.org
 ;;
 ;; This file is part of minara.
 ;;
@@ -39,40 +39,6 @@
            dispatch-keymap
            dispatch-key
            key-dispatch-hook-method))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Window-system-specific constants
-;; Here GLUT constants
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(define GLUT_KEY_F1			1)
-(define GLUT_KEY_F2			2)
-(define GLUT_KEY_F3			3)
-(define GLUT_KEY_F4			4)
-(define GLUT_KEY_F5			5)
-(define GLUT_KEY_F6			6)
-(define GLUT_KEY_F7			7)
-(define GLUT_KEY_F8			8)
-(define GLUT_KEY_F9			9)
-(define GLUT_KEY_F10			10)
-(define GLUT_KEY_F11			11)
-(define GLUT_KEY_F12			12)
-;; directional keys
-(define GLUT_KEY_LEFT			100)
-(define GLUT_KEY_UP			101)
-(define GLUT_KEY_RIGHT			102)
-(define GLUT_KEY_DOWN			103)
-(define GLUT_KEY_PAGE_UP		104)
-(define GLUT_KEY_PAGE_DOWN		105)
-(define GLUT_KEY_HOME			106)
-(define GLUT_KEY_END			107)
-(define GLUT_KEY_INSERT			108)
-
-;; glutGetModifiers return mask.
-(define GLUT_ACTIVE_SHIFT               1)
-(define GLUT_ACTIVE_CTRL                2)
-(define GLUT_ACTIVE_ALT                 4)
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Making and getting keymaps
@@ -200,43 +166,24 @@
                   "No match for key ~a in current or global keymap.~%"
                   key))))
 
-
-;; Control really isn't happy on Fedora 13!
-;; Limit it to a..z ONLY
-;; Work out what's going wrong here and fix, or avoid modifiers altogether
-(define (key-with-control-key key)
-  (if (> (string-length key) 0)
-      (let ((key-code (char->integer (string-ref key 0))))
-        ;; If it's a letter, make it an ascii letter, otherwise ignore
-        (if (< key-code 27)
-            (string #\C (integer->char (+ key-code 96)))
-            #f))
-      #f))
-
 ;; Our method to interface to the event system
-;; Note that whilst getting shift alt ans control is GLUT-dependent,
-;; once we make the booleans it could be any windowing system
-(define (key-dispatch-hook-method win key modifiers)
-  (let ((shift (= 1 (logand modifiers
-                            GLUT_ACTIVE_SHIFT)))
-        (control (= 2 (logand modifiers
-                              GLUT_ACTIVE_CTRL)))
-        (alt (= 4 (logand modifiers
-                          GLUT_ACTIVE_ALT))))
-    ;; Shift is just the upper-case character. Ensure it *is* upper-case.
-    (if control
-        (set! key (key-with-control-key key)))
-    (if (and key alt)
-        (set! key (string-append "A" key)))
-    ;; Like this because of the control-key problems, see key-with-control-key
-    (if (and key shift)
-        (set! key (string-upcase key)))
-    (dispatch-key key)))
 
+(define (key-dispatch-hook-method win key-char modifiers)
+  (let ((key (string key-char))
+        (shift (memq 'shift modifiers))
+        (control (memq 'control modifiers))
+        (alt (memq 'alt modifiers)))
+    ;; Shift is just the upper-case character. Ensure it *is* upper-case.
+    (if shift
+        (set! key (string-upcase key)))
+    (if control
+        (set! key (string-append "C" key)))
+    (if alt
+        (set! key (string-append "A" key)))
+    (dispatch-key key)))
 
 ;; Install the cancel key into the global keymap
 (keymap-add-fun %global-keymap reset-current-keymap "Cg")
-
 
 ;; TEST
 

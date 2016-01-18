@@ -1,6 +1,6 @@
 ;; minara-bootstrap.scm : main setup code for minara
 ;;
-;; Copyright (c) 2004, 2010 Rob Myers, rob@robmyers.org
+;; Copyright (c) 2004, 2010, 2016 Rob Myers, rob@robmyers.org
 ;;
 ;; This file is part of minara.
 ;;
@@ -17,24 +17,51 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Main startup code
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (read-enable 'positions)
 
-(use-modules (minara-internal config) (minara-internal events))
 
-(set! %load-path (cons $minara-lisp-dir %load-path))
+(define-module (minara-bootstrap)
+  :use-module (minara config)
+  :use-module (minara events)
+  :use-module (minara command-line)
+  :use-module (minara selection)
+  :use-module (minara-internal gtk-application))
 
-(use-modules (minara load-libraries))
+(define library-defs
+  '(("tools" . ("colour-tools"
+                "pen-tools"
+                "shape-tools"))))
 
-(load-minara-files)
+(define (load-file path file)
+  (let ((filepath (string-append path "/" file ".scm")))
+    (display "Loading: ")(display filepath)(newline)
+    (primitive-load filepath)))
 
-(bind-event-hooks)
+(define (load-files path files)
+  (for-each (lambda (file)
+              (load-file path file))
+            files))
 
-(use-modules (minara command-line))
+(for-each (lambda (library-def)
+            (let ((dir (car library-def))
+                  (files (cdr library-def)))
+              (load-files (string-append $minara-lisp-dir "/" dir)
+                          files)))
+          library-defs)
+
+(event-callbacks-register call-quit-hooks
+                          call-resize-hooks
+                          call-draw-hooks
+                          call-mouse-down-hooks
+                          call-mouse-up-hooks
+                          call-mouse-move-hooks
+                          call-key-press-hooks
+                          call-key-release-hooks)
 
 (cli-handle-arguments)
+
+(event-loop-main)

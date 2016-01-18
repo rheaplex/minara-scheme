@@ -1,5 +1,5 @@
-minaradir = $(datadir)/minara/$(VERSION)/lisp/minara
+minaratoolsdir = $(datadir)/$(PACKAGE)/$(VERSION)/lisp/tools
 
-minara_DATA = colour-tools.scm pen-tools.scm shape-tools.scm
+minaratools_DATA = colour-tools.scm pen-tools.scm shape-tools.scm
 
-EXTRA_DIST = $(minara_DATA)
+EXTRA_DIST = $(minaratools_DATA)

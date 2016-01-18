@@ -1,0 +1,2 @@
+LISPDIR="/usr/local/share/minara/0.4.0/lisp"
+guile -L $LISPDIR $LISPDIR/minara-bootstrap.scm

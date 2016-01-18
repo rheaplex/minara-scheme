@@ -1,16 +1,11 @@
 (read-enable 'positions)
 
-(if (not (defined? '$minara-lisp-dir)) 
+(if (not (defined? '$minara-lisp-dir))
     (define $minara-lisp-dir "."))
 
 (set! %load-path (cons $minara-lisp-dir %load-path))
 
 ;; Dummies
-
-(define-module (minara-internal cache)
-  :export (cache-draw cache-make cache-record-begin cache-draw-end))
-
-(define (cache-make) #t)
 
 (define-module (minara-internal window)
   :export ("window-make" "window-dispose" "window-current-id"
@@ -23,9 +18,6 @@
 (define (%bind-event-hooks) #f)
 
 (define-module (minara-internal config))
-
-(define-module (minara-internal menu)
-  :export ("menu-make" "menu-install" "menu-add-entry" "menu-remove-entry"))
 
 (define-module (minara-test)
   :use-module (minara load-libraries))

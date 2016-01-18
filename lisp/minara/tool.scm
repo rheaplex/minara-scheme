@@ -1,6 +1,6 @@
 ;; tool.scm : tool handling for minara
 ;;
-;; Copyright (c) 2004, 2010 Rob Myers, rob@robmyers.org
+;; Copyright (c) 2004, 2010, 2016 Rob Myers, rob@robmyers.org
 ;;
 ;; This file is part of minara.
 ;;
@@ -20,12 +20,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Tools
 ;; A tool is a set of event handlers and routines to install/uninstall them,
-;; hooked up to the main keymap and the tool menu.
+;; hooked up to the main keymap.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define-module (minara tool)
   :use-module (minara window)
-  :use-module (minara menu)
   :use-module (minara keymap)
   :export (install-tool
            remove-current-tool
@@ -35,19 +34,18 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Install a tool
-;; This gives access to the tool from the menu and keyboard,
+;; This gives access to the tool from the keyboard,
 ;; And installs an uninstall function (setup can be done by install-fun)
 ;; The install has to add the event handlers, the uninstall has to remove them
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define (install-tool install-fun uninstall-fun menu-name . key-combo)
+(define (install-tool install-fun uninstall-fun tool-name . key-combo)
   (let ((install-fun-with-boilerplate
          (lambda ()
            (remove-current-tool)
-           (set-current-tool-name! menu-name)
+           (set-current-tool-name! tool-name)
            (set! %remove-current-tool-hook uninstall-fun)
            (install-fun))))
-    (menu-callback-add menu-name install-fun-with-boilerplate)
     (apply keymap-add-fun-global
            install-fun-with-boilerplate
            key-combo)))

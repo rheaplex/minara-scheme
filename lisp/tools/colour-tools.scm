@@ -1,6 +1,6 @@
 ;; colour-tools.scm : colour picking for minara
 ;;
-;; Copyright (c) 2004, 2010 Rob Myers, rob@robmyers.org
+;; Copyright (c) 2004, 2010, 2016 Rob Myers, rob@robmyers.org
 ;;
 ;; This file is part of minara.
 ;;
@@ -22,7 +22,7 @@
 
 (use-modules (minara tool) (minara events) (minara keymap) (minara window))
 
-(define current-colour "(set-colour 0.0 0.0 0.0 0.0)")
+(define current-colour "(set-rgba 0.0 0.0 0.0 1.0)")
 
 (define (write-current-colour buff)
   (buffer-insert-undoable buff
@@ -39,7 +39,7 @@
 (define rgb-current-r (make-variable 0.0))
 (define rgb-current-g (make-variable 0.0))
 (define rgb-current-b (make-variable 0.0))
-(define rgb-current-a (make-variable 0.0))
+(define rgb-current-a (make-variable 1.0))
 
 ;; Set this to a component rather than #f so that the user isn't frustrated by
 ;; +/- etc not working until they select a component.
@@ -47,7 +47,7 @@
 
 (define (rgb-current-string)
   (format #f
-          "(set-colour ~f ~f ~f ~f)"
+          "(set-rgba ~f ~f ~f ~f)"
           (variable-ref rgb-current-r)
           (variable-ref rgb-current-g)
           (variable-ref rgb-current-b)

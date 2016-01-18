@@ -1,6 +1,6 @@
 ;; window.scm : windows for minara
 ;;
-;; Copyright (c) 2004, 2010 Rob Myers, rob@robmyers.org
+;; Copyright (c) 2004, 2010, 2016 Rob Myers, rob@robmyers.org
 ;;
 ;; This file is part of minara.
 ;;
@@ -29,10 +29,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define-module (minara window)
-  :use-module (minara-internal window)
   :use-module (srfi srfi-9)
   :use-module (minara buffer)
   :use-module (minara keymap)
+  ;; Indirect this
+  :use-module (minara-internal gtk-application)
   :export (window
            window-id
            window-buffers
@@ -40,6 +41,8 @@
            set-window-buffers!
            window-width
            window-height
+           set-window-width!
+           set-window-height!
            window-status
            set-window-status!
            window-tool-name
@@ -58,7 +61,6 @@
            window-redraw-event
            $external-edit-command
            external-edit-current-window
-           window-status-temporary
            add-window-pre-main-buffer-hook
            add-window-post-main-buffer-hook
            window-for-id
@@ -81,7 +83,7 @@
 
 ;; The list of windows
 
-(define *windows* (make-hash-table 31))
+(define *windows* '())
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -91,7 +93,10 @@
 ;; Convert a GLUT window ID to a minra window structure
 
 (define (window-for-id id)
-  (hash-ref *windows* id))
+  (let ((entry (assq id *windows*)))
+    (if (not entry)
+        (begin (display "NOT REGISTERED: ")(display id)(newline)))
+    (cdr entry)))
 
 ;; The window record
 
@@ -112,10 +117,10 @@
            set-window-buffers!)
   ;; The window's width
   (width window-width
-         %set-window-width!)
+         set-window-width!)
   ;; The window's height
   (height window-height
-          %set-window-height!)
+          set-window-height!)
   ;; The window's variables
   (variables window-variables
              set-window-variables!)
@@ -164,7 +169,8 @@
           ""
           ""
           '())))
-    (hash-create-handle! *windows* (window-id window) window)
+    (set! *windows*
+          (assoc-set! *windows* (window-id window) window))
     ;; Redraw timestamp
     (initialise-timestamp! window)
     (set-window-variable! window '_initial-width $window-width)
@@ -195,6 +201,7 @@
     (make-window-main-buffer win (make-buffer))
     ;; Set title
     (set-window-title! win %untitled-window-name)
+    (window-display (window-id win))
     win))
 
 (define (make-window-from-file file-path)
@@ -206,6 +213,7 @@
                          (buffer-file (window-buffer-main win)))
     ;; Set title
     (set-window-title! win (window-name-base win))
+    (window-display (window-id win))
     win))
 
 ;; Get the window filename
@@ -215,13 +223,7 @@
          (buf-path (object-property buf 'filename)))
     (if (not buf-path)
         %untitled-window-name
-        (basename file-path ".minara"))))
-
-;; Set a window title bar information
-
-(define (set-window-title-info win info)
-  (window-set-title (append (window-name-base win)
-                            "[" info "]")))
+        (basename buf-path ".minara"))))
 
 (define (window-current)
   (window-for-id (window-current-id)))
@@ -325,9 +327,6 @@
         (begin
           (buffer-file-reload main)
           (window-redraw window)))))
-;;(window-status-temporary window
-;;			   "Buffer changed, not reloaded!"
-;;		   2))))
 
 (define (reload-current-window)
   (reload-window-buffer (window-current)))
@@ -349,12 +348,12 @@
 (define (window-draw cb)
   ;; Check timestamps, short circuiting on the first earlier than the window
   ;; If the window cache is more recent than the buffer timestamps
-  ((@ (minara rendering-protocol) push-matrix)) ;; Should be start rendering
+  ((@ (minara-internal cairo-rendering) push-matrix)) ;; Should be start rendering
   (for-each
    (lambda (buf-cons)
      (draw-buffer (cdr buf-cons))) ;; should take pure rendering module
    (window-buffers cb))
-  ((@ (minara rendering-protocol) pop-matrix)) ;; Should be stop rendering
+  ((@ (minara-internal cairo-rendering) pop-matrix)) ;; Should be stop rendering
   (update-timestamp! cb))
 
 ;; Draw or redraw a window's buffers/caches
@@ -366,14 +365,14 @@
   (window-draw-text (window-id window) 5 5 (window-status window)))
 
 (define (window-redraw-event window)
-  (let ((window-id (window-id window)))
+  (let ((win-id (window-id window)))
     (if (not (equal? window #f))
         (begin
-          (window-draw-begin window-id)
+          (window-draw-begin win-id)
           (window-draw window)
           (window-draw-tool-name window)
           (window-draw-minibuffer window)
-          (window-draw-end window-id)))))
+          (window-draw-end win-id)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -383,7 +382,7 @@
 ;; Find whether a buffer has ever been saved
 
 (define (buffer-has-file? buf)
-  (if (not  (object-property file-buffer 'filename))
+  (if (not (object-property buf 'filename))
       #f
       #t))
 
@@ -478,26 +477,3 @@
 ;; Register keys for editing a window
 
 (keymap-add-fun-global external-edit-current-window "x" "e")
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Window status line
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Set the status temporarily
-;; Argh, relies on threads which may not have been compiled in.
-
-(define (window-status-temporary window status duration)
-  (let ((old-status (window-status window)))
-    (set-window-status! window
-                        status)
-    (window-redraw (window-id window))
-    (begin-thread
-     (lambda ()
-       (sleep duration)
-       (if (string= status
-                    (window-status window))
-           (begin
-             (set-window-status! window
-                                 old-status)
-             (window-redraw (window-id window))))))))

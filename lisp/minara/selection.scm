@@ -1,6 +1,6 @@
 ;; selection.scm : selected object management for minara
 ;;
-;; Copyright (c) 2006, 2009, 2010 Rob Myers, rob@robmyers.org
+;; Copyright (c) 2006, 2009, 2010, 2016 Rob Myers, rob@robmyers.org
 ;;
 ;; This file is part of minara.
 ;;
@@ -101,30 +101,30 @@
   (cons (min (car a) (car b))
         (max (car a) (cdr b))))
 
-(define (combine-selections-aux range selections sorted)
+(define (combine-selections-list-aux range selections sorted)
   (if (selections)
       (let ((next-range (car selections))
             (rest (cdr selections)))
         (if (selections-overlap? range next-range)
-            (combine-selections-aux (car rest)
-                                    (cdr rest)
-                                    (cons (combine-selections range
-                                                              next-range)
-                                          sorted)))
-        (combine-selections-aux next-range
-                                rest
-                                (cons range sorted))))
+            (combine-selections-list-aux (car rest)
+                                         (cdr rest)
+                                         (cons (combine-selections range
+                                                                   next-range)
+                                               sorted)))
+        (combine-selections-list-aux next-range
+                                     rest
+                                     (cons range sorted))))
   (cons range sorted))
 
-(define (combine-selections selections)
-  (combine-selections-aux (car selections) (cdr selections)))
+(define (combine-selections-list selections)
+  (combine-selections-list-aux (car selections) (cdr selections) '()))
 
 (define (append-selections-var buffer range)
   (buffer-variable-set-undoable buffer
                                 "_selections"
-                                (sort-selection-ranges
-                                 (combine-selections
-                                  (append-selection-range
+                                (sort-selections
+                                 (combine-selections-list
+                                  (append-selection
                                    (selections-var buffer)
                                    range)))))
 
@@ -289,7 +289,7 @@
 ;; Copy the selections to a buffer, with translation code prepended.
 ;; The translation code gets the translation variables from the buffer
 ;;  when evaluating.
-;; We also override the colour setting and temporarily rebind set-colour.
+;; We also override the colour setting and temporarily rebind set-rgba.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (highlight-selection win)
@@ -301,13 +301,13 @@
     (buffer-insert-no-undo
      highlight-buffer
      #f
-     "(push-matrix)(translate (buffer-variable (current-buffer) \"x\") (buffer-variable (current-buffer) \"y\"))\n(set-colour 1.0 0.0 0.0 0.0)\n(define old-set-colour set-colour)\n(set! set-colour (lambda (a b c d) #f))\n")
+     "(push-matrix)(translate (buffer-variable (current-buffer) \"x\") (buffer-variable (current-buffer) \"y\"))\n(set-rgba 1.0 0.0 0.0 1.0)\n(define old-set-rgba set-rgba)\n(set! set-rgba (lambda (a b c d) #f))\n")
     (copy-selections-to-buffer (window-buffer-main win)
                                highlight-buffer)
     (buffer-insert-no-undo
      highlight-buffer
      #f
-     "\n(set! set-colour old-set-colour)(pop-matrix)\n") ;; Restore col!
+     "\n(set! set-rgba old-set-rgba)(pop-matrix)\n") ;; Restore col!
     (buffer-invalidate highlight-buffer)
     (window-redraw win)))
 
@@ -318,6 +318,16 @@
 ;; Ensuring that a selection is wrapped in a push/translate/pop block
 ;; This will need improving
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (roll-selections-down selections after by)
+  (for-each (lambda (selection)
+              ;; If the range is after the range we started inserting at,
+              (if (>= (car selection) after)
+                  ;; move the range along by the amount we inserted.
+                  (begin
+                    (set-car! (car selection) by)
+                    (set-cdr! (cdr selection) by))))
+            selections))
 
 (define (update-selection-ranges selections after by)
   (if selections

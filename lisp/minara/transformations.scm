@@ -103,7 +103,7 @@
   (let ((c (cos z))
         (s (sin z))
         (ns (- (sin z))))
-    (list c s nc c 0.0 0.0)))
+    (list c s ns c 0.0 0.0)))
 
 ;; to string
 
@@ -153,11 +153,11 @@
 ;; Concatenate a list of matrices
 
 (define (matrix-concatenaten a . ms)
-  (let ((product (concatenate a (car ms)))
+  (let ((product (matrix-concatenate a (car ms)))
         (rest (cdr ms)))
-    (if (nilp rest)
+    (if (not rest)
         product
-        (concatenaten product (cdr ms)))))
+        (matrix-concatenaten product (cdr ms)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
